@@ -1,0 +1,156 @@
+<section class="slide" data-title="Catálogo de comandos">
+  <div class="kicker">Ato 03 &middot; vocabulário</div>
+  <h2>Mais de 50 comandos &mdash; <em>estes</em> resolvem 90%</h2>
+  <div class="cols c2" style="margin-top:12px">
+    <div class="stackv">
+      <div class="grid3" id="cmdGrid">
+        <button class="card pick cmd on" data-group="cmd" data-value="launchApp"><h3>launchApp</h3></button>
+        <button class="card pick cmd" data-group="cmd" data-value="tapOn"><h3>tapOn</h3></button>
+        <button class="card pick cmd" data-group="cmd" data-value="inputText"><h3>inputText</h3></button>
+        <button class="card pick cmd" data-group="cmd" data-value="assertVisible"><h3>assertVisible</h3></button>
+        <button class="card pick cmd" data-group="cmd" data-value="scrollUntilVisible"><h3>scrollUntil…</h3></button>
+        <button class="card pick cmd" data-group="cmd" data-value="swipe"><h3>swipe</h3></button>
+        <button class="card pick cmd" data-group="cmd" data-value="waitFor"><h3>extendedWait…</h3></button>
+        <button class="card pick cmd" data-group="cmd" data-value="takeScreenshot"><h3>takeScreenshot</h3></button>
+        <button class="card pick cmd" data-group="cmd" data-value="setLocation"><h3>setLocation</h3></button>
+        <button class="card pick cmd" data-group="cmd" data-value="openLink"><h3>openLink</h3></button>
+        <button class="card pick cmd" data-group="cmd" data-value="setAirplane"><h3>setAirplaneMode</h3></button>
+        <button class="card pick cmd" data-group="cmd" data-value="ai"><h3>…WithAI</h3></button>
+      </div>
+      <div class="card" style="flex:none"><h3>O poder de estar fora do app</h3>
+        <p style="margin-top:5px">GPS, modo avião, modo escuro, permissões, notificação, orientação da tela, relógio do sistema, galeria de fotos.
+          Nenhuma ferramenta de caixa-branca consegue tocar nisso.</p></div>
+    </div>
+    <div class="code">
+      <div class="code-top"><i class="led r"></i><i class="led y"></i><i class="led g"></i><span id="cmdName">launchApp</span></div>
+      <div style="flex:1;min-height:0;display:flex">
+<pre class="sm cbox" data-panel="cmd" data-value="launchApp"><span class="c"># abre o app do zero, apagando dados</span>
+<span class="d">-</span> <span class="k">launchApp</span>:
+    <span class="k">appId</span>: <span class="s">"com.exemplo.app"</span>
+    <span class="k">clearState</span>: <span class="n">true</span>
+    <span class="k">permissions</span>:
+      <span class="k">camera</span>: <span class="s">allow</span>
+      <span class="k">location</span>: <span class="s">deny</span>
+
+<span class="c"># por que importa: teste que depende do</span>
+<span class="c"># estado anterior é teste que vai falhar</span>
+<span class="c"># na terça-feira sem ninguém entender.</span></pre>
+<pre class="sm cbox" data-panel="cmd" data-value="tapOn" hidden><span class="d">-</span> <span class="k">tapOn</span>: <span class="s">"Entrar"</span>
+
+<span class="d">-</span> <span class="k">tapOn</span>:
+    <span class="k">id</span>: <span class="s">"btn_menu"</span>
+    <span class="k">repeat</span>: <span class="n">3</span>
+    <span class="k">delay</span>: <span class="n">300</span>
+
+<span class="c"># variações: doubleTapOn, longPressOn</span>
+<span class="d">-</span> <span class="k">longPressOn</span>: <span class="s">"Mensagem antiga"</span>
+
+<span class="c"># o tapOn já espera o elemento aparecer:</span>
+<span class="c"># não precisa de wait antes.</span></pre>
+<pre class="sm cbox" data-panel="cmd" data-value="inputText" hidden><span class="d">-</span> <span class="k">tapOn</span>:
+    <span class="k">id</span>: <span class="s">"email_input"</span>
+<span class="d">-</span> <span class="k">inputText</span>: <span class="s">"ana@empresa.com"</span>
+
+<span class="c"># apagar antes de digitar</span>
+<span class="d">-</span> <span class="k">eraseText</span>
+<span class="d">-</span> <span class="k">inputText</span>: <span class="s">"${EMAIL}"</span>
+<span class="d">-</span> <span class="k">hideKeyboard</span>
+
+<span class="err"># ⚠ no Android: só ASCII.</span>
+<span class="err"># "João" e emoji não entram (bug conhecido)</span></pre>
+<pre class="sm cbox" data-panel="cmd" data-value="assertVisible" hidden><span class="c"># a asserção: o teste só passa se isso for verdade</span>
+<span class="d">-</span> <span class="k">assertVisible</span>: <span class="s">"Compra aprovada"</span>
+
+<span class="d">-</span> <span class="k">assertNotVisible</span>: <span class="s">"Erro"</span>
+
+<span class="d">-</span> <span class="k">assertTrue</span>: <span class="s">"${output.total > 0}"</span>
+
+<span class="c"># regressão visual: compara com um print salvo</span>
+<span class="d">-</span> <span class="k">assertScreenshot</span>: <span class="s">"tela_home"</span>
+
+<span class="c"># assertVisible tem retry embutido:</span>
+<span class="c"># ele insiste antes de reprovar.</span></pre>
+<pre class="sm cbox" data-panel="cmd" data-value="scrollUntilVisible" hidden><span class="c"># rola até achar — como um humano faria</span>
+<span class="d">-</span> <span class="k">scrollUntilVisible</span>:
+    <span class="k">element</span>:
+      <span class="k">text</span>: <span class="s">"Termos de uso"</span>
+    <span class="k">direction</span>: <span class="s">DOWN</span>
+    <span class="k">timeout</span>: <span class="n">20000</span>
+    <span class="k">speed</span>: <span class="n">40</span>
+
+<span class="c"># compare com a alternativa em outras libs:</span>
+<span class="c"># calcular offset em pixel e torcer.</span>
+<span class="c"># A doc chama isso de comando "idiomático".</span></pre>
+<pre class="sm cbox" data-panel="cmd" data-value="swipe" hidden><span class="d">-</span> <span class="k">swipe</span>:
+    <span class="k">direction</span>: <span class="s">LEFT</span>      <span class="c"># carrossel</span>
+
+<span class="d">-</span> <span class="k">swipe</span>:
+    <span class="k">from</span>:
+      <span class="k">id</span>: <span class="s">"item_lista"</span>
+    <span class="k">direction</span>: <span class="s">RIGHT</span>     <span class="c"># arrastar p/ excluir</span>
+
+<span class="d">-</span> <span class="k">swipe</span>:
+    <span class="k">start</span>: <span class="s">"50%, 80%"</span>
+    <span class="k">end</span>: <span class="s">"50%, 20%"</span></pre>
+<pre class="sm cbox" data-panel="cmd" data-value="waitFor" hidden><span class="c"># na maioria dos casos você NÃO precisa esperar.</span>
+<span class="c"># quando precisa (upload, processamento):</span>
+<span class="d">-</span> <span class="k">extendedWaitUntil</span>:
+    <span class="k">visible</span>: <span class="s">"Relatório pronto"</span>
+    <span class="k">timeout</span>: <span class="n">60000</span>
+
+<span class="d">-</span> <span class="k">waitForAnimationToEnd</span>:
+    <span class="k">timeout</span>: <span class="n">5000</span>
+
+<span class="c"># repare: espera por CONDIÇÃO, não por tempo.</span></pre>
+<pre class="sm cbox" data-panel="cmd" data-value="takeScreenshot" hidden><span class="d">-</span> <span class="k">takeScreenshot</span>: <span class="s">"01-tela-login"</span>
+
+<span class="c"># gravar a jornada inteira em vídeo</span>
+<span class="d">-</span> <span class="k">startRecording</span>: <span class="s">"fluxo-compra"</span>
+<span class="d">-</span> <span class="k">tapOn</span>: <span class="s">"Comprar"</span>
+<span class="d">-</span> <span class="k">stopRecording</span>
+
+<span class="c"># no terminal, gera um .mp4 da execução:</span>
+<span class="c"># maestro record flows/checkout.yaml</span>
+<span class="c"># ótimo para anexar no bug ou no TCC.</span></pre>
+<pre class="sm cbox" data-panel="cmd" data-value="setLocation" hidden><span class="c"># fingir que o usuário está em outro lugar</span>
+<span class="d">-</span> <span class="k">setLocation</span>:
+    <span class="k">latitude</span>: <span class="n">-23.6205</span>
+    <span class="k">longitude</span>: <span class="n">-45.4132</span>   <span class="c"># Caraguatatuba</span>
+
+<span class="d">-</span> <span class="k">assertVisible</span>: <span class="s">"Lojas perto de você"</span>
+
+<span class="c"># impossível num teste de componente:</span>
+<span class="c"># aqui é o GPS do aparelho que muda.</span></pre>
+<pre class="sm cbox" data-panel="cmd" data-value="openLink" hidden><span class="c"># deep link: entra direto numa tela interna</span>
+<span class="d">-</span> <span class="k">openLink</span>: <span class="s">"maestro://contrato/482"</span>
+
+<span class="c"># Expo Go (não use launchApp nesse caso)</span>
+<span class="d">-</span> <span class="k">openLink</span>: <span class="s">"exp://127.0.0.1:19000"</span>
+
+<span class="c"># atalho valioso: pula 6 telas de navegação</span>
+<span class="c"># e deixa o teste rápido e focado.</span></pre>
+<pre class="sm cbox" data-panel="cmd" data-value="setAirplane" hidden><span class="c"># testar o app SEM internet</span>
+<span class="d">-</span> <span class="k">setAirplaneMode</span>: <span class="s">enabled</span>
+<span class="d">-</span> <span class="k">tapOn</span>: <span class="s">"Sincronizar"</span>
+<span class="d">-</span> <span class="k">assertVisible</span>: <span class="s">"Você está offline"</span>
+<span class="d">-</span> <span class="k">setAirplaneMode</span>: <span class="s">disabled</span>
+
+<span class="c"># primos: setDarkMode, setOrientation,</span>
+<span class="c"># setPermissions, travel (muda o relógio),</span>
+<span class="c"># addMedia (põe foto na galeria)</span></pre>
+<pre class="sm cbox" data-panel="cmd" data-value="ai" hidden><span class="c"># camada de IA (recursos mais novos)</span>
+<span class="d">-</span> <span class="k">assertWithAI</span>:
+    <span class="k">assertion</span>: <span class="s">"a tela mostra um erro de pagamento"</span>
+
+<span class="d">-</span> <span class="k">assertNoDefectsWithAI</span>   <span class="c"># acha UI quebrada</span>
+
+<span class="d">-</span> <span class="k">extractTextWithAI</span>:
+    <span class="k">query</span>: <span class="s">"o valor total do pedido"</span>
+    <span class="k">outputVariable</span>: <span class="s">TOTAL</span>
+
+<span class="err"># ⚠ exige chave de API / plano pago</span>
+<span class="err"># e não é determinístico: use com critério.</span></pre>
+      </div>
+    </div>
+  </div>
+</section>

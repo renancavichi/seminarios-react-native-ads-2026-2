@@ -1,0 +1,60 @@
+<section class="slide" data-title="Limitações">
+  <div class="kicker">Ato 04 &middot; honestidade técnica</div>
+  <h2>O que o Maestro <em>não</em> faz bem</h2>
+  <div class="cols c23" style="margin-top:14px">
+    <div class="stackv">
+      <button class="card pick lim on" data-group="lim" data-value="scope"><h3>Não substitui teste unitário</h3></button>
+      <button class="card pick lim" data-group="lim" data-value="uni"><h3>inputText só aceita ASCII no Android</h3></button>
+      <button class="card pick lim" data-group="lim" data-value="web"><h3>WebView é ponto cego</h3></button>
+      <button class="card pick lim" data-group="lim" data-value="sync"><h3>Sincronização por heurística</h3></button>
+      <button class="card pick lim" data-group="lim" data-value="env"><h3>Dependências de ambiente</h3></button>
+      <button class="card pick lim" data-group="lim" data-value="ios"><h3>Arestas no iOS</h3></button>
+      <button class="card pick lim" data-group="lim" data-value="cloud"><h3>Escala tem preço</h3></button>
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;justify-content:center;padding:22px 24px">
+      <div data-panel="lim" data-value="scope">
+        <h3 style="font-size:18px;color:var(--brass)">Ele testa o app inteiro, nunca a peça</h3>
+        <p style="margin-top:9px">Não existe "rodar só essa função" nem medir cobertura de código. Se o cálculo do frete estiver errado,
+          o Maestro só avisa que o valor na tela ficou diferente do esperado &mdash; não aponta a linha.</p>
+        <p style="margin-top:9px"><strong>Como conviver:</strong> Jest embaixo, Maestro em cima. São complementares, não concorrentes.</p></div>
+      <div data-panel="lim" data-value="uni" hidden>
+        <h3 style="font-size:18px;color:var(--brass)">Acentuação e emoji quebram no Android</h3>
+        <p style="margin-top:9px">É uma limitação conhecida e documentada: no Android o comando de digitação só suporta caracteres ASCII.
+          Para um app brasileiro, digitar "João" num campo de nome é um problema real.</p>
+        <p style="margin-top:9px"><strong>Como conviver:</strong> use dados de teste sem acento, ou preencha o campo via clipboard
+          (<code style="font-family:var(--mono);font-size:12px">setClipboard</code> + <code style="font-family:var(--mono);font-size:12px">pasteText</code>).</p></div>
+      <div data-panel="lim" data-value="web" hidden>
+        <h3 style="font-size:18px;color:var(--brass)">Conteúdo dentro de WebView nem sempre aparece</h3>
+        <p style="margin-top:9px">A árvore de acessibilidade nativa às vezes não expõe o que está renderizado dentro de uma WebView &mdash;
+          e o Maestro simplesmente não enxerga o botão.</p>
+        <p style="margin-top:9px"><strong>Como conviver:</strong> no Android, declarar
+          <code style="font-family:var(--mono);font-size:12px">androidWebViewHierarchy: devtools</code> no topo do flow faz o Maestro inspecionar
+          a página pelo Chrome DevTools. Fluxo híbrido pesado ainda é território de ferramenta web.</p></div>
+      <div data-panel="lim" data-value="sync" hidden>
+        <h3 style="font-size:18px;color:var(--brass)">Ele espera bem, mas no escuro</h3>
+        <p style="margin-top:9px">O Maestro não sabe o que a thread JavaScript do React Native está fazendo. Ele observa a tela,
+          espera assentar e tenta de novo. O Detox, por ser caixa-cinza, <em>sabe</em> quando o app terminou de trabalhar.</p>
+        <p style="margin-top:9px"><strong>Consequência:</strong> em apps com animação longa ou polling constante, ainda pode sobrar
+          algum caso raro de instabilidade. Aí você paga com <code style="font-family:var(--mono);font-size:12px">extendedWaitUntil</code>.</p></div>
+      <div data-panel="lim" data-value="env" hidden>
+        <h3 style="font-size:18px;color:var(--brass)">Não é 100% "zero setup"</h3>
+        <p style="margin-top:9px">O CLI roda na JVM: versões de Java muito novas ou muito antigas dão problema &mdash; a recomendação oficial
+          é Java 17 ou 21. Antes de cada execução ele instala um app-driver no aparelho, e dispositivos corporativos travados
+          (MDM, fintech, POS) podem bloquear essa instalação. Nesses casos, não há solução: é usar outro aparelho.</p>
+        <p style="margin-top:9px">E iOS continua exigindo macOS com Xcode.</p></div>
+      <div data-panel="lim" data-value="ios" hidden>
+        <h3 style="font-size:18px;color:var(--brass)">Detalhes chatos do iOS</h3>
+        <p style="margin-top:9px">O <code style="font-family:var(--mono);font-size:12px">hideKeyboard</code> é instável porque o iOS não oferece API
+          nativa para esconder o teclado &mdash; o Maestro simula um gesto. E listas com paginação
+          (<code style="font-family:var(--mono);font-size:12px">UITableView</code>) podem se comportar de forma estranha por um bug do próprio XCTest,
+          que o Maestro usa por baixo.</p>
+        <p style="margin-top:9px"><strong>Como conviver:</strong> tocar numa área neutra da tela no lugar de esconder o teclado.</p></div>
+      <div data-panel="lim" data-value="cloud" hidden>
+        <h3 style="font-size:18px;color:var(--brass)">Local é grátis; paralelo, não</h3>
+        <p style="margin-top:9px">CLI e Studio são open source. Rodar centenas de flows em paralelo, em vários modelos de aparelho,
+          é serviço pago &mdash; com limite recomendado de cerca de 20 minutos por execução.</p>
+        <p style="margin-top:9px">Os comandos com IA (<code style="font-family:var(--mono);font-size:12px">assertWithAI</code>) também dependem de chave de API
+          e, por natureza, não são determinísticos.</p></div>
+    </div>
+  </div>
+</section>

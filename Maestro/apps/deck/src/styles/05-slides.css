@@ -1,0 +1,27 @@
+/**
+ * Slides e tipografia: transições, títulos, texto e grades de coluna.
+ */
+.slide{position:absolute;inset:46px 0 38px 0;padding:26px 60px 16px;opacity:0;visibility:hidden;
+  transition:opacity .3s ease;display:flex;flex-direction:column;z-index:1}
+.slide.on{opacity:1;visibility:visible;z-index:2}
+.slide.on>*{animation:rise .45s cubic-bezier(.2,.8,.2,1) both}
+.slide.on>*:nth-child(2){animation-delay:.05s}
+.slide.on>*:nth-child(3){animation-delay:.1s}
+.slide.on>*:nth-child(4){animation-delay:.15s}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+.kicker{font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--brass);margin-bottom:8px}
+h1{font-family:var(--serif);font-size:62px;font-weight:400;line-height:1.02;letter-spacing:-.5px}
+h2{font-family:var(--serif);font-size:38px;font-weight:400;line-height:1.08;margin-bottom:6px}
+h2 em{color:var(--brass);font-style:italic}
+h3{font-size:14.5px;font-weight:600;letter-spacing:.01em}
+p{font-size:15px;line-height:1.55;color:var(--muted);font-weight:300;max-width:74ch}
+p strong{color:var(--text);font-weight:500}
+.lead{font-size:17px;color:#BFC9D8}
+.sub{font-size:12.5px;color:var(--dim);line-height:1.5}
+.cols{display:grid;gap:22px;flex:1;min-height:0}
+.c2{grid-template-columns:1fr 1fr}
+.c23{grid-template-columns:.9fr 1.1fr}
+.c32{grid-template-columns:1.15fr .85fr}
+.stackv{display:flex;flex-direction:column;gap:12px;min-height:0}
+.spacer{flex:1}

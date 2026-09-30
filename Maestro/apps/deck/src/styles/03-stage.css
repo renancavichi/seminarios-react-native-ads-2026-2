@@ -1,0 +1,11 @@
+/**
+ * Palco de 1280x720: o retângulo 16:9 que é escalado para caber na tela.
+ */
+#viewport{position:fixed;inset:0;display:grid;place-items:center}
+#stage{width:1280px;height:720px;position:relative;transform-origin:center center;
+  background:linear-gradient(160deg,#0E131B 0%,#0B0F15 55%,#0D1219 100%);
+  border:1px solid var(--line);border-radius:6px;overflow:hidden;
+  box-shadow:0 40px 120px rgba(0,0,0,.6)}
+#stage::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:80px 80px;opacity:.13}

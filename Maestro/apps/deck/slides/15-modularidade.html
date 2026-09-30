@@ -1,0 +1,96 @@
+<section class="slide" data-title="Modularidade">
+  <div class="kicker">Ato 03 &middot; escalando a suíte</div>
+  <h2>Quando a suíte cresce: <em>reaproveitar</em></h2>
+  <div class="tabs" data-tabs="mod" style="margin-top:14px">
+    <button class="tab on" data-tab="sub">subflows</button>
+    <button class="tab" data-tab="hook">hooks</button>
+    <button class="tab" data-tab="cond">condições</button>
+    <button class="tab" data-tab="loop">loops &amp; retry</button>
+  </div>
+  <div class="cols c2" style="margin-top:14px">
+    <div class="code">
+      <div class="code-top"><i class="led r"></i><i class="led y"></i><i class="led g"></i><span>modularidade</span></div>
+      <div class="pane on" data-tab="sub" data-tabs="mod">
+<pre class="sm"><span class="c"># subflows/fazer-login.yaml</span>
+<span class="k">appId</span>: <span class="s">com.exemplo.app</span>
+<span class="d">---</span>
+<span class="d">-</span> <span class="k">tapOn</span>: {<span class="k">id</span>: <span class="s">"email_input"</span>}
+<span class="d">-</span> <span class="k">inputText</span>: <span class="s">"${EMAIL}"</span>
+<span class="d">-</span> <span class="k">tapOn</span>: <span class="s">"Entrar"</span>
+
+<span class="c"># flows/checkout.yaml — reutiliza</span>
+<span class="d">-</span> <span class="k">runFlow</span>:
+    <span class="k">file</span>: <span class="s">../subflows/fazer-login.yaml</span>
+    <span class="k">env</span>:
+      <span class="k">EMAIL</span>: <span class="s">"ana@empresa.com"</span>
+
+<span class="c"># mudou a tela de login? um arquivo só muda.</span></pre></div>
+      <div class="pane" data-tab="hook" data-tabs="mod">
+<pre class="sm"><span class="c"># roda ANTES e DEPOIS de todo flow</span>
+<span class="k">appId</span>: <span class="s">com.exemplo.app</span>
+<span class="k">onFlowStart</span>:
+  <span class="d">-</span> <span class="k">clearState</span>
+  <span class="d">-</span> <span class="k">runScript</span>: <span class="s">../scripts/criar-usuario.js</span>
+<span class="k">onFlowComplete</span>:
+  <span class="d">-</span> <span class="k">takeScreenshot</span>: <span class="s">"final"</span>
+  <span class="d">-</span> <span class="k">runFlow</span>: <span class="s">../subflows/logout.yaml</span>
+<span class="d">---</span>
+<span class="d">-</span> <span class="k">launchApp</span>
+
+<span class="c"># garante que todo teste começa e termina</span>
+<span class="c"># no mesmo estado. Isso é higiene de suíte.</span></pre></div>
+      <div class="pane" data-tab="cond" data-tabs="mod">
+<pre class="sm"><span class="c"># só executa SE a condição for verdadeira</span>
+<span class="d">-</span> <span class="k">runFlow</span>:
+    <span class="k">when</span>:
+      <span class="k">visible</span>: <span class="s">"Aceitar cookies"</span>
+    <span class="k">commands</span>:
+      <span class="d">-</span> <span class="k">tapOn</span>: <span class="s">"Aceitar cookies"</span>
+
+<span class="c"># comportamento por plataforma</span>
+<span class="d">-</span> <span class="k">runFlow</span>:
+    <span class="k">when</span>:
+      <span class="k">platform</span>: <span class="s">iOS</span>
+    <span class="k">commands</span>:
+      <span class="d">-</span> <span class="k">tapOn</span>: <span class="s">"Permitir"</span>
+
+<span class="c"># ou uma expressão JavaScript:</span>
+<span class="d">-</span> <span class="k">runFlow</span>:
+    <span class="k">when</span>: {<span class="k">true</span>: <span class="s">"${output.saldo > 100}"</span>}
+    <span class="k">commands</span>: [{<span class="k">tapOn</span>: <span class="s">"Comprar"</span>}]</pre></div>
+      <div class="pane" data-tab="loop" data-tabs="mod">
+<pre class="sm"><span class="c"># repetir N vezes</span>
+<span class="d">-</span> <span class="k">repeat</span>:
+    <span class="k">times</span>: <span class="n">5</span>
+    <span class="k">commands</span>:
+      <span class="d">-</span> <span class="k">swipe</span>: {<span class="k">direction</span>: <span class="s">LEFT</span>}
+
+<span class="c"># repetir ENQUANTO algo for visível</span>
+<span class="d">-</span> <span class="k">repeat</span>:
+    <span class="k">while</span>:
+      <span class="k">visible</span>: <span class="s">"Carregar mais"</span>
+    <span class="k">commands</span>:
+      <span class="d">-</span> <span class="k">tapOn</span>: <span class="s">"Carregar mais"</span>
+
+<span class="c"># tentar de novo em caso de falha</span>
+<span class="d">-</span> <span class="k">retry</span>:
+    <span class="k">maxRetries</span>: <span class="n">2</span>
+    <span class="k">commands</span>:
+      <span class="d">-</span> <span class="k">tapOn</span>: <span class="s">"Pagar"</span>
+      <span class="d">-</span> <span class="k">assertVisible</span>: <span class="s">"Aprovado"</span></pre></div>
+    </div>
+    <div class="stackv">
+      <div class="card" style="flex:1;display:flex;flex-direction:column;justify-content:center">
+        <h3 style="color:var(--brass);font-size:16px">O YAML não é uma linguagem &mdash; e tudo bem</h3>
+        <p style="margin-top:8px">Quem vem do Detox estranha: onde estão as funções, as classes, o Page Object?
+          O Maestro resolve com <strong>arquivos</strong>: um subflow é a "função" e o <code style="font-family:var(--mono);font-size:12px">env</code> são os parâmetros.
+          A documentação oficial inclusive tem uma receita de <strong>Page Object Model</strong> montada só com pastas e subflows.</p>
+        <p style="margin-top:10px"><strong>Analogia:</strong> a partitura da orquestra tem trechos que se repetem; em vez de copiar as notas,
+          o compositor escreve "repita o refrão".</p>
+      </div>
+      <div class="card" style="flex:none"><h3>Tags + execução ordenada</h3>
+        <p style="margin-top:5px"><code style="font-family:var(--mono);font-size:12px">maestro test --include-tags smoke .maestro/flows</code> roda
+          só o essencial no pull request; a suíte completa fica para a noite.</p></div>
+    </div>
+  </div>
+</section>

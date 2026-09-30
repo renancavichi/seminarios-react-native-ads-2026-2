@@ -1,0 +1,33 @@
+<section class="slide" data-title="Caixa-preta">
+  <div class="kicker">Ato 01 &middot; a virada de chave</div>
+  <h2>Três formas de olhar para o app</h2>
+  <div class="grid3" style="margin-top:16px">
+    <button class="card pick box on" data-group="box" data-value="white"><span class="tag">caixa-branca</span>
+      <h3 style="margin-top:9px">Enxerga o código</h3>
+      <p>O teste importa as funções do app e checa estado interno. Jest e RNTL moram aqui.</p></button>
+    <button class="card pick box" data-group="box" data-value="gray"><span class="tag">caixa-cinza</span>
+      <h3 style="margin-top:9px">Conversa com o app</h3>
+      <p>O app roda de verdade, mas carrega um "espião" embutido que avisa quando terminou de trabalhar. É o Detox.</p></button>
+    <button class="card pick box" data-group="box" data-value="black"><span class="tag br">caixa-preta</span>
+      <h3 style="margin-top:9px">Só enxerga a tela</h3>
+      <p>Nada é injetado no app. A ferramenta pilota o <em>aparelho</em>. É o Maestro.</p></button>
+  </div>
+  <div class="card" style="margin-top:16px;padding:20px 22px" id="boxAnalogy">
+    <div data-panel="box" data-value="white">
+      <h3 style="font-size:17px;color:var(--brass)">Analogia &middot; o mecânico com o capô aberto</h3>
+      <p style="margin-top:7px;max-width:88ch">Ele mede a pressão de cada peça isoladamente. Sabe exatamente qual válvula falhou &mdash; mas nunca
+        descobre se o carro é ruim de dirigir na chuva. <strong>Rápido e preciso, porém longe da experiência real.</strong></p>
+    </div>
+    <div data-panel="box" data-value="gray" hidden>
+      <h3 style="font-size:17px;color:var(--brass)">Analogia &middot; o carro com sensores de fábrica</h3>
+      <p style="margin-top:7px;max-width:88ch">O mecânico dirige, e o painel avisa "motor ocupado, espere". A sincronia é perfeita: nunca acelera antes da hora.
+        O preço é que <strong>os sensores precisam ser instalados na fábrica</strong> &mdash; e cada modelo novo de motor exige um sensor novo.</p>
+    </div>
+    <div data-panel="box" data-value="black" hidden>
+      <h3 style="font-size:17px;color:var(--brass)">Analogia &middot; o motorista comum</h3>
+      <p style="margin-top:7px;max-width:88ch">Ele senta, olha o painel, vira a chave e dirige. Não sabe nada do motor &mdash; e é exatamente por isso que
+        <strong>dirige qualquer carro</strong>: React Native, Flutter, Kotlin, Swift, tanto faz. É assim que o Maestro trabalha, no que a documentação
+        chama de operar <strong>"à distância de um braço"</strong>: ele pilota o dispositivo, não o app.</p>
+    </div>
+  </div>
+</section>

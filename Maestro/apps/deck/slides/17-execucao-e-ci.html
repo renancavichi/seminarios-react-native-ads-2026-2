@@ -1,0 +1,37 @@
+<section class="slide" data-title="Execução e CI">
+  <div class="kicker">Ato 03 &middot; rodando de verdade</div>
+  <h2>Executando: no seu terminal e no <em>pull request</em></h2>
+  <div class="cols c2" style="margin-top:14px">
+    <div class="stackv">
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="go" id="runTest">▶ maestro test flows/checkout.yaml</button>
+        <button class="go ghost" id="runFail">▶ simular falha</button>
+      </div>
+      <div class="term" id="term"><span class="mut">$ aguardando comando…</span></div>
+    </div>
+    <div class="stackv">
+      <div class="code" style="flex:1">
+        <div class="code-top"><i class="led r"></i><i class="led y"></i><i class="led g"></i><span>.github/workflows/e2e.yml</span></div>
+<pre class="sm"><span class="k">name</span>: <span class="s">Testes E2E</span>
+<span class="k">on</span>: [<span class="s">pull_request</span>]
+
+<span class="k">jobs</span>:
+  <span class="k">maestro</span>:
+    <span class="k">runs-on</span>: <span class="s">ubuntu-latest</span>
+    <span class="k">steps</span>:
+      <span class="d">-</span> <span class="k">uses</span>: <span class="s">actions/checkout@v4</span>
+      <span class="d">-</span> <span class="k">run</span>: <span class="s">./gradlew assembleDebug</span>
+      <span class="d">-</span> <span class="k">uses</span>: <span class="s">mobile-dev-inc/action-maestro-cloud@v1</span>
+        <span class="k">with</span>:
+          <span class="k">api-key</span>: <span class="s">${{ secrets.MAESTRO_KEY }}</span>
+          <span class="k">app-file</span>: <span class="s">app/build/outputs/app-debug.apk</span></pre>
+      </div>
+      <div class="grid2" style="flex:none">
+        <div class="card"><h3>Relatórios</h3>
+          <p><code style="font-family:var(--mono);font-size:11.5px">--format junit</code> gera XML que o GitHub, o Jenkins e o Bitrise já sabem ler.</p></div>
+        <div class="card"><h3>Evidência</h3>
+          <p>Print e vídeo de cada execução: anexo perfeito para o relatório de bug &mdash; ou para o seu TCC.</p></div>
+      </div>
+    </div>
+  </div>
+</section>

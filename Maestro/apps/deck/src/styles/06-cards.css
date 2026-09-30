@@ -1,0 +1,19 @@
+/**
+ * Cartões, botões selecionáveis, etiquetas e grades.
+ */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;transition:.22s}
+.card h3{margin-bottom:5px}
+.card p{font-size:13px;line-height:1.5}
+.pick{cursor:pointer;position:relative;text-align:left;font-family:inherit;color:inherit;width:100%}
+.pick:hover{border-color:var(--line2);transform:translateY(-2px)}
+.pick.on{border-color:var(--brass);background:linear-gradient(var(--brass-dim),var(--brass-dim)),var(--panel)}
+.pick.on::after{content:'';position:absolute;left:0;top:14px;bottom:14px;width:2px;background:var(--brass);border-radius:2px}
+.num{font-family:var(--mono);font-size:10px;color:var(--brass);letter-spacing:.1em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.tag{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;
+  padding:3px 7px;border-radius:3px;border:1px solid var(--line2);color:var(--muted)}
+.tag.ok{color:var(--mint);border-color:rgba(95,217,166,.35)}
+.tag.no{color:var(--coral);border-color:rgba(255,122,107,.35)}
+.tag.br{color:var(--brass);border-color:rgba(233,179,73,.4)}

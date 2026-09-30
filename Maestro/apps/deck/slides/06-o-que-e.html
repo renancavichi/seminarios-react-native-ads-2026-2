@@ -1,0 +1,35 @@
+<section class="slide" data-title="O que é">
+  <div class="kicker">Ato 02 &middot; a solução</div>
+  <h2>Maestro, em uma frase</h2>
+  <p class="lead" style="margin-top:10px;max-width:80ch">Um <strong>framework open source de automação de UI</strong> que percorre o seu app pela
+    mesma camada de acessibilidade que um leitor de tela usa &mdash; descrito em arquivos YAML legíveis por qualquer pessoa da equipe.</p>
+  <div class="cols c2" style="margin-top:16px">
+    <div class="grid2" style="align-content:start">
+      <div class="card"><h3 style="color:var(--brass)">Tolerância embutida</h3>
+        <p>Assume que o celular é instável: se o elemento ainda não apareceu, ele tenta de novo antes de falhar.</p></div>
+      <div class="card"><h3 style="color:var(--brass)">Espera inteligente</h3>
+        <p>Aguarda sozinho conteúdo de rede e fim de animação. Sem <code style="font-family:var(--mono);font-size:12px">sleep()</code> na mão.</p></div>
+      <div class="card"><h3 style="color:var(--brass)">Sintaxe declarativa</h3>
+        <p>Você descreve <em>o quê</em>, não <em>como</em>. Um QA sem background em programação lê e escreve o teste.</p></div>
+      <div class="card"><h3 style="color:var(--brass)">Iteração instantânea</h3>
+        <p>Não compila nada. Salvou o arquivo, o flow roda de novo no aparelho na hora.</p></div>
+      <div class="card" style="grid-column:span 2"><h3 style="color:var(--brass)">Binário único</h3>
+        <p>Um comando de instalação e acabou. Nenhum pacote npm entra no seu projeto React Native, nenhuma linha do seu app muda.</p></div>
+    </div>
+    <div class="code">
+      <div class="code-top"><i class="led r"></i><i class="led y"></i><i class="led g"></i><span>flows/login.yaml &mdash; um teste completo</span></div>
+<pre><span class="k">appId</span>: <span class="s">com.exemplo.maestro</span>
+<span class="d">---</span>
+<span class="d">-</span> <span class="k">launchApp</span>:
+    <span class="k">clearState</span>: <span class="n">true</span>
+<span class="d">-</span> <span class="k">tapOn</span>:
+    <span class="k">id</span>: <span class="s">"email_input"</span>
+<span class="d">-</span> <span class="k">inputText</span>: <span class="s">"ana@empresa.com"</span>
+<span class="d">-</span> <span class="k">tapOn</span>:
+    <span class="k">id</span>: <span class="s">"senha_input"</span>
+<span class="d">-</span> <span class="k">inputText</span>: <span class="s">"123456"</span>
+<span class="d">-</span> <span class="k">tapOn</span>: <span class="s">"Entrar"</span>
+<span class="d">-</span> <span class="k">assertVisible</span>: <span class="s">"Bem-vinda, Ana"</span></pre>
+    </div>
+  </div>
+</section>

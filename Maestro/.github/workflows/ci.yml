@@ -1,0 +1,59 @@
+# Integração contínua da apresentação.
+#
+# Roda a cada push e pull request: se um slide parar de carregar ou uma
+# interação quebrar, o CI avisa antes do dia do seminário.
+#
+# É também o exemplo vivo do slide "Execução e CI": o mesmo princípio que a
+# apresentação defende está aplicado ao próprio repositório.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  testes:
+    name: Testes do deck
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Instalar o Chromium do Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Rodar os testes do deck
+        run: npm test
+
+  publicar:
+    name: Publicar no GitHub Pages
+    needs: testes
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/deck
+
+      - id: deploy
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,26 @@
+/**
+ * Estados da interface: falha de carregamento, botões inativos e foco visível.
+ */
+
+/* Tela de erro — um palco em branco não diz o que deu errado. */
+.fatal{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;
+  gap:12px;padding:0 70px;z-index:30;background:var(--ink)}
+.fatal h2{font-family:var(--serif);font-size:32px;color:var(--coral)}
+.fatal p{font-size:14px;max-width:70ch}
+.fatal-msg{font-family:var(--mono);font-size:12.5px;color:var(--muted);
+  background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px 12px}
+.fatal-hint code{font-family:var(--mono);color:var(--brass)}
+
+/* Nas pontas do deck, as setas do rodapé ficam inertes em vez de enganosas. */
+footer button:disabled{opacity:.3;cursor:default}
+footer button:disabled:hover{border-color:var(--line2);color:var(--muted)}
+
+/* Foco visível para quem navega por teclado. */
+.dot:focus-visible,.tab:focus-visible,.pick:focus-visible,
+.go:focus-visible,footer button:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+
+/* Respeita quem pediu menos animação no sistema. */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;
+    transition-duration:.01ms!important}
+}

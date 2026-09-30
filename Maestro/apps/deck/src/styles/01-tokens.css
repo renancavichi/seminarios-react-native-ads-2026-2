@@ -1,0 +1,15 @@
+/**
+ * Design tokens: paleta, tipografia e famílias de fonte.
+ *
+ * Ponto único para mexer no visual do deck sem caçar valores pelo CSS.
+ */
+:root{
+  --ink:#0C0F14; --ink2:#111722; --panel:#161D28; --panel2:#1B2431;
+  --line:#26323F; --line2:#33445a;
+  --text:#E8ECF3; --muted:#8C99AC; --dim:#5D6A7D;
+  --brass:#E9B349; --brass-dim:rgba(233,179,73,.13);
+  --mint:#5FD9A6; --coral:#FF7A6B; --sky:#7FB8FF; --violet:#B69BFF;
+  --serif:'Instrument Serif',Georgia,'Times New Roman',serif;
+  --sans:'Outfit','Segoe UI',system-ui,sans-serif;
+  --mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+}

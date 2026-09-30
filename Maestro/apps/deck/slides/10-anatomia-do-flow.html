@@ -1,0 +1,56 @@
+<section class="slide" data-title="Anatomia do flow">
+  <div class="kicker">Ato 03 &middot; sintaxe</div>
+  <h2>Anatomia de um <em>flow</em></h2>
+  <div class="cols c2" style="margin-top:14px">
+    <div class="code">
+      <div class="code-top"><i class="led r"></i><i class="led y"></i><i class="led g"></i><span>.maestro/flows/checkout.yaml</span></div>
+<pre class="sm lines" id="anaCode"><span class="ln" data-highlight="an" data-value="app"><span class="k">appId</span>: <span class="s">com.exemplo.maestro</span></span>
+<span class="ln" data-highlight="an" data-value="tags"><span class="k">tags</span>: [<span class="s">smoke</span>, <span class="s">checkout</span>]</span>
+<span class="ln" data-highlight="an" data-value="env"><span class="k">env</span>:</span>
+<span class="ln" data-highlight="an" data-value="env">  <span class="k">PRODUTO</span>: <span class="s">"Plano Anual"</span></span>
+<span class="ln" data-highlight="an" data-value="sep"><span class="d">---</span></span>
+<span class="ln" data-highlight="an" data-value="cmd"><span class="d">-</span> <span class="k">launchApp</span></span>
+<span class="ln" data-highlight="an" data-value="cmd"><span class="d">-</span> <span class="k">tapOn</span>: <span class="s">"${PRODUTO}"</span></span>
+<span class="ln" data-highlight="an" data-value="cmd"><span class="d">-</span> <span class="k">assertVisible</span>: <span class="s">"Resumo do pedido"</span></span>
+<span class="ln" data-highlight="an" data-value="opt"><span class="d">-</span> <span class="k">tapOn</span>:</span>
+<span class="ln" data-highlight="an" data-value="opt">    <span class="k">text</span>: <span class="s">"Aplicar cupom"</span></span>
+<span class="ln" data-highlight="an" data-value="opt">    <span class="k">optional</span>: <span class="n">true</span></span>
+<span class="ln" data-highlight="an" data-value="label"><span class="d">-</span> <span class="k">tapOn</span>:</span>
+<span class="ln" data-highlight="an" data-value="label">    <span class="k">id</span>: <span class="s">"btn_pagar"</span></span>
+<span class="ln" data-highlight="an" data-value="label">    <span class="k">label</span>: <span class="s">"Confirmar o pagamento"</span></span>
+<span class="ln" data-highlight="an" data-value="cmd"><span class="d">-</span> <span class="k">assertVisible</span>: <span class="s">"Compra aprovada"</span></span></pre>
+    </div>
+    <div class="stackv">
+      <div class="grid2">
+        <button class="card pick an on" data-group="an" data-value="app"><h3>appId</h3><p>Qual app abrir.</p></button>
+        <button class="card pick an" data-group="an" data-value="tags"><h3>tags</h3><p>Filtra o que roda.</p></button>
+        <button class="card pick an" data-group="an" data-value="env"><h3>env</h3><p>Variáveis do flow.</p></button>
+        <button class="card pick an" data-group="an" data-value="sep"><h3>---</h3><p>Fim do cabeçalho.</p></button>
+        <button class="card pick an" data-group="an" data-value="opt"><h3>optional</h3><p>Pode não existir.</p></button>
+        <button class="card pick an" data-group="an" data-value="label"><h3>label</h3><p>Nome no relatório.</p></button>
+      </div>
+      <div class="card" style="flex:1;display:flex;flex-direction:column;justify-content:center" id="anBox">
+        <div data-panel="an" data-value="app"><h3 style="color:var(--brass);font-size:16px">appId &mdash; o endereço do app</h3>
+          <p style="margin-top:7px">É o <strong>package name</strong> no Android ou o <strong>bundle identifier</strong> no iOS.
+          Sem ele o Maestro não sabe o que abrir. Em Expo Go se usa <code style="font-family:var(--mono);font-size:12px">openLink</code> no lugar.</p></div>
+        <div data-panel="an" data-value="tags" hidden><h3 style="color:var(--brass);font-size:16px">tags &mdash; etiquetas de execução</h3>
+          <p style="margin-top:7px">Permitem rodar só um subconjunto:
+          <code style="font-family:var(--mono);font-size:12px">maestro test --include-tags smoke flows/</code>.
+          Clássico: no pull request roda só o <em>smoke</em>; de madrugada roda tudo.</p></div>
+        <div data-panel="an" data-value="env" hidden><h3 style="color:var(--brass);font-size:16px">env &mdash; variáveis</h3>
+          <p style="margin-top:7px">Interpoladas com <code style="font-family:var(--mono);font-size:12px">${VARIAVEL}</code>.
+          Podem vir do config.yaml, do próprio flow ou do terminal com <code style="font-family:var(--mono);font-size:12px">-e SENHA=123</code> &mdash;
+          é assim que segredo não vai para o Git.</p></div>
+        <div data-panel="an" data-value="sep" hidden><h3 style="color:var(--brass);font-size:16px">--- &mdash; a linha divisória</h3>
+          <p style="margin-top:7px">Acima dela, <strong>configuração</strong>. Abaixo, a <strong>lista ordenada de comandos</strong>.
+          É YAML puro: cada traço é um passo, executado de cima para baixo.</p></div>
+        <div data-panel="an" data-value="opt" hidden><h3 style="color:var(--brass);font-size:16px">optional &mdash; o passo que pode faltar</h3>
+          <p style="margin-top:7px">Se o elemento não aparecer, o Maestro segue em frente em vez de reprovar o teste.
+          Perfeito para banner de cookie, pop-up de avaliação e promoção que só aparece às vezes.</p></div>
+        <div data-panel="an" data-value="label" hidden><h3 style="color:var(--brass);font-size:16px">label &mdash; legibilidade do relatório</h3>
+          <p style="margin-top:7px">Troca o texto técnico por uma frase de negócio no log e no vídeo do teste.
+          Quem lê o relatório vê "Confirmar o pagamento" em vez de "tapOn id=btn_pagar".</p></div>
+      </div>
+    </div>
+  </div>
+</section>

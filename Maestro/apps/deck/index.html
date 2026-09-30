@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maestro — Testes E2E mobile em YAML | Deck de seminário</title>
+<meta name="description" content="Seminário sobre o Maestro: testes end-to-end de aplicativos mobile escritos em YAML.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<!-- As folhas são numeradas: a ordem é a cascata, dos tokens aos estados. -->
+<link rel="stylesheet" href="./src/styles/01-tokens.css">
+<link rel="stylesheet" href="./src/styles/02-base.css">
+<link rel="stylesheet" href="./src/styles/03-stage.css">
+<link rel="stylesheet" href="./src/styles/04-chrome.css">
+<link rel="stylesheet" href="./src/styles/05-slides.css">
+<link rel="stylesheet" href="./src/styles/06-cards.css">
+<link rel="stylesheet" href="./src/styles/07-code.css">
+<link rel="stylesheet" href="./src/styles/08-tabs.css">
+<link rel="stylesheet" href="./src/styles/10-slide-specific.css">
+<link rel="stylesheet" href="./src/styles/11-overview.css">
+<link rel="stylesheet" href="./src/styles/12-states.css">
+</head>
+<body>
+
+<div id="viewport">
+  <!-- Os slides são injetados aqui por src/core/slide-loader.js. -->
+  <main id="stage">
+
+    <header class="bar">
+      <div class="brand">Maestro <em>&mdash;</em> testes E2E em YAML</div>
+      <nav class="dots" id="dots" aria-label="Ir para o slide"></nav>
+    </header>
+
+    <div id="prog" role="progressbar" aria-label="Progresso da apresentação"></div>
+
+    <div id="overview" aria-hidden="true" aria-label="Todos os slides"></div>
+
+    <footer class="bar">
+      <span id="label">Carregando…</span>
+      <div class="nav">
+        <span class="kbd">&larr; &rarr;</span> navegar
+        <span class="kbd">O</span> panorama
+        <span class="kbd">F</span> tela cheia
+        <button id="bPrev" type="button" aria-label="Slide anterior">&lsaquo;</button>
+        <span id="count" style="font-family:var(--mono)">— / —</span>
+        <button id="bNext" type="button" aria-label="Próximo slide">&rsaquo;</button>
+      </div>
+    </footer>
+
+  </main>
+</div>
+
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>

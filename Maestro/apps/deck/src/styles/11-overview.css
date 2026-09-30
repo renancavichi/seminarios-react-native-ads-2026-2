@@ -1,0 +1,19 @@
+/**
+ * Modo panorama (tecla O): grade com todos os slides para saltar direto ao
+ * assunto durante a rodada de perguntas.
+ */
+#overview{position:absolute;inset:0;z-index:20;display:none;
+  grid-template-columns:repeat(4,1fr);align-content:start;gap:10px;
+  padding:56px 40px;overflow:auto;background:rgba(8,11,16,.97)}
+#overview.on{display:grid;animation:fade .2s ease both}
+
+.ov-item{display:flex;flex-direction:column;gap:6px;align-items:flex-start;text-align:left;
+  background:var(--panel);border:1px solid var(--line);border-radius:7px;
+  padding:12px 13px;cursor:pointer;font-family:inherit;color:var(--muted);transition:.2s}
+.ov-item:hover{border-color:var(--line2);color:var(--text);transform:translateY(-2px)}
+.ov-item.on{border-color:var(--brass);color:var(--text);
+  background:linear-gradient(var(--brass-dim),var(--brass-dim)),var(--panel)}
+.ov-item:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+
+.ov-num{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--brass)}
+.ov-title{font-size:13px;line-height:1.35}

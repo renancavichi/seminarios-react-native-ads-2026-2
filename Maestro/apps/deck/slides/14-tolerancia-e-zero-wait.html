@@ -1,0 +1,50 @@
+<section class="slide" data-title="Tolerância e zero-wait">
+  <div class="kicker">Ato 03 &middot; o recurso mais importante</div>
+  <h2>Por que o teste <em>para de piscar</em></h2>
+  <div class="cols c2" style="margin-top:14px">
+    <div class="stackv">
+      <div class="tabs" data-tabs="tol">
+        <button class="tab on" data-tab="sem">sem Maestro</button>
+        <button class="tab" data-tab="com">com Maestro</button>
+      </div>
+      <div class="code" style="flex:1">
+        <div class="code-top"><i class="led r"></i><i class="led y"></i><i class="led g"></i><span>mesma jornada, duas ferramentas</span></div>
+        <div class="pane on" data-tab="sem" data-tabs="tol">
+<pre class="sm"><span class="k">await</span> driver.<span class="f">pause</span>(<span class="n">3000</span>);
+<span class="k">await</span> <span class="f">waitForElement</span>(loginBtn, <span class="n">10000</span>);
+<span class="k">await</span> loginBtn.<span class="f">click</span>();
+<span class="k">await</span> driver.<span class="f">pause</span>(<span class="n">5000</span>);
+<span class="k">try</span> {
+  <span class="k">await</span> <span class="f">waitForElement</span>(home, <span class="n">15000</span>);
+} <span class="k">catch</span> (e) {
+  <span class="k">await</span> driver.<span class="f">pause</span>(<span class="n">2000</span>);      <span class="c">// gambiarra</span>
+  <span class="k">await</span> <span class="f">waitForElement</span>(home, <span class="n">10000</span>);
+}
+<span class="err">// 6 linhas de espera para 2 linhas de teste</span></pre></div>
+        <div class="pane" data-tab="com" data-tabs="tol">
+<pre class="sm"><span class="d">-</span> <span class="k">tapOn</span>: <span class="s">"Entrar"</span>
+<span class="d">-</span> <span class="k">assertVisible</span>: <span class="s">"Meus contratos"</span>
+
+<span class="c"># é isso. Sem espera nenhuma escrita à mão.</span>
+<span class="c">#</span>
+<span class="c"># Debaixo do capô o Maestro:</span>
+<span class="c">#  · espera a tela "assentar"</span>
+<span class="c">#  · aguarda animação e conteúdo de rede</span>
+<span class="c">#  · reconsulta a árvore e tenta de novo</span>
+<span class="c">#  · só então reprova</span></pre></div>
+      </div>
+    </div>
+    <div class="stackv">
+      <div class="card"><h3 style="color:var(--brass)">Tolerância embutida</h3>
+        <p>A documentação usa a expressão "abraçar a instabilidade": o celular <em>é</em> instável, então a ferramenta assume isso e
+          reexecuta a busca em vez de reprovar no primeiro erro.</p></div>
+      <div class="card"><h3 style="color:var(--brass)">Espera por condição, não por relógio</h3>
+        <p>Trocar <em>"espere 5 segundos"</em> por <em>"espere até aparecer"</em> deixa o teste ao mesmo tempo mais rápido
+          (não dorme à toa) e mais estável (não desiste cedo demais).</p></div>
+      <div class="card" style="background:linear-gradient(var(--brass-dim),var(--brass-dim)),var(--panel);border-color:var(--brass)">
+        <h3 style="color:var(--brass)">Analogia</h3>
+        <p style="margin-top:5px">Dizer "espere 3 segundos" é combinar de encontrar alguém às 15h em ponto e ir embora às 15h01.
+          Dizer "espere até aparecer" é ligar para a pessoa e esperar ela chegar. <strong>O segundo combinado quase nunca dá errado.</strong></p></div>
+    </div>
+  </div>
+</section>

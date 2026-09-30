@@ -1,0 +1,20 @@
+{
+  "name": "apresentacao-maestro",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Seminário sobre o Maestro: apresentação de 20 slides interativos sobre testes E2E de apps mobile escritos em YAML.",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "start": "http-server apps/deck -p 8731 -c-1 -o",
+    "serve": "http-server apps/deck -p 8731 -c-1 --silent",
+    "test": "node tests/deck.smoke.mjs"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "playwright": "^1.63.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

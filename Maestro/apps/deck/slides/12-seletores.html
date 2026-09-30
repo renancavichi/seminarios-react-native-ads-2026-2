@@ -1,0 +1,98 @@
+<section class="slide" data-title="Seletores">
+  <div class="kicker">Ato 03 &middot; como achar um elemento</div>
+  <h2>Seletores: as <em>coordenadas</em> do teste</h2>
+  <div class="tabs" data-tabs="sel" style="margin-top:14px">
+    <button class="tab on" data-tab="text">text</button>
+    <button class="tab" data-tab="id">id</button>
+    <button class="tab" data-tab="index">index</button>
+    <button class="tab" data-tab="rel">relacionais</button>
+    <button class="tab" data-tab="state">estado &amp; traços</button>
+    <button class="tab" data-tab="point">point</button>
+  </div>
+  <div class="cols c2" style="margin-top:14px">
+    <div class="code">
+      <div class="code-top"><i class="led r"></i><i class="led y"></i><i class="led g"></i><span>seletores</span></div>
+      <div class="pane on" data-tab="text" data-tabs="sel">
+<pre class="sm"><span class="c"># forma curta: só o texto visível</span>
+<span class="d">-</span> <span class="k">tapOn</span>: <span class="s">"Entrar"</span>
+
+<span class="c"># todo texto é REGEX por padrão</span>
+<span class="d">-</span> <span class="k">tapOn</span>:
+    <span class="k">text</span>: <span class="s">".*Continuar.*"</span>
+
+<span class="c"># cuidado: escapar caracteres especiais</span>
+<span class="d">-</span> <span class="k">assertVisible</span>: <span class="s">"R\$ 199,90"</span></pre></div>
+      <div class="pane" data-tab="id" data-tabs="sel">
+<pre class="sm"><span class="c"># o mais estável: id técnico</span>
+<span class="d">-</span> <span class="k">tapOn</span>:
+    <span class="k">id</span>: <span class="s">"btn_entrar"</span>
+
+<span class="c"># Android → Resource ID</span>
+<span class="c"># iOS     → accessibilityIdentifier</span>
+<span class="c"># React Native → testID</span>
+
+<span class="d">-</span> <span class="k">assertVisible</span>:
+    <span class="k">id</span>: <span class="s">"icone_carrinho"</span></pre></div>
+      <div class="pane" data-tab="index" data-tabs="sel">
+<pre class="sm"><span class="c"># três botões "Comprar" na mesma tela?</span>
+<span class="c"># index começa em 0</span>
+<span class="d">-</span> <span class="k">tapOn</span>:
+    <span class="k">id</span>: <span class="s">"btn_comprar"</span>
+    <span class="k">index</span>: <span class="n">2</span>          <span class="c"># o terceiro</span>
+
+<span class="c"># funciona, mas é frágil:</span>
+<span class="c"># mudou a ordem da lista, quebrou o teste.</span></pre></div>
+      <div class="pane" data-tab="rel" data-tabs="sel">
+<pre class="sm"><span class="c"># "o botão Excluir que está NA LINHA do Plano Anual"</span>
+<span class="d">-</span> <span class="k">tapOn</span>:
+    <span class="k">text</span>: <span class="s">"Excluir"</span>
+    <span class="k">rightOf</span>:
+      <span class="k">text</span>: <span class="s">"Plano Anual"</span>
+
+<span class="c"># outros: above, below, leftOf,</span>
+<span class="c"># childOf, containsChild, containsDescendants</span>
+<span class="d">-</span> <span class="k">assertVisible</span>:
+    <span class="k">id</span>: <span class="s">"card_item"</span>
+    <span class="k">containsChild</span>: <span class="s">"Aprovado"</span></pre></div>
+      <div class="pane" data-tab="state" data-tabs="sel">
+<pre class="sm"><span class="c"># pelo estado do elemento</span>
+<span class="d">-</span> <span class="k">assertVisible</span>:
+    <span class="k">id</span>: <span class="s">"aceite_termos"</span>
+    <span class="k">checked</span>: <span class="n">true</span>
+
+<span class="d">-</span> <span class="k">assertVisible</span>:
+    <span class="k">text</span>: <span class="s">"Finalizar"</span>
+    <span class="k">enabled</span>: <span class="n">false</span>   <span class="c"># deve estar desabilitado</span>
+
+<span class="c"># e por características físicas</span>
+<span class="d">-</span> <span class="k">tapOn</span>:
+    <span class="k">width</span>: <span class="n">48</span>
+    <span class="k">height</span>: <span class="n">48</span>
+    <span class="k">tolerance</span>: <span class="n">6</span></pre></div>
+      <div class="pane" data-tab="point" data-tabs="sel">
+<pre class="sm"><span class="c"># último recurso: coordenada na tela</span>
+<span class="d">-</span> <span class="k">tapOn</span>:
+    <span class="k">point</span>: <span class="s">"50%, 50%"</span>   <span class="c"># centro</span>
+
+<span class="d">-</span> <span class="k">tapOn</span>:
+    <span class="k">point</span>: <span class="s">"100, 250"</span>   <span class="c"># pixels absolutos</span>
+
+<span class="c"># útil para canvas, mapa, webview teimosa.</span>
+<span class="err"># ⚠ quebra em telas de tamanho diferente</span></pre></div>
+    </div>
+    <div class="stackv">
+      <div class="card" style="flex:1;display:flex;flex-direction:column;justify-content:center">
+        <h3 style="color:var(--brass);font-size:16px">A regra de bolso</h3>
+        <p style="margin-top:8px"><strong>1º</strong> tente <code style="font-family:var(--mono);font-size:12px">id</code> (testID) &mdash; sobrevive a tradução e a redesign.<br>
+          <strong>2º</strong> use <code style="font-family:var(--mono);font-size:12px">text</code> quando o texto for parte do requisito ("Compra aprovada").<br>
+          <strong>3º</strong> use <strong>relacionais</strong> em listas, onde todo item é parecido.<br>
+          <strong>4º</strong> só use <code style="font-family:var(--mono);font-size:12px">point</code> em último caso.</p>
+        <p style="margin-top:12px"><strong>Analogia:</strong> <em>id</em> é o CPF do elemento, <em>text</em> é o apelido dele,
+          <em>relacional</em> é "o vizinho da casa amarela" e <em>point</em> é a coordenada de GPS &mdash; quanto mais para baixo, mais fácil de dar errado.</p>
+      </div>
+      <div class="card" style="flex:none"><h3>Detalhe que derruba teste</h3>
+        <p style="margin-top:5px">Os seletores <strong>text</strong> e <strong>id</strong> são interpretados como <strong>expressão regular</strong>.
+          Cifrão, colchete e ponto precisam de barra invertida.</p></div>
+    </div>
+  </div>
+</section>

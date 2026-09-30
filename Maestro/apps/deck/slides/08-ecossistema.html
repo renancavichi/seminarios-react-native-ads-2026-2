@@ -1,0 +1,36 @@
+<section class="slide" data-title="Ecossistema">
+  <div class="kicker">Ato 02 &middot; as peças</div>
+  <h2>Quatro portas de entrada, <em>um motor só</em></h2>
+  <div class="grid4" style="margin-top:18px">
+    <div class="card"><span class="tag ok">grátis</span><h3 style="margin-top:9px">Studio</h3>
+      <p>App de desktop que espelha a tela do aparelho. Você clica no elemento e ele escreve o comando YAML para você.
+        É a porta de entrada de quem nunca testou nada.</p></div>
+    <div class="card"><span class="tag ok">grátis &middot; open source</span><h3 style="margin-top:9px">CLI</h3>
+      <p>O motor. Interpreta os arquivos, roda no terminal, no modo contínuo e dentro do CI. É o que você vai usar no trabalho.</p></div>
+    <div class="card"><span class="tag">pago</span><h3 style="margin-top:9px">Cloud</h3>
+      <p>Sobe o app e os flows para rodarem em paralelo em dezenas de aparelhos virtuais hospedados. Integra com GitHub Actions,
+        Bitrise, CircleCI.</p></div>
+    <div class="card"><span class="tag br">novo</span><h3 style="margin-top:9px">MCP Server</h3>
+      <p>Expõe o Maestro para agentes de IA: o seu assistente de código consegue escrever, rodar e depurar o teste sozinho no emulador.</p></div>
+  </div>
+  <div class="cols c2" style="margin-top:18px">
+    <div class="code"><div class="code-top"><i class="led r"></i><i class="led y"></i><i class="led g"></i><span>fluxo de trabalho real</span></div>
+<pre class="sm"><span class="c"># 1. desenha o teste clicando na tela</span>
+maestro studio
+
+<span class="c"># 2. roda localmente enquanto desenvolve</span>
+maestro test flows/login.yaml
+
+<span class="c"># 3. modo contínuo: salvou, rodou de novo</span>
+maestro test --continuous flows/login.yaml
+
+<span class="c"># 4. no pull request, em paralelo, na nuvem</span>
+maestro cloud --app-file app.apk flows/</pre></div>
+    <div class="card" style="display:flex;flex-direction:column;justify-content:center">
+      <h3>Por que isso importa para o estudante</h3>
+      <p>O que é <strong>open source e gratuito</strong> &mdash; CLI e Studio &mdash; já cobre 100% do que você precisa no TCC, no estágio e num
+        projeto pequeno. A parte paga resolve escala: rodar 300 testes em 12 minutos num time grande.</p>
+      <p style="margin-top:9px"><strong>Analogia:</strong> o CLI é o seu violão. A Cloud é alugar a orquestra sinfônica inteira para tocar a mesma partitura ao mesmo tempo.</p>
+    </div>
+  </div>
+</section>

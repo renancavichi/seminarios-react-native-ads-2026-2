@@ -1,0 +1,36 @@
+<section class="slide" data-title="Onde entra o E2E">
+  <div class="kicker">Ato 01 &middot; contexto</div>
+  <h2>Onde o Maestro entra na <em>pirâmide de testes</em></h2>
+  <div class="cols c2" style="margin-top:16px;align-items:center">
+    <div class="pyr">
+      <button class="lvl l1 pick2 on" data-group="lv" data-value="e2e"><b>E2E / UI</b><span>Maestro, Detox, Appium</span></button>
+      <button class="lvl l2 pick2" data-group="lv" data-value="comp"><b>Componente</b><span>React Native Testing Library</span></button>
+      <button class="lvl l3 pick2" data-group="lv" data-value="unit"><b>Unitário</b><span>Jest</span></button>
+      <p class="sub" style="margin-top:10px;text-align:center">clique em cada camada</p>
+    </div>
+    <div>
+      <div class="card" data-panel="lv" data-value="e2e">
+        <span class="tag br">poucos, lentos, caros</span>
+        <h3 style="margin-top:9px">Testa o aplicativo inteiro, montado</h3>
+        <p>Abre o app instalado no emulador e percorre a jornada real: login, carrinho, checkout. É o único nível que pega
+          erro de integração entre telas, navegação, permissão do sistema e API real. <strong>É aqui que o Maestro vive.</strong></p>
+        <p style="margin-top:8px"><strong>Analogia:</strong> é o ensaio geral da peça, com figurino, luz e plateia.</p>
+      </div>
+      <div class="card" data-panel="lv" data-value="comp" hidden>
+        <span class="tag">médios</span>
+        <h3 style="margin-top:9px">Testa uma tela ou um componente isolado</h3>
+        <p>Renderiza o componente em memória, sem emulador. Rápido, mas o app não existe de verdade: navegação, APIs
+          nativas e permissões estão todas mockadas.</p>
+        <p style="margin-top:8px"><strong>Analogia:</strong> é o ensaio de uma cena só, sem cenário.</p>
+      </div>
+      <div class="card" data-panel="lv" data-value="unit" hidden>
+        <span class="tag ok">muitos, rápidos, baratos</span>
+        <h3 style="margin-top:9px">Testa uma função pura</h3>
+        <p>Entrada e saída, milissegundos por teste. Não sabe nada sobre botão, tela ou usuário.</p>
+        <p style="margin-top:8px"><strong>Analogia:</strong> é afinar um instrumento sozinho, em casa.</p>
+      </div>
+      <p class="sub" style="margin-top:12px">Maestro <strong>não substitui</strong> Jest nem Testing Library. Ele ocupa o topo da pirâmide,
+        onde os testes são poucos porém decisivos.</p>
+    </div>
+  </div>
+</section>

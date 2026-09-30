@@ -1,0 +1,73 @@
+<section class="slide" data-title="JavaScript">
+  <div class="kicker">Ato 03 &middot; a válvula de escape</div>
+  <h2>Quando o YAML não basta: <em>JavaScript</em></h2>
+  <div class="tabs" data-tabs="js" style="margin-top:14px">
+    <button class="tab on" data-tab="eval">evalScript</button>
+    <button class="tab" data-tab="file">runScript</button>
+    <button class="tab" data-tab="faker">faker</button>
+    <button class="tab" data-tab="http">HTTP</button>
+  </div>
+  <div class="cols c2" style="margin-top:14px">
+    <div class="code">
+      <div class="code-top"><i class="led r"></i><i class="led y"></i><i class="led g"></i><span>javascript nos flows</span></div>
+      <div class="pane on" data-tab="eval" data-tabs="js">
+<pre class="sm"><span class="c"># expressão inline dentro do próprio YAML</span>
+<span class="d">-</span> <span class="k">evalScript</span>: <span class="s">"${output.email = 'qa' + Date.now() + '@t.com'}"</span>
+<span class="d">-</span> <span class="k">tapOn</span>: {<span class="k">id</span>: <span class="s">"email_input"</span>}
+<span class="d">-</span> <span class="k">inputText</span>: <span class="s">"${output.email}"</span>
+
+<span class="c"># copiar da tela e validar com lógica</span>
+<span class="d">-</span> <span class="k">copyTextFrom</span>: {<span class="k">id</span>: <span class="s">"codigo_pedido"</span>}
+<span class="d">-</span> <span class="k">evalScript</span>: <span class="s">"${output.ok = maestro.copiedText.length === 8}"</span>
+<span class="d">-</span> <span class="k">assertTrue</span>: <span class="s">"${output.ok}"</span></pre></div>
+      <div class="pane" data-tab="file" data-tabs="js">
+<pre class="sm"><span class="c">// scripts/gerar-cpf.js — arquivo .js de verdade</span>
+<span class="k">function</span> <span class="f">gerarCPF</span>() {
+  <span class="k">const</span> n = () =&gt; Math.<span class="f">floor</span>(Math.<span class="f">random</span>() * <span class="n">9</span>);
+  <span class="k">return</span> Array.<span class="f">from</span>({length: <span class="n">11</span>}, n).<span class="f">join</span>(<span class="s">''</span>);
+}
+output.cpf = <span class="f">gerarCPF</span>();
+console.<span class="f">log</span>(<span class="s">'CPF gerado: '</span> + output.cpf);
+
+<span class="c"># no flow:</span>
+<span class="d">-</span> <span class="k">runScript</span>: <span class="s">../scripts/gerar-cpf.js</span>
+<span class="d">-</span> <span class="k">inputText</span>: <span class="s">"${output.cpf}"</span></pre></div>
+      <div class="pane" data-tab="faker" data-tabs="js">
+<pre class="sm"><span class="c"># objeto faker embutido: dado falso realista</span>
+<span class="d">-</span> <span class="k">inputText</span>: <span class="s">"${faker.person.fullName()}"</span>
+<span class="d">-</span> <span class="k">inputText</span>: <span class="s">"${faker.internet.email()}"</span>
+<span class="d">-</span> <span class="k">inputText</span>: <span class="s">"${faker.phone.number()}"</span>
+
+<span class="c"># por que isso importa:</span>
+<span class="c"># cadastro com e-mail fixo funciona uma vez</span>
+<span class="c"># e falha na segunda ("e-mail já existe").</span>
+<span class="c"># Com faker, toda execução é nova.</span></pre></div>
+      <div class="pane" data-tab="http" data-tabs="js">
+<pre class="sm"><span class="c">// scripts/criar-usuario.js</span>
+<span class="k">const</span> resposta = http.<span class="f">post</span>(<span class="s">'https://api.staging/users'</span>, {
+  headers: { <span class="s">'Content-Type'</span>: <span class="s">'application/json'</span> },
+  body: JSON.<span class="f">stringify</span>({ nome: <span class="s">'QA Bot'</span> })
+});
+output.userId = JSON.<span class="f">parse</span>(resposta.body).id;
+
+<span class="c"># prepara o cenário pela API e testa só a UI:</span>
+<span class="c"># o teste fica MUITO mais rápido do que</span>
+<span class="c"># cadastrar tudo clicando na tela.</span></pre></div>
+    </div>
+    <div class="stackv">
+      <div class="card"><h3 style="color:var(--brass)">Motor e limites</h3>
+        <p style="margin-top:5px">Roda em <strong>GraalJS</strong> por padrão, com ECMAScript moderno. Rhino existe, mas é desencorajado.</p>
+        <p style="margin-top:7px">É um <strong>sandbox</strong>: sem acesso ao sistema de arquivos e sem <code style="font-family:var(--mono);font-size:12px">require</code> de pacotes npm.
+          Você não instala lodash nem axios ali dentro.</p></div>
+      <div class="card"><h3 style="color:var(--brass)">Por que o sandbox é proposital</h3>
+        <p style="margin-top:5px">Garante que o flow escrito na sua máquina se comporte igual na máquina do colega e na nuvem.
+          Portabilidade acima de poder.</p>
+        <p style="margin-top:7px"><strong>Cuidado:</strong> não é o JavaScript do seu app. É um script auxiliar do teste &mdash;
+          ele não enxerga o estado do React nem os hooks.</p></div>
+      <div class="card" style="flex:none;background:linear-gradient(var(--brass-dim),var(--brass-dim)),var(--panel);border-color:var(--brass)">
+        <h3 style="color:var(--brass)">Analogia</h3>
+        <p style="margin-top:5px">O YAML é a partitura. O JavaScript é a improvisação combinada em cima dela &mdash;
+          permitida, útil, mas ninguém improvisa a sinfonia inteira.</p></div>
+    </div>
+  </div>
+</section>

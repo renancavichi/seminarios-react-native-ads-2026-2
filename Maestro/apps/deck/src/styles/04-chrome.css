@@ -1,0 +1,20 @@
+/**
+ * Moldura: barra superior com marcadores, barra de progresso e rodapé.
+ */
+header.bar{position:absolute;top:0;left:0;right:0;height:46px;display:flex;align-items:center;
+  gap:16px;padding:0 34px;border-bottom:1px solid var(--line);z-index:5;background:rgba(10,14,19,.55)}
+.brand{font-family:var(--serif);font-size:19px;letter-spacing:.2px;color:var(--text)}
+.brand em{color:var(--brass);font-style:italic}
+.dots{display:flex;gap:5px;margin-left:auto}
+.dot{width:16px;height:4px;border-radius:2px;background:var(--line2);border:0;cursor:pointer;transition:.25s;padding:0}
+.dot:hover{background:var(--muted)}
+.dot.on{background:var(--brass);width:26px}
+.dot.act{background:var(--brass)}
+footer.bar{position:absolute;bottom:0;left:0;right:0;height:38px;display:flex;align-items:center;
+  gap:14px;padding:0 34px;border-top:1px solid var(--line);z-index:5;font-size:11.5px;color:var(--dim);
+  letter-spacing:.06em;text-transform:uppercase;background:rgba(10,14,19,.55)}
+footer .nav{margin-left:auto;display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0}
+footer button{background:transparent;border:1px solid var(--line2);color:var(--muted);border-radius:4px;
+  width:26px;height:22px;cursor:pointer;font-size:12px;line-height:1}
+footer button:hover{border-color:var(--brass);color:var(--brass)}
+#prog{position:absolute;bottom:38px;left:0;height:2px;background:var(--brass);width:0;z-index:6;transition:width .35s cubic-bezier(.2,.8,.2,1);box-shadow:0 0 12px rgba(233,179,73,.6)}

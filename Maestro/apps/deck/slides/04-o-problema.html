@@ -1,0 +1,60 @@
+<section class="slide" data-title="O problema">
+  <div class="kicker">Ato 01 &middot; a dor</div>
+  <h2>Quatro motivos para <em>odiar</em> teste E2E mobile</h2>
+  <div class="cols c2" style="margin-top:14px">
+    <div class="stackv">
+      <button class="card pick pain on" data-group="pain" data-value="flake" data-label="o-teste-instavel.js"><span class="num">01</span><h3 style="margin-top:5px">Flakiness</h3>
+        <p>O mesmo teste passa, falha e volta a passar sem ninguém mexer numa linha. A equipe perde a confiança na suíte.</p></button>
+      <button class="card pick pain" data-group="pain" data-value="sleep" data-label="espera-na-marra.js"><span class="num">02</span><h3 style="margin-top:5px">Sleep na marra</h3>
+        <p>Para não quebrar, o dev espalha esperas fixas. O teste fica lento e continua instável.</p></button>
+      <button class="card pick pain" data-group="pain" data-value="setup" data-label="terminal — configuração"><span class="num">03</span><h3 style="margin-top:5px">Setup hell</h3>
+        <p>Driver, servidor, SDK, versão de Java, config nativa. Um dia inteiro antes do primeiro teste rodar.</p></button>
+      <button class="card pick pain" data-group="pain" data-value="lock" data-label="android/app/build.gradle"><span class="num">04</span><h3 style="margin-top:5px">Acoplamento</h3>
+        <p>A ferramenta entra <em>dentro</em> do app. Subiu a versão do React Native, a suíte para de compilar.</p></button>
+    </div>
+    <div class="code">
+      <div class="code-top"><i class="led r"></i><i class="led y"></i><i class="led g"></i><span data-label-for="pain">o-teste-instavel.js</span></div>
+      <div id="painPane" style="flex:1;min-height:0;display:flex">
+<pre class="sm painbox" data-panel="pain" data-value="flake"><span class="c">// o botão existe... mas o app ainda está renderizando</span>
+<span class="k">await</span> element(by.<span class="f">id</span>(<span class="s">'checkout'</span>)).tap();
+<span class="c">// ✗ Test failed: element not visible</span>
+<span class="c">// roda de novo: ✓ passou</span>
+<span class="c">// roda no CI (máquina mais lenta): ✗ falhou</span>
+
+<span class="c">// Resultado real em times grandes:</span>
+<span class="c">// 10 a 15% das execuções falham sem bug nenhum.</span>
+<span class="c">// A equipe começa a apertar "re-run" por reflexo</span>
+<span class="c">// e para de acreditar no vermelho.</span></pre>
+<pre class="sm painbox" data-panel="pain" data-value="sleep" hidden><span class="c">// a "solução" clássica: dormir e torcer</span>
+<span class="k">await</span> driver.<span class="f">pause</span>(<span class="n">3000</span>);   <span class="c">// splash</span>
+<span class="k">await</span> loginBtn.<span class="f">click</span>();
+<span class="k">await</span> driver.<span class="f">pause</span>(<span class="n">5000</span>);   <span class="c">// chamada de API</span>
+<span class="k">await</span> driver.<span class="f">pause</span>(<span class="n">2000</span>);   <span class="c">// animação da transição</span>
+
+<span class="c">// 10 segundos parados POR TESTE.</span>
+<span class="c">// 200 testes = 33 minutos só dormindo.</span>
+<span class="c">// E se a rede demorar 5,1s? Falha assim mesmo.</span></pre>
+<pre class="sm painbox" data-panel="pain" data-value="setup" hidden><span class="c"># um setup típico de Appium antes do 1º teste</span>
+npm i -D webdriverio appium
+appium driver install uiautomator2
+appium driver install xcuitest
+<span class="c"># + Appium Server rodando numa porta</span>
+<span class="c"># + capabilities por plataforma</span>
+<span class="c"># + Xcode CLI tools, Android SDK, JDK certo</span>
+<span class="c"># + no Detox: build nativo dedicado do app</span>
+
+<span class="err">→ horas de configuração antes da 1ª asserção</span></pre>
+<pre class="sm painbox" data-panel="pain" data-value="lock" hidden><span class="c">// Detox: a ferramenta é compilada JUNTO com o app</span>
+<span class="c">// android/app/build.gradle</span>
+androidTestImplementation(<span class="s">'com.wix:detox:+'</span>)
+
+<span class="c">// e no package.json, um binário só para teste:</span>
+<span class="s">"build"</span>: <span class="s">"detox build -c ios.sim.debug"</span>
+
+<span class="c">// Consequência: subiu o RN 0.7x → Xcode novo →</span>
+<span class="c">// versão do Detox precisa acompanhar.</span>
+<span class="err">→ a suíte de testes vira mais um projeto para manter</span></pre>
+      </div>
+    </div>
+  </div>
+</section>

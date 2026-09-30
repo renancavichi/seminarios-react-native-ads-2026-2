@@ -1,0 +1,20 @@
+<section class="slide" data-title="Comparativo">
+  <div class="kicker">Ato 04 &middot; concorrência</div>
+  <h2>Maestro, Detox, Appium e <em>Testing Library</em></h2>
+  <div style="margin-top:12px;overflow:auto;flex:1;min-height:0">
+    <table>
+      <tr><th style="width:17%"></th><th>Maestro</th><th>Detox</th><th>Appium</th><th>Jest + RNTL</th></tr>
+      <tr><td>Abordagem</td><td>caixa-preta<br>(acessibilidade)</td><td>caixa-cinza<br>(sincroniza com o app)</td><td>caixa-preta<br>(WebDriver)</td><td>caixa-branca<br>(render em memória)</td></tr>
+      <tr><td>Linguagem</td><td>YAML (+ JS opcional)</td><td>JS / TypeScript</td><td>JS, Python, Java, C#…</td><td>JS / TypeScript</td></tr>
+      <tr><td>Toca no projeto?</td><td>não instala nada</td><td>dependência + build nativo</td><td>driver e servidor à parte</td><td>dependência de dev</td></tr>
+      <tr><td>Plataformas</td><td>Android, iOS, RN, Flutter, web</td><td>React Native</td><td>praticamente tudo</td><td>só componente RN</td></tr>
+      <tr><td>Setup até o 1º teste</td><td>minutos</td><td>horas</td><td>horas</td><td>minutos</td></tr>
+      <tr><td>Estabilidade</td><td>alta (retry embutido)</td><td>a mais alta em RN</td><td>a mais instável</td><td>determinística</td></tr>
+      <tr><td>Fora do app</td><td>sim (permissão, GPS, notificação)</td><td>limitado</td><td>sim</td><td>não</td></tr>
+      <tr><td>Curva de aprendizado</td><td>baixa &mdash; QA sem código consegue</td><td>média/alta</td><td>alta</td><td>média</td></tr>
+      <tr class="fav"><td>Escolha quando…</td><td>quer cobrir jornadas críticas rápido, em RN, Flutter ou nativo</td><td>o app é RN e você quer a menor instabilidade possível</td><td>precisa de device farm, navegador e plataforma exótica</td><td>quer testar lógica e componente, não a jornada</td></tr>
+    </table>
+  </div>
+  <p class="sub" style="margin-top:10px">Todos os três de E2E compartilham a mesma fragilidade de fundo: dependem de <strong>seletores</strong>.
+    Se alguém renomear o testID, o teste quebra em qualquer uma das ferramentas.</p>
+</section>

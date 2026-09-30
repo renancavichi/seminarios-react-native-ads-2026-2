@@ -1,0 +1,90 @@
+<section class="slide" data-title="Instalação">
+  <div class="kicker">Ato 03 &middot; mão no código</div>
+  <h2>Do zero ao primeiro teste</h2>
+  <div class="cols c32" style="margin-top:14px">
+    <div class="stackv">
+      <div class="tabs" data-tabs="inst">
+        <button class="tab on" data-tab="mac">macOS / Linux</button>
+        <button class="tab" data-tab="win">Windows</button>
+        <button class="tab" data-tab="tree">estrutura de pastas</button>
+        <button class="tab" data-tab="cfg">config.yaml</button>
+      </div>
+      <div class="code" style="flex:1">
+        <div class="code-top"><i class="led r"></i><i class="led y"></i><i class="led g"></i><span>terminal</span></div>
+        <div class="pane on" data-tab="mac" data-tabs="inst">
+<pre class="sm"><span class="c"># 1. instala o binário (um comando, só isso)</span>
+curl -fsSL <span class="s">"https://get.maestro.mobile.dev"</span> | bash
+
+<span class="c"># 2. confere se entrou no PATH</span>
+maestro --version
+
+<span class="c"># 3. pré-requisito: Java 17 ou 21</span>
+java -version
+
+<span class="c"># 4. sobe um emulador Android já com o Maestro</span>
+maestro start-device --platform android
+
+<span class="c"># 5. roda o primeiro flow</span>
+maestro test flows/login.yaml</pre></div>
+        <div class="pane" data-tab="win" data-tabs="inst">
+<pre class="sm"><span class="c"># opção A — dentro do WSL (recomendado)</span>
+curl -fsSL <span class="s">"https://get.maestro.mobile.dev"</span> | bash
+
+<span class="c"># opção B — download manual do .zip e PATH</span>
+<span class="c"># + Android SDK Platform Tools (adb) instalado</span>
+
+adb devices   <span class="c"># o aparelho precisa aparecer aqui</span>
+
+<span class="c"># atenção: iOS só roda em macOS,</span>
+<span class="c"># porque depende do simulador do Xcode.</span></pre></div>
+        <div class="pane" data-tab="tree" data-tabs="inst">
+<pre class="sm">meu-app-rn/
+├─ src/                    <span class="c"># seu código React Native</span>
+├─ package.json            <span class="c"># ← nada muda aqui!</span>
+└─ .maestro/
+   ├─ config.yaml          <span class="c"># configuração do workspace</span>
+   ├─ flows/
+   │  ├─ login.yaml
+   │  ├─ checkout.yaml
+   │  └─ perfil.yaml
+   ├─ subflows/
+   │  └─ fazer-login.yaml  <span class="c"># reaproveitado por todos</span>
+   └─ scripts/
+      └─ criar-usuario.js  <span class="c"># JavaScript auxiliar</span></pre></div>
+        <div class="pane" data-tab="cfg" data-tabs="inst">
+<pre class="sm"><span class="c"># .maestro/config.yaml</span>
+<span class="k">appId</span>: <span class="s">com.exemplo.app</span>
+
+<span class="k">flows</span>:
+  <span class="d">-</span> <span class="s">"flows/*.yaml"</span>
+
+<span class="c"># variáveis para todos os flows</span>
+<span class="k">env</span>:
+  <span class="k">URL_API</span>: <span class="s">"https://staging.api.com"</span>
+  <span class="k">USUARIO</span>: <span class="s">"qa@empresa.com"</span>
+
+<span class="c"># ordem quando um teste depende do outro</span>
+<span class="k">executionOrder</span>:
+  <span class="k">flowsOrder</span>:
+    <span class="d">-</span> <span class="s">"login"</span>
+    <span class="d">-</span> <span class="s">"checkout"</span></pre></div>
+      </div>
+    </div>
+    <div class="stackv">
+      <div class="card"><span class="num">O CONTRASTE</span>
+        <h3 style="margin-top:6px">O que você <em>não</em> precisa fazer</h3>
+        <ul style="margin-top:8px">
+          <li>Nenhum <b>npm install</b> no projeto</li>
+          <li>Nenhuma alteração no <b>build.gradle</b> ou no <b>Podfile</b></li>
+          <li>Nenhum build nativo dedicado a teste</li>
+          <li>Nenhum servidor rodando em outra aba</li>
+        </ul>
+      </div>
+      <div class="card"><h3>Tempo até o primeiro teste verde</h3>
+        <p style="margin-top:6px">Comparativos de mercado de 2026 colocam o Maestro em torno de <strong>10 a 15 minutos</strong>,
+        contra horas de configuração nos concorrentes tradicionais.</p>
+        <p style="margin-top:9px"><strong>Analogia:</strong> é a diferença entre montar o estúdio e simplesmente apertar o play.</p>
+      </div>
+    </div>
+  </div>
+</section>

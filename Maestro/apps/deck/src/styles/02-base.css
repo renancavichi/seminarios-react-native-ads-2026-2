@@ -1,0 +1,10 @@
+/**
+ * Reset e camadas de fundo do documento (vinheta e granulado).
+ */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--ink);color:var(--text);font-family:var(--sans);overflow:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9;
+  background:radial-gradient(ellipse 70% 50% at 50% -10%,rgba(233,179,73,.10),transparent 60%),
+             radial-gradient(ellipse 60% 40% at 90% 110%,rgba(127,184,255,.07),transparent 60%);}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:10;opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");}

@@ -1,0 +1,16 @@
+/**
+ * Blocos de código, realce de sintaxe e destaque de linha.
+ */
+.code{background:#0A0E14;border:1px solid var(--line);border-radius:8px;overflow:hidden;display:flex;flex-direction:column;min-height:0}
+.code-top{display:flex;align-items:center;gap:7px;padding:7px 12px;border-bottom:1px solid var(--line);background:#0D131B;flex:none}
+.code-top span{font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.06em}
+.led{width:7px;height:7px;border-radius:50%;background:var(--line2)}
+.led.r{background:#FF5F57}.led.y{background:#FEBC2E}.led.g{background:#28C840}
+pre{font-family:var(--mono);font-size:13px;line-height:1.72;padding:12px 14px;overflow:auto;flex:1;white-space:pre;tab-size:2}
+pre.sm{font-size:11.7px;line-height:1.65}
+pre.xs{font-size:10.8px;line-height:1.6}
+.k{color:var(--sky)}.s{color:var(--mint)}.c{color:#4E5C6E;font-style:italic}.d{color:var(--brass)}
+.n{color:var(--violet)}.f{color:#E8ECF3}.err{color:var(--coral)}
+.ln{display:block;padding:0 6px;margin:0 -6px;border-radius:3px;transition:.25s;white-space:pre}
+pre.lines{white-space:normal}
+.hl{background:rgba(233,179,73,.15);box-shadow:inset 2px 0 0 var(--brass)}

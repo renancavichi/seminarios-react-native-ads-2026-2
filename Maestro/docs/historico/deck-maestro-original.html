@@ -1,0 +1,1674 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maestro — Testes E2E mobile em YAML | Deck de seminário</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0C0F14; --ink2:#111722; --panel:#161D28; --panel2:#1B2431;
+  --line:#26323F; --line2:#33445a;
+  --text:#E8ECF3; --muted:#8C99AC; --dim:#5D6A7D;
+  --brass:#E9B349; --brass-dim:rgba(233,179,73,.13);
+  --mint:#5FD9A6; --coral:#FF7A6B; --sky:#7FB8FF; --violet:#B69BFF;
+  --serif:'Instrument Serif',Georgia,'Times New Roman',serif;
+  --sans:'Outfit','Segoe UI',system-ui,sans-serif;
+  --mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--ink);color:var(--text);font-family:var(--sans);overflow:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9;
+  background:radial-gradient(ellipse 70% 50% at 50% -10%,rgba(233,179,73,.10),transparent 60%),
+             radial-gradient(ellipse 60% 40% at 90% 110%,rgba(127,184,255,.07),transparent 60%);}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:10;opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+/* ---------- palco ---------- */
+#viewport{position:fixed;inset:0;display:grid;place-items:center}
+#stage{width:1280px;height:720px;position:relative;transform-origin:center center;
+  background:linear-gradient(160deg,#0E131B 0%,#0B0F15 55%,#0D1219 100%);
+  border:1px solid var(--line);border-radius:6px;overflow:hidden;
+  box-shadow:0 40px 120px rgba(0,0,0,.6)}
+#stage::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:80px 80px;opacity:.13}
+
+/* ---------- chrome ---------- */
+header.bar{position:absolute;top:0;left:0;right:0;height:46px;display:flex;align-items:center;
+  gap:16px;padding:0 34px;border-bottom:1px solid var(--line);z-index:5;background:rgba(10,14,19,.55)}
+.brand{font-family:var(--serif);font-size:19px;letter-spacing:.2px;color:var(--text)}
+.brand em{color:var(--brass);font-style:italic}
+.dots{display:flex;gap:5px;margin-left:auto}
+.dot{width:16px;height:4px;border-radius:2px;background:var(--line2);border:0;cursor:pointer;transition:.25s;padding:0}
+.dot:hover{background:var(--muted)}
+.dot.on{background:var(--brass);width:26px}
+.dot.act{background:var(--brass)}
+footer.bar{position:absolute;bottom:0;left:0;right:0;height:38px;display:flex;align-items:center;
+  gap:14px;padding:0 34px;border-top:1px solid var(--line);z-index:5;font-size:11.5px;color:var(--dim);
+  letter-spacing:.06em;text-transform:uppercase;background:rgba(10,14,19,.55)}
+footer .nav{margin-left:auto;display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0}
+footer button{background:transparent;border:1px solid var(--line2);color:var(--muted);border-radius:4px;
+  width:26px;height:22px;cursor:pointer;font-size:12px;line-height:1}
+footer button:hover{border-color:var(--brass);color:var(--brass)}
+#clock{font-family:var(--mono);color:var(--muted);font-size:11.5px}
+#clock.over{color:var(--coral)}
+#prog{position:absolute;bottom:38px;left:0;height:2px;background:var(--brass);width:0;z-index:6;transition:width .35s cubic-bezier(.2,.8,.2,1);box-shadow:0 0 12px rgba(233,179,73,.6)}
+
+/* ---------- slides ---------- */
+.slide{position:absolute;inset:46px 0 38px 0;padding:26px 60px 16px;opacity:0;visibility:hidden;
+  transition:opacity .3s ease;display:flex;flex-direction:column;z-index:1}
+.slide.on{opacity:1;visibility:visible;z-index:2}
+.slide.on>*{animation:rise .45s cubic-bezier(.2,.8,.2,1) both}
+.slide.on>*:nth-child(2){animation-delay:.05s}
+.slide.on>*:nth-child(3){animation-delay:.1s}
+.slide.on>*:nth-child(4){animation-delay:.15s}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+.kicker{font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--brass);margin-bottom:8px}
+h1{font-family:var(--serif);font-size:62px;font-weight:400;line-height:1.02;letter-spacing:-.5px}
+h2{font-family:var(--serif);font-size:38px;font-weight:400;line-height:1.08;margin-bottom:6px}
+h2 em{color:var(--brass);font-style:italic}
+h3{font-size:14.5px;font-weight:600;letter-spacing:.01em}
+p{font-size:15px;line-height:1.55;color:var(--muted);font-weight:300;max-width:74ch}
+p strong{color:var(--text);font-weight:500}
+.lead{font-size:17px;color:#BFC9D8}
+.sub{font-size:12.5px;color:var(--dim);line-height:1.5}
+.cols{display:grid;gap:22px;flex:1;min-height:0}
+.c2{grid-template-columns:1fr 1fr}
+.c23{grid-template-columns:.9fr 1.1fr}
+.c32{grid-template-columns:1.15fr .85fr}
+.stackv{display:flex;flex-direction:column;gap:12px;min-height:0}
+.spacer{flex:1}
+
+/* ---------- caixas ---------- */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;transition:.22s}
+.card h3{margin-bottom:5px}
+.card p{font-size:13px;line-height:1.5}
+.pick{cursor:pointer;position:relative;text-align:left;font-family:inherit;color:inherit;width:100%}
+.pick:hover{border-color:var(--line2);transform:translateY(-2px)}
+.pick.on{border-color:var(--brass);background:linear-gradient(var(--brass-dim),var(--brass-dim)),var(--panel)}
+.pick.on::after{content:'';position:absolute;left:0;top:14px;bottom:14px;width:2px;background:var(--brass);border-radius:2px}
+.num{font-family:var(--mono);font-size:10px;color:var(--brass);letter-spacing:.1em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.tag{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;
+  padding:3px 7px;border-radius:3px;border:1px solid var(--line2);color:var(--muted)}
+.tag.ok{color:var(--mint);border-color:rgba(95,217,166,.35)}
+.tag.no{color:var(--coral);border-color:rgba(255,122,107,.35)}
+.tag.br{color:var(--brass);border-color:rgba(233,179,73,.4)}
+
+/* ---------- código ---------- */
+.code{background:#0A0E14;border:1px solid var(--line);border-radius:8px;overflow:hidden;display:flex;flex-direction:column;min-height:0}
+.code-top{display:flex;align-items:center;gap:7px;padding:7px 12px;border-bottom:1px solid var(--line);background:#0D131B;flex:none}
+.code-top span{font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.06em}
+.led{width:7px;height:7px;border-radius:50%;background:var(--line2)}
+.led.r{background:#FF5F57}.led.y{background:#FEBC2E}.led.g{background:#28C840}
+pre{font-family:var(--mono);font-size:13px;line-height:1.72;padding:12px 14px;overflow:auto;flex:1;white-space:pre;tab-size:2}
+pre.sm{font-size:11.7px;line-height:1.65}
+pre.xs{font-size:10.8px;line-height:1.6}
+.k{color:var(--sky)}.s{color:var(--mint)}.c{color:#4E5C6E;font-style:italic}.d{color:var(--brass)}
+.n{color:var(--violet)}.f{color:#E8ECF3}.err{color:var(--coral)}
+.ln{display:block;padding:0 6px;margin:0 -6px;border-radius:3px;transition:.25s;white-space:pre}
+pre.lines{white-space:normal}
+.hl{background:rgba(233,179,73,.15);box-shadow:inset 2px 0 0 var(--brass)}
+
+/* ---------- tabs ---------- */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;flex:none}
+.tab{background:transparent;border:1px solid var(--line);color:var(--muted);font-family:var(--mono);
+  font-size:11px;padding:6px 11px;border-radius:5px;cursor:pointer;transition:.2s;letter-spacing:.04em}
+.tab:hover{color:var(--text);border-color:var(--line2)}
+.tab.on{background:var(--brass);border-color:var(--brass);color:#0C0F14;font-weight:700}
+.pane{display:none;min-height:0;flex:1}
+.pane.on{display:flex;flex-direction:column;animation:fade .28s ease both}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ---------- notas ---------- */
+#notes{position:absolute;left:0;right:0;bottom:38px;max-height:54%;overflow:auto;z-index:8;
+  background:rgba(8,11,16,.97);border-top:1px solid var(--brass);padding:16px 34px 18px;
+  transform:translateY(calc(100% + 46px));transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+#notes.on{transform:none}
+#notes h4{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--brass);text-transform:uppercase;margin-bottom:8px}
+#notes p{font-size:13.5px;line-height:1.6;color:#C3CDDB;max-width:none;margin-bottom:7px}
+#notes b{color:var(--brass);font-weight:600}
+.notes{display:none}
+
+/* ---------- específicos ---------- */
+.pyr{display:flex;flex-direction:column;align-items:center;gap:7px;justify-content:center}
+.lvl{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:11px 0;text-align:center;
+  cursor:pointer;transition:.25s;font-size:13px;color:var(--muted);font-family:inherit}
+.lvl:hover{border-color:var(--line2);color:var(--text)}
+.lvl.on{border-color:var(--brass);color:var(--text);background:linear-gradient(var(--brass-dim),var(--brass-dim)),var(--panel)}
+.lvl b{display:block;font-size:14.5px;color:var(--text);font-weight:500}
+.lvl span{font-family:var(--mono);font-size:10px;color:var(--dim)}
+.l1{width:34%}.l2{width:58%}.l3{width:82%}
+
+.phone{width:228px;border:2px solid var(--line2);border-radius:26px;background:#0A0E14;padding:12px 11px;
+  box-shadow:0 20px 50px rgba(0,0,0,.55);position:relative;flex:none}
+.notch{width:70px;height:5px;background:var(--line2);border-radius:3px;margin:0 auto 12px}
+.fld{border:1px solid var(--line);border-radius:7px;padding:9px 10px;margin-bottom:9px;font-size:12px;
+  color:var(--dim);cursor:pointer;transition:.2s;background:#0E131B}
+.fld:hover{border-color:var(--line2)}
+.fld.on{border-color:var(--brass);color:var(--text);box-shadow:0 0 0 3px rgba(233,179,73,.14)}
+.btn-fake{background:var(--brass);color:#0C0F14;border:2px solid var(--brass);border-radius:7px;padding:9px;
+  text-align:center;font-weight:600;font-size:12.5px;cursor:pointer;transition:.2s;margin-top:3px}
+.btn-fake.off{background:transparent;color:var(--brass)}
+.tap{position:absolute;width:30px;height:30px;border:2px solid var(--brass);border-radius:50%;
+  pointer-events:none;opacity:0;transform:translate(-50%,-50%)}
+@keyframes ping{0%{opacity:.9;transform:translate(-50%,-50%) scale(.3)}100%{opacity:0;transform:translate(-50%,-50%) scale(2.2)}}
+
+.flowdiag{display:flex;align-items:center;gap:0;justify-content:center;flex-wrap:nowrap}
+.node{border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:11px 12px;text-align:center;
+  min-width:120px;transition:.3s}
+.node b{display:block;font-size:12.5px;margin-bottom:3px}
+.node span{font-family:var(--mono);font-size:9.5px;color:var(--dim);line-height:1.35;display:block}
+.node.live{border-color:var(--brass);background:linear-gradient(var(--brass-dim),var(--brass-dim)),var(--panel);
+  box-shadow:0 0 22px rgba(233,179,73,.22);transform:translateY(-3px)}
+.arrow{width:30px;height:1px;background:var(--line2);position:relative;flex:none}
+.arrow::after{content:'';position:absolute;right:0;top:-3px;border-left:5px solid var(--line2);
+  border-top:3.5px solid transparent;border-bottom:3.5px solid transparent}
+.arrow.live{background:var(--brass)}.arrow.live::after{border-left-color:var(--brass)}
+
+.term{background:#080B10;border:1px solid var(--line);border-radius:8px;font-family:var(--mono);
+  font-size:12px;line-height:1.85;padding:12px 14px;overflow:auto;flex:1;min-height:0}
+.term .ok{color:var(--mint)}.term .warn{color:var(--brass)}.term .bad{color:var(--coral)}
+.term .cmd{color:var(--text)}.term .mut{color:var(--dim)}
+.term-line{opacity:0;animation:tl .3s ease forwards}
+@keyframes tl{to{opacity:1}}
+
+.go{background:var(--brass);color:#0C0F14;border:0;border-radius:6px;padding:8px 15px;font-family:var(--mono);
+  font-size:11.5px;font-weight:700;cursor:pointer;letter-spacing:.05em;transition:.2s}
+.go:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.go.ghost{background:transparent;border:1px solid var(--brass);color:var(--brass)}
+
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line)}
+th{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);font-weight:400}
+td{color:var(--muted)}
+td:first-child{color:var(--text);font-weight:500}
+tr.fav td{background:var(--brass-dim)}
+tr.fav td:first-child{color:var(--brass)}
+
+.kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--line2);border-radius:3px;padding:1px 5px;color:var(--muted)}
+.bars{display:flex;align-items:flex-end;gap:5px;height:56px}
+.bars i{width:6px;background:var(--brass);border-radius:2px;opacity:.75;animation:eq 1.6s ease-in-out infinite}
+@keyframes eq{0%,100%{height:12%}50%{height:100%}}
+a{color:var(--brass);text-decoration:none;border-bottom:1px solid rgba(233,179,73,.3)}
+ul{list-style:none}
+li{font-size:13.5px;line-height:1.75;color:var(--muted);padding-left:16px;position:relative}
+li::before{content:'';position:absolute;left:0;top:10px;width:5px;height:5px;background:var(--brass);border-radius:1px}
+li b{color:var(--text);font-weight:500}
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+
+<header class="bar">
+  <div class="brand">Maestro <em>&mdash;</em> testes E2E em YAML</div>
+  <div class="dots" id="dots"></div>
+</header>
+
+<div id="prog"></div>
+
+<footer class="bar">
+  <span id="label">Capa</span>
+  <span id="clock">00:00</span>
+  <div class="nav">
+    <span class="kbd">&larr; &rarr;</span> navegar
+    <span class="kbd">N</span> notas
+    <span class="kbd">F</span> tela cheia
+    <button id="bPrev">&lsaquo;</button>
+    <span id="count" style="font-family:var(--mono)">1 / 20</span>
+    <button id="bNext">&rsaquo;</button>
+  </div>
+</footer>
+
+<div id="notes"><h4>Roteiro de fala</h4><div id="notesBody"></div></div>
+
+<!-- ============ 01 CAPA ============ -->
+<section class="slide" data-title="Capa">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+    <div class="bars" style="margin-bottom:26px">
+      <i style="animation-delay:0s"></i><i style="animation-delay:.1s"></i><i style="animation-delay:.2s"></i>
+      <i style="animation-delay:.3s"></i><i style="animation-delay:.15s"></i><i style="animation-delay:.05s"></i>
+      <i style="animation-delay:.25s"></i><i style="animation-delay:.35s"></i>
+    </div>
+    <div class="kicker">Análise e Desenvolvimento de Sistemas &middot; Desenvolvimento Mobile</div>
+    <h1>Maestro</h1>
+    <h1 style="font-style:italic;color:var(--brass);font-size:40px;margin-top:2px">a partitura dos seus testes</h1>
+    <p class="lead" style="margin-top:22px;max-width:62ch">Automação de UI para apps mobile escrita em YAML. Um único binário,
+      zero dependências dentro do app, o mesmo teste rodando em Android e iOS &mdash; inclusive em React Native.</p>
+    <div style="display:flex;gap:9px;margin-top:26px">
+      <span class="tag br">open source</span><span class="tag">YAML declarativo</span>
+      <span class="tag">black box</span><span class="tag">android &middot; ios &middot; web</span>
+    </div>
+  </div>
+  <div style="display:flex;align-items:flex-end;justify-content:space-between">
+    <p class="sub">docs.maestro.dev &middot; seminário de biblioteca</p>
+    <p class="sub">pressione <span class="kbd">&rarr;</span> para começar</p>
+  </div>
+  <div class="notes">
+    <p><b>0:00 &ndash; 0:40</b> &middot; Abertura. "Todo mundo aqui já escreveu um app que funcionava na sua máquina e quebrava na tela do professor. Hoje eu vou falar da ferramenta que testa o app do jeito que o usuário usa: batendo o dedo na tela."</p>
+    <p>Diga o nome da biblioteca, que ela é <b>open source</b>, que o teste é escrito em <b>YAML</b> (não em código) e que ela funciona com React Native sem instalar nada dentro do projeto. Avise que a apresentação é interativa e que você vai mostrar código rodando.</p>
+  </div>
+</section>
+
+<!-- ============ 02 ROTEIRO ============ -->
+<section class="slide" data-title="Roteiro">
+  <div class="kicker">Roteiro &middot; ~22 minutos</div>
+  <h2>O caminho de hoje</h2>
+  <div class="cols c2" style="margin-top:18px">
+    <div class="stackv">
+      <button class="card pick jump" data-go="2"><span class="num">ATO 01 &middot; 5 min</span>
+        <h3 style="margin-top:6px">O problema</h3>
+        <p>Por que teste E2E em mobile é a parte mais dolorida do ciclo &mdash; e o que é flakiness.</p></button>
+      <button class="card pick jump" data-go="5"><span class="num">ATO 02 &middot; 4 min</span>
+        <h3 style="margin-top:6px">A ideia do Maestro</h3>
+        <p>Caixa-preta, árvore de acessibilidade e os cinco pilares da ferramenta.</p></button>
+    </div>
+    <div class="stackv">
+      <button class="card pick jump" data-go="8"><span class="num">ATO 03 &middot; 9 min</span>
+        <h3 style="margin-top:6px">Mão no código</h3>
+        <p>Instalação, anatomia de um flow, testID no React Native, seletores, comandos, JavaScript e CI.</p></button>
+      <button class="card pick jump" data-go="17"><span class="num">ATO 04 &middot; 4 min</span>
+        <h3 style="margin-top:6px">Limites e comparação</h3>
+        <p>O que ela não faz, e como se compara com Detox, Appium e Jest + Testing Library.</p></button>
+    </div>
+  </div>
+  <p class="sub" style="margin-top:14px">Os quadrados no topo da tela são atalhos: clique para pular direto a qualquer slide durante as perguntas.</p>
+  <div class="notes">
+    <p><b>0:40 &ndash; 1:20</b> &middot; Mostre o mapa e prometa o final: "no último ato eu digo em que situação eu <b>não</b> usaria o Maestro, porque nenhuma ferramenta é bala de prata."</p>
+    <p>Dica: clique num dos cartões só para mostrar que o deck navega &mdash; isso já prepara a plateia para a parte interativa.</p>
+  </div>
+</section>
+
+<!-- ============ 03 PIRÂMIDE ============ -->
+<section class="slide" data-title="Onde entra o E2E">
+  <div class="kicker">Ato 01 &middot; contexto</div>
+  <h2>Onde o Maestro entra na <em>pirâmide de testes</em></h2>
+  <div class="cols c2" style="margin-top:16px;align-items:center">
+    <div class="pyr">
+      <button class="lvl l1 pick2 on" data-lv="e2e"><b>E2E / UI</b><span>Maestro, Detox, Appium</span></button>
+      <button class="lvl l2 pick2" data-lv="comp"><b>Componente</b><span>React Native Testing Library</span></button>
+      <button class="lvl l3 pick2" data-lv="unit"><b>Unitário</b><span>Jest</span></button>
+      <p class="sub" style="margin-top:10px;text-align:center">clique em cada camada</p>
+    </div>
+    <div>
+      <div class="card" data-lvbox="e2e">
+        <span class="tag br">poucos, lentos, caros</span>
+        <h3 style="margin-top:9px">Testa o aplicativo inteiro, montado</h3>
+        <p>Abre o app instalado no emulador e percorre a jornada real: login, carrinho, checkout. É o único nível que pega
+          erro de integração entre telas, navegação, permissão do sistema e API real. <strong>É aqui que o Maestro vive.</strong></p>
+        <p style="margin-top:8px"><strong>Analogia:</strong> é o ensaio geral da peça, com figurino, luz e plateia.</p>
+      </div>
+      <div class="card" data-lvbox="comp" hidden>
+        <span class="tag">médios</span>
+        <h3 style="margin-top:9px">Testa uma tela ou um componente isolado</h3>
+        <p>Renderiza o componente em memória, sem emulador. Rápido, mas o app não existe de verdade: navegação, APIs
+          nativas e permissões estão todas mockadas.</p>
+        <p style="margin-top:8px"><strong>Analogia:</strong> é o ensaio de uma cena só, sem cenário.</p>
+      </div>
+      <div class="card" data-lvbox="unit" hidden>
+        <span class="tag ok">muitos, rápidos, baratos</span>
+        <h3 style="margin-top:9px">Testa uma função pura</h3>
+        <p>Entrada e saída, milissegundos por teste. Não sabe nada sobre botão, tela ou usuário.</p>
+        <p style="margin-top:8px"><strong>Analogia:</strong> é afinar um instrumento sozinho, em casa.</p>
+      </div>
+      <p class="sub" style="margin-top:12px">Maestro <strong>não substitui</strong> Jest nem Testing Library. Ele ocupa o topo da pirâmide,
+        onde os testes são poucos porém decisivos.</p>
+    </div>
+  </div>
+  <div class="notes">
+    <p><b>1:20 &ndash; 3:00</b> &middot; Clique nas três camadas de baixo para cima. Deixe claro o <b>escopo</b>: o seminário é sobre a camada mais fina e mais cara da pirâmide.</p>
+    <p>Frase de apoio: "unitário pergunta <i>essa função está certa?</i>; E2E pergunta <i>o usuário consegue comprar?</i>". Diga que o número de testes E2E é pequeno de propósito, porque cada um custa segundos ou minutos.</p>
+  </div>
+</section>
+
+<!-- ============ 04 A DOR ============ -->
+<section class="slide" data-title="O problema">
+  <div class="kicker">Ato 01 &middot; a dor</div>
+  <h2>Quatro motivos para <em>odiar</em> teste E2E mobile</h2>
+  <div class="cols c2" style="margin-top:14px">
+    <div class="stackv">
+      <button class="card pick pain on" data-pain="flake"><span class="num">01</span><h3 style="margin-top:5px">Flakiness</h3>
+        <p>O mesmo teste passa, falha e volta a passar sem ninguém mexer numa linha. A equipe perde a confiança na suíte.</p></button>
+      <button class="card pick pain" data-pain="sleep"><span class="num">02</span><h3 style="margin-top:5px">Sleep na marra</h3>
+        <p>Para não quebrar, o dev espalha esperas fixas. O teste fica lento e continua instável.</p></button>
+      <button class="card pick pain" data-pain="setup"><span class="num">03</span><h3 style="margin-top:5px">Setup hell</h3>
+        <p>Driver, servidor, SDK, versão de Java, config nativa. Um dia inteiro antes do primeiro teste rodar.</p></button>
+      <button class="card pick pain" data-pain="lock"><span class="num">04</span><h3 style="margin-top:5px">Acoplamento</h3>
+        <p>A ferramenta entra <em>dentro</em> do app. Subiu a versão do React Native, a suíte para de compilar.</p></button>
+    </div>
+    <div class="code">
+      <div class="code-top"><i class="led r"></i><i class="led y"></i><i class="led g"></i><span id="painFile">o-teste-instavel.js</span></div>
+      <div id="painPane" style="flex:1;min-height:0;display:flex">
+<pre class="sm painbox" data-pain="flake"><span class="c">// o botão existe... mas o app ainda está renderizando</span>
+<span class="k">await</span> element(by.<span class="f">id</span>(<span class="s">'checkout'</span>)).tap();
+<span class="c">// ✗ Test failed: element not visible</span>
+<span class="c">// roda de novo: ✓ passou</span>
+<span class="c">// roda no CI (máquina mais lenta): ✗ falhou</span>
+
+<span class="c">// Resultado real em times grandes:</span>
+<span class="c">// 10 a 15% das execuções falham sem bug nenhum.</span>
+<span class="c">// A equipe começa a apertar "re-run" por reflexo</span>
+<span class="c">// e para de acreditar no vermelho.</span></pre>
+<pre class="sm painbox" data-pain="sleep" hidden><span class="c">// a "solução" clássica: dormir e torcer</span>
+<span class="k">await</span> driver.<span class="f">pause</span>(<span class="n">3000</span>);   <span class="c">// splash</span>
+<span class="k">await</span> loginBtn.<span class="f">click</span>();
+<span class="k">await</span> driver.<span class="f">pause</span>(<span class="n">5000</span>);   <span class="c">// chamada de API</span>
+<span class="k">await</span> driver.<span class="f">pause</span>(<span class="n">2000</span>);   <span class="c">// animação da transição</span>
+
+<span class="c">// 10 segundos parados POR TESTE.</span>
+<span class="c">// 200 testes = 33 minutos só dormindo.</span>
+<span class="c">// E se a rede demorar 5,1s? Falha assim mesmo.</span></pre>
+<pre class="sm painbox" data-pain="setup" hidden><span class="c"># um setup típico de Appium antes do 1º teste</span>
+npm i -D webdriverio appium
+appium driver install uiautomator2
+appium driver install xcuitest
+<span class="c"># + Appium Server rodando numa porta</span>
+<span class="c"># + capabilities por plataforma</span>
+<span class="c"># + Xcode CLI tools, Android SDK, JDK certo</span>
+<span class="c"># + no Detox: build nativo dedicado do app</span>
+
+<span class="err">→ horas de configuração antes da 1ª asserção</span></pre>
+<pre class="sm painbox" data-pain="lock" hidden><span class="c">// Detox: a ferramenta é compilada JUNTO com o app</span>
+<span class="c">// android/app/build.gradle</span>
+androidTestImplementation(<span class="s">'com.wix:detox:+'</span>)
+
+<span class="c">// e no package.json, um binário só para teste:</span>
+<span class="s">"build"</span>: <span class="s">"detox build -c ios.sim.debug"</span>
+
+<span class="c">// Consequência: subiu o RN 0.7x → Xcode novo →</span>
+<span class="c">// versão do Detox precisa acompanhar.</span>
+<span class="err">→ a suíte de testes vira mais um projeto para manter</span></pre>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <p><b>3:00 &ndash; 5:00</b> &middot; Clique nos quatro cartões, um por vez, lendo o código do lado direito. Esse é o slide que <b>justifica</b> a existência do Maestro &mdash; não corra.</p>
+    <p>Números para citar: comparativos de 2026 apontam flakiness média de ~15% no Appium e tempo de CI de 40 min em pipelines de Detox, contra 8&ndash;12 min quando migram para Maestro. Peça a mão de quem já colocou um <b>setTimeout</b> para "resolver" um bug &mdash; a plateia ri e entende a dor.</p>
+  </div>
+</section>
+
+<!-- ============ 05 CAIXA PRETA ============ -->
+<section class="slide" data-title="Caixa-preta">
+  <div class="kicker">Ato 01 &middot; a virada de chave</div>
+  <h2>Três formas de olhar para o app</h2>
+  <div class="grid3" style="margin-top:16px">
+    <button class="card pick box on" data-box="white"><span class="tag">caixa-branca</span>
+      <h3 style="margin-top:9px">Enxerga o código</h3>
+      <p>O teste importa as funções do app e checa estado interno. Jest e RNTL moram aqui.</p></button>
+    <button class="card pick box" data-box="gray"><span class="tag">caixa-cinza</span>
+      <h3 style="margin-top:9px">Conversa com o app</h3>
+      <p>O app roda de verdade, mas carrega um "espião" embutido que avisa quando terminou de trabalhar. É o Detox.</p></button>
+    <button class="card pick box" data-box="black"><span class="tag br">caixa-preta</span>
+      <h3 style="margin-top:9px">Só enxerga a tela</h3>
+      <p>Nada é injetado no app. A ferramenta pilota o <em>aparelho</em>. É o Maestro.</p></button>
+  </div>
+  <div class="card" style="margin-top:16px;padding:20px 22px" id="boxAnalogy">
+    <div data-boxa="white">
+      <h3 style="font-size:17px;color:var(--brass)">Analogia &middot; o mecânico com o capô aberto</h3>
+      <p style="margin-top:7px;max-width:88ch">Ele mede a pressão de cada peça isoladamente. Sabe exatamente qual válvula falhou &mdash; mas nunca
+        descobre se o carro é ruim de dirigir na chuva. <strong>Rápido e preciso, porém longe da experiência real.</strong></p>
+    </div>
+    <div data-boxa="gray" hidden>
+      <h3 style="font-size:17px;color:var(--brass)">Analogia &middot; o carro com sensores de fábrica</h3>
+      <p style="margin-top:7px;max-width:88ch">O mecânico dirige, e o painel avisa "motor ocupado, espere". A sincronia é perfeita: nunca acelera antes da hora.
+        O preço é que <strong>os sensores precisam ser instalados na fábrica</strong> &mdash; e cada modelo novo de motor exige um sensor novo.</p>
+    </div>
+    <div data-boxa="black" hidden>
+      <h3 style="font-size:17px;color:var(--brass)">Analogia &middot; o motorista comum</h3>
+      <p style="margin-top:7px;max-width:88ch">Ele senta, olha o painel, vira a chave e dirige. Não sabe nada do motor &mdash; e é exatamente por isso que
+        <strong>dirige qualquer carro</strong>: React Native, Flutter, Kotlin, Swift, tanto faz. É assim que o Maestro trabalha, no que a documentação
+        chama de operar <strong>"à distância de um braço"</strong>: ele pilota o dispositivo, não o app.</p>
+    </div>
+  </div>
+  <div class="notes">
+    <p><b>5:00 &ndash; 6:30</b> &middot; Clique nos três cartões na ordem. Essa é a <b>ideia central</b> do seminário: se você só entender uma coisa hoje, entenda essa diferença.</p>
+    <p>Conclua com a consequência prática: como o Maestro não entra no app, ele também consegue tocar em coisas <b>fora</b> dele &mdash; diálogo de permissão do Android, notificação, ajustes do sistema, câmera. Detox e RNTL, por definição, não conseguem sair do app.</p>
+  </div>
+</section>
+
+<!-- ============ 06 O QUE É ============ -->
+<section class="slide" data-title="O que é">
+  <div class="kicker">Ato 02 &middot; a solução</div>
+  <h2>Maestro, em uma frase</h2>
+  <p class="lead" style="margin-top:10px;max-width:80ch">Um <strong>framework open source de automação de UI</strong> que percorre o seu app pela
+    mesma camada de acessibilidade que um leitor de tela usa &mdash; descrito em arquivos YAML legíveis por qualquer pessoa da equipe.</p>
+  <div class="cols c2" style="margin-top:16px">
+    <div class="grid2" style="align-content:start">
+      <div class="card"><h3 style="color:var(--brass)">Tolerância embutida</h3>
+        <p>Assume que o celular é instável: se o elemento ainda não apareceu, ele tenta de novo antes de falhar.</p></div>
+      <div class="card"><h3 style="color:var(--brass)">Espera inteligente</h3>
+        <p>Aguarda sozinho conteúdo de rede e fim de animação. Sem <code style="font-family:var(--mono);font-size:12px">sleep()</code> na mão.</p></div>
+      <div class="card"><h3 style="color:var(--brass)">Sintaxe declarativa</h3>
+        <p>Você descreve <em>o quê</em>, não <em>como</em>. Um QA sem background em programação lê e escreve o teste.</p></div>
+      <div class="card"><h3 style="color:var(--brass)">Iteração instantânea</h3>
+        <p>Não compila nada. Salvou o arquivo, o flow roda de novo no aparelho na hora.</p></div>
+      <div class="card" style="grid-column:span 2"><h3 style="color:var(--brass)">Binário único</h3>
+        <p>Um comando de instalação e acabou. Nenhum pacote npm entra no seu projeto React Native, nenhuma linha do seu app muda.</p></div>
+    </div>
+    <div class="code">
+      <div class="code-top"><i class="led r"></i><i class="led y"></i><i class="led g"></i><span>flows/login.yaml &mdash; um teste completo</span></div>
+<pre><span class="k">appId</span>: <span class="s">com.exemplo.maestro</span>
+<span class="d">---</span>
+<span class="d">-</span> <span class="k">launchApp</span>:
+    <span class="k">clearState</span>: <span class="n">true</span>
+<span class="d">-</span> <span class="k">tapOn</span>:
+    <span class="k">id</span>: <span class="s">"email_input"</span>
+<span class="d">-</span> <span class="k">inputText</span>: <span class="s">"ana@empresa.com"</span>
+<span class="d">-</span> <span class="k">tapOn</span>:
+    <span class="k">id</span>: <span class="s">"senha_input"</span>
+<span class="d">-</span> <span class="k">inputText</span>: <span class="s">"123456"</span>
+<span class="d">-</span> <span class="k">tapOn</span>: <span class="s">"Entrar"</span>
+<span class="d">-</span> <span class="k">assertVisible</span>: <span class="s">"Bem-vinda, Ana"</span></pre>
+    </div>
+  </div>
+  <div class="notes">
+    <p><b>6:30 &ndash; 7:30</b> &middot; Leia o YAML da direita <b>em voz alta como se fosse português</b>: "abre o app limpo, toca no campo e-mail, digita, toca em Entrar, confirma que apareceu Bem-vinda". Esse é o argumento de venda mais forte da ferramenta.</p>
+    <p>Destaque o último pilar: <b>nenhum pacote npm entra no projeto</b>. Isso responde direto à dor nº4 do slide anterior.</p>
+  </div>
+</section>
+
+<!-- ============ 07 COMO FUNCIONA ============ -->
+<section class="slide" data-title="Como funciona">
+  <div class="kicker">Ato 02 &middot; por dentro</div>
+  <h2>O que acontece entre o <em>YAML</em> e o dedo na tela</h2>
+  <div class="flowdiag" style="margin-top:24px">
+    <div class="node" data-step="0"><b>login.yaml</b><span>seu teste<br>declarativo</span></div>
+    <div class="arrow" data-arrow="0"></div>
+    <div class="node" data-step="1"><b>Maestro CLI</b><span>interpreta o<br>YAML (JVM)</span></div>
+    <div class="arrow" data-arrow="1"></div>
+    <div class="node" data-step="2"><b>Driver companion</b><span>appzinho instalado<br>no aparelho</span></div>
+    <div class="arrow" data-arrow="2"></div>
+    <div class="node" data-step="3"><b>Árvore de<br>acessibilidade</b><span>a mesma do<br>leitor de tela</span></div>
+    <div class="arrow" data-arrow="3"></div>
+    <div class="node" data-step="4"><b>Toque real</b><span>tap, swipe,<br>digitação</span></div>
+  </div>
+  <div style="display:flex;gap:10px;justify-content:center;margin-top:20px">
+    <button class="go" id="runPipe">▶ executar o pipeline</button>
+  </div>
+  <div class="cols c2" style="margin-top:20px;align-items:start">
+    <div class="card"><h3>A árvore de acessibilidade é o segredo</h3>
+      <p>Todo sistema operacional mantém uma árvore com o que está na tela: texto, rótulo, identificador, posição, se está habilitado.
+        Ela existe para o TalkBack e o VoiceOver funcionarem. O Maestro lê essa árvore em vez de ler o seu código &mdash;
+        por isso um teste só serve para Android e iOS, e para app nativo, React Native ou Flutter.</p></div>
+    <div class="card"><h3>Efeito colateral bom: acessibilidade</h3>
+      <p>Se o Maestro não acha o botão, muito provavelmente o <strong>leitor de tela também não acha</strong>.
+        Escrever teste acaba virando um checklist involuntário de acessibilidade do app.</p>
+      <p style="margin-top:8px"><strong>Analogia:</strong> o maestro não lê a cabeça dos músicos; ele lê a partitura que está na estante de todos.</p></div>
+  </div>
+  <div class="notes">
+    <p><b>7:30 &ndash; 9:00</b> &middot; Clique em <b>executar o pipeline</b> e narre cada caixa acendendo. Explique que o CLI roda na JVM (por isso a exigência de Java 17 ou 21) e que ele instala um pequeno app-driver no aparelho para observar e agir.</p>
+    <p>O gancho de ouro aqui é a acessibilidade: diga que o mesmo canal usado por pessoas cegas é o canal usado pelo teste. Isso costuma impressionar e rende pergunta da banca.</p>
+  </div>
+</section>
+
+<!-- ============ 08 ECOSSISTEMA ============ -->
+<section class="slide" data-title="Ecossistema">
+  <div class="kicker">Ato 02 &middot; as peças</div>
+  <h2>Quatro portas de entrada, <em>um motor só</em></h2>
+  <div class="grid4" style="margin-top:18px">
+    <div class="card"><span class="tag ok">grátis</span><h3 style="margin-top:9px">Studio</h3>
+      <p>App de desktop que espelha a tela do aparelho. Você clica no elemento e ele escreve o comando YAML para você.
+        É a porta de entrada de quem nunca testou nada.</p></div>
+    <div class="card"><span class="tag ok">grátis &middot; open source</span><h3 style="margin-top:9px">CLI</h3>
+      <p>O motor. Interpreta os arquivos, roda no terminal, no modo contínuo e dentro do CI. É o que você vai usar no trabalho.</p></div>
+    <div class="card"><span class="tag">pago</span><h3 style="margin-top:9px">Cloud</h3>
+      <p>Sobe o app e os flows para rodarem em paralelo em dezenas de aparelhos virtuais hospedados. Integra com GitHub Actions,
+        Bitrise, CircleCI.</p></div>
+    <div class="card"><span class="tag br">novo</span><h3 style="margin-top:9px">MCP Server</h3>
+      <p>Expõe o Maestro para agentes de IA: o seu assistente de código consegue escrever, rodar e depurar o teste sozinho no emulador.</p></div>
+  </div>
+  <div class="cols c2" style="margin-top:18px">
+    <div class="code"><div class="code-top"><i class="led r"></i><i class="led y"></i><i class="led g"></i><span>fluxo de trabalho real</span></div>
+<pre class="sm"><span class="c"># 1. desenha o teste clicando na tela</span>
+maestro studio
+
+<span class="c"># 2. roda localmente enquanto desenvolve</span>
+maestro test flows/login.yaml
+
+<span class="c"># 3. modo contínuo: salvou, rodou de novo</span>
+maestro test --continuous flows/login.yaml
+
+<span class="c"># 4. no pull request, em paralelo, na nuvem</span>
+maestro cloud --app-file app.apk flows/</pre></div>
+    <div class="card" style="display:flex;flex-direction:column;justify-content:center">
+      <h3>Por que isso importa para o estudante</h3>
+      <p>O que é <strong>open source e gratuito</strong> &mdash; CLI e Studio &mdash; já cobre 100% do que você precisa no TCC, no estágio e num
+        projeto pequeno. A parte paga resolve escala: rodar 300 testes em 12 minutos num time grande.</p>
+      <p style="margin-top:9px"><strong>Analogia:</strong> o CLI é o seu violão. A Cloud é alugar a orquestra sinfônica inteira para tocar a mesma partitura ao mesmo tempo.</p>
+    </div>
+  </div>
+  <div class="notes">
+    <p><b>9:00 &ndash; 10:00</b> &middot; Deixe claro o que é grátis e o que é pago &mdash; a banca costuma perguntar isso. CLI e Studio: open source. Cloud: serviço comercial da empresa que mantém o projeto.</p>
+    <p>Se sobrar tempo no fim, esse é um bom slide para voltar e falar do MCP: é o gancho de "IA escrevendo teste", assunto quente em 2026.</p>
+  </div>
+</section>
+
+<!-- ============ 09 INSTALAÇÃO ============ -->
+<section class="slide" data-title="Instalação">
+  <div class="kicker">Ato 03 &middot; mão no código</div>
+  <h2>Do zero ao primeiro teste</h2>
+  <div class="cols c32" style="margin-top:14px">
+    <div class="stackv">
+      <div class="tabs" data-group="inst">
+        <button class="tab on" data-tab="mac">macOS / Linux</button>
+        <button class="tab" data-tab="win">Windows</button>
+        <button class="tab" data-tab="tree">estrutura de pastas</button>
+        <button class="tab" data-tab="cfg">config.yaml</button>
+      </div>
+      <div class="code" style="flex:1">
+        <div class="code-top"><i class="led r"></i><i class="led y"></i><i class="led g"></i><span>terminal</span></div>
+        <div class="pane on" data-pane="mac" data-group="inst">
+<pre class="sm"><span class="c"># 1. instala o binário (um comando, só isso)</span>
+curl -fsSL <span class="s">"https://get.maestro.mobile.dev"</span> | bash
+
+<span class="c"># 2. confere se entrou no PATH</span>
+maestro --version
+
+<span class="c"># 3. pré-requisito: Java 17 ou 21</span>
+java -version
+
+<span class="c"># 4. sobe um emulador Android já com o Maestro</span>
+maestro start-device --platform android
+
+<span class="c"># 5. roda o primeiro flow</span>
+maestro test flows/login.yaml</pre></div>
+        <div class="pane" data-pane="win" data-group="inst">
+<pre class="sm"><span class="c"># opção A — dentro do WSL (recomendado)</span>
+curl -fsSL <span class="s">"https://get.maestro.mobile.dev"</span> | bash
+
+<span class="c"># opção B — download manual do .zip e PATH</span>
+<span class="c"># + Android SDK Platform Tools (adb) instalado</span>
+
+adb devices   <span class="c"># o aparelho precisa aparecer aqui</span>
+
+<span class="c"># atenção: iOS só roda em macOS,</span>
+<span class="c"># porque depende do simulador do Xcode.</span></pre></div>
+        <div class="pane" data-pane="tree" data-group="inst">
+<pre class="sm">meu-app-rn/
+├─ src/                    <span class="c"># seu código React Native</span>
+├─ package.json            <span class="c"># ← nada muda aqui!</span>
+└─ .maestro/
+   ├─ config.yaml          <span class="c"># configuração do workspace</span>
+   ├─ flows/
+   │  ├─ login.yaml
+   │  ├─ checkout.yaml
+   │  └─ perfil.yaml
+   ├─ subflows/
+   │  └─ fazer-login.yaml  <span class="c"># reaproveitado por todos</span>
+   └─ scripts/
+      └─ criar-usuario.js  <span class="c"># JavaScript auxiliar</span></pre></div>
+        <div class="pane" data-pane="cfg" data-group="inst">
+<pre class="sm"><span class="c"># .maestro/config.yaml</span>
+<span class="k">appId</span>: <span class="s">com.exemplo.app</span>
+
+<span class="k">flows</span>:
+  <span class="d">-</span> <span class="s">"flows/*.yaml"</span>
+
+<span class="c"># variáveis para todos os flows</span>
+<span class="k">env</span>:
+  <span class="k">URL_API</span>: <span class="s">"https://staging.api.com"</span>
+  <span class="k">USUARIO</span>: <span class="s">"qa@empresa.com"</span>
+
+<span class="c"># ordem quando um teste depende do outro</span>
+<span class="k">executionOrder</span>:
+  <span class="k">flowsOrder</span>:
+    <span class="d">-</span> <span class="s">"login"</span>
+    <span class="d">-</span> <span class="s">"checkout"</span></pre></div>
+      </div>
+    </div>
+    <div class="stackv">
+      <div class="card"><span class="num">O CONTRASTE</span>
+        <h3 style="margin-top:6px">O que você <em>não</em> precisa fazer</h3>
+        <ul style="margin-top:8px">
+          <li>Nenhum <b>npm install</b> no projeto</li>
+          <li>Nenhuma alteração no <b>build.gradle</b> ou no <b>Podfile</b></li>
+          <li>Nenhum build nativo dedicado a teste</li>
+          <li>Nenhum servidor rodando em outra aba</li>
+        </ul>
+      </div>
+      <div class="card"><h3>Tempo até o primeiro teste verde</h3>
+        <p style="margin-top:6px">Comparativos de mercado de 2026 colocam o Maestro em torno de <strong>10 a 15 minutos</strong>,
+        contra horas de configuração nos concorrentes tradicionais.</p>
+        <p style="margin-top:9px"><strong>Analogia:</strong> é a diferença entre montar o estúdio e simplesmente apertar o play.</p>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <p><b>10:00 &ndash; 11:15</b> &middot; Passe pelas quatro abas. A aba <b>estrutura de pastas</b> é a mais importante: mostre a seta apontando para o package.json intocado.</p>
+    <p>Se o professor perguntar de Windows: o suporte existe, mas a experiência boa é via WSL, e iOS exige macOS por causa do Xcode. Diga isso sem rodeios &mdash; mostra domínio.</p>
+  </div>
+</section>
+
+<!-- ============ 10 ANATOMIA ============ -->
+<section class="slide" data-title="Anatomia do flow">
+  <div class="kicker">Ato 03 &middot; sintaxe</div>
+  <h2>Anatomia de um <em>flow</em></h2>
+  <div class="cols c2" style="margin-top:14px">
+    <div class="code">
+      <div class="code-top"><i class="led r"></i><i class="led y"></i><i class="led g"></i><span>.maestro/flows/checkout.yaml</span></div>
+<pre class="sm lines" id="anaCode"><span class="ln" data-an="app"><span class="k">appId</span>: <span class="s">com.exemplo.maestro</span></span>
+<span class="ln" data-an="tags"><span class="k">tags</span>: [<span class="s">smoke</span>, <span class="s">checkout</span>]</span>
+<span class="ln" data-an="env"><span class="k">env</span>:</span>
+<span class="ln" data-an="env">  <span class="k">PRODUTO</span>: <span class="s">"Plano Anual"</span></span>
+<span class="ln" data-an="sep"><span class="d">---</span></span>
+<span class="ln" data-an="cmd"><span class="d">-</span> <span class="k">launchApp</span></span>
+<span class="ln" data-an="cmd"><span class="d">-</span> <span class="k">tapOn</span>: <span class="s">"${PRODUTO}"</span></span>
+<span class="ln" data-an="cmd"><span class="d">-</span> <span class="k">assertVisible</span>: <span class="s">"Resumo do pedido"</span></span>
+<span class="ln" data-an="opt"><span class="d">-</span> <span class="k">tapOn</span>:</span>
+<span class="ln" data-an="opt">    <span class="k">text</span>: <span class="s">"Aplicar cupom"</span></span>
+<span class="ln" data-an="opt">    <span class="k">optional</span>: <span class="n">true</span></span>
+<span class="ln" data-an="label"><span class="d">-</span> <span class="k">tapOn</span>:</span>
+<span class="ln" data-an="label">    <span class="k">id</span>: <span class="s">"btn_pagar"</span></span>
+<span class="ln" data-an="label">    <span class="k">label</span>: <span class="s">"Confirmar o pagamento"</span></span>
+<span class="ln" data-an="cmd"><span class="d">-</span> <span class="k">assertVisible</span>: <span class="s">"Compra aprovada"</span></span></pre>
+    </div>
+    <div class="stackv">
+      <div class="grid2">
+        <button class="card pick an on" data-an="app"><h3>appId</h3><p>Qual app abrir.</p></button>
+        <button class="card pick an" data-an="tags"><h3>tags</h3><p>Filtra o que roda.</p></button>
+        <button class="card pick an" data-an="env"><h3>env</h3><p>Variáveis do flow.</p></button>
+        <button class="card pick an" data-an="sep"><h3>---</h3><p>Fim do cabeçalho.</p></button>
+        <button class="card pick an" data-an="opt"><h3>optional</h3><p>Pode não existir.</p></button>
+        <button class="card pick an" data-an="label"><h3>label</h3><p>Nome no relatório.</p></button>
+      </div>
+      <div class="card" style="flex:1;display:flex;flex-direction:column;justify-content:center" id="anBox">
+        <div data-anb="app"><h3 style="color:var(--brass);font-size:16px">appId &mdash; o endereço do app</h3>
+          <p style="margin-top:7px">É o <strong>package name</strong> no Android ou o <strong>bundle identifier</strong> no iOS.
+          Sem ele o Maestro não sabe o que abrir. Em Expo Go se usa <code style="font-family:var(--mono);font-size:12px">openLink</code> no lugar.</p></div>
+        <div data-anb="tags" hidden><h3 style="color:var(--brass);font-size:16px">tags &mdash; etiquetas de execução</h3>
+          <p style="margin-top:7px">Permitem rodar só um subconjunto:
+          <code style="font-family:var(--mono);font-size:12px">maestro test --include-tags smoke flows/</code>.
+          Clássico: no pull request roda só o <em>smoke</em>; de madrugada roda tudo.</p></div>
+        <div data-anb="env" hidden><h3 style="color:var(--brass);font-size:16px">env &mdash; variáveis</h3>
+          <p style="margin-top:7px">Interpoladas com <code style="font-family:var(--mono);font-size:12px">${VARIAVEL}</code>.
+          Podem vir do config.yaml, do próprio flow ou do terminal com <code style="font-family:var(--mono);font-size:12px">-e SENHA=123</code> &mdash;
+          é assim que segredo não vai para o Git.</p></div>
+        <div data-anb="sep" hidden><h3 style="color:var(--brass);font-size:16px">--- &mdash; a linha divisória</h3>
+          <p style="margin-top:7px">Acima dela, <strong>configuração</strong>. Abaixo, a <strong>lista ordenada de comandos</strong>.
+          É YAML puro: cada traço é um passo, executado de cima para baixo.</p></div>
+        <div data-anb="opt" hidden><h3 style="color:var(--brass);font-size:16px">optional &mdash; o passo que pode faltar</h3>
+          <p style="margin-top:7px">Se o elemento não aparecer, o Maestro segue em frente em vez de reprovar o teste.
+          Perfeito para banner de cookie, pop-up de avaliação e promoção que só aparece às vezes.</p></div>
+        <div data-anb="label" hidden><h3 style="color:var(--brass);font-size:16px">label &mdash; legibilidade do relatório</h3>
+          <p style="margin-top:7px">Troca o texto técnico por uma frase de negócio no log e no vídeo do teste.
+          Quem lê o relatório vê "Confirmar o pagamento" em vez de "tapOn id=btn_pagar".</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <p><b>11:15 &ndash; 12:45</b> &middot; Clique em cada etiqueta: a linha correspondente acende no código. Comece pelo <b>---</b> para explicar a divisão cabeçalho/comandos, depois volte para o resto.</p>
+    <p>Dois destaques que valem ponto: <b>optional</b> (resolve o pop-up aleatório, dor real de quem testa app) e <b>-e SENHA=123</b> (segredo fora do repositório).</p>
+  </div>
+</section>
+
+<!-- ============ 11 REACT NATIVE / testID ============ -->
+<section class="slide" data-title="React Native e testID">
+  <div class="kicker">Ato 03 &middot; o elo com o React Native</div>
+  <h2>Do <em>JSX</em> ao YAML: o caminho do <code style="font-family:var(--mono);font-size:30px;color:var(--brass)">testID</code></h2>
+  <div class="cols" style="grid-template-columns:auto 1fr 1fr;margin-top:12px;gap:18px">
+    <div class="phone" id="phone">
+      <div class="notch"></div>
+      <p style="font-size:11px;color:var(--brass);font-family:var(--mono);margin-bottom:10px">Maestro</p>
+      <div class="fld el on" data-el="user">ana@empresa.com</div>
+      <div class="fld el" data-el="pass">••••••••</div>
+      <div class="btn-fake el off" data-el="btn">Entrar</div>
+      <p class="sub" style="margin-top:14px;font-size:10px;text-align:center">clique nos elementos</p>
+      <div class="tap" id="tapFx"></div>
+    </div>
+    <div class="code">
+      <div class="code-top"><i class="led r"></i><i class="led y"></i><i class="led g"></i><span>LoginScreen.tsx</span></div>
+<pre class="xs lines" id="jsxCode"><span class="ln"><span class="c">// React Native — o SEU código, sem lib de teste</span></span>
+<span class="ln"><span class="k">export function</span> <span class="f">LoginScreen</span>() {</span>
+<span class="ln">  <span class="k">return</span> (</span>
+<span class="ln">    &lt;<span class="n">View</span>&gt;</span>
+<span class="ln" data-el="user">      &lt;<span class="n">TextInput</span></span>
+<span class="ln" data-el="user">        <span class="k">testID</span>=<span class="s">"email_input"</span></span>
+<span class="ln" data-el="user">        <span class="k">placeholder</span>=<span class="s">"E-mail"</span></span>
+<span class="ln" data-el="user">      /&gt;</span>
+<span class="ln" data-el="pass">      &lt;<span class="n">TextInput</span></span>
+<span class="ln" data-el="pass">        <span class="k">testID</span>=<span class="s">"senha_input"</span></span>
+<span class="ln" data-el="pass">        <span class="k">secureTextEntry</span></span>
+<span class="ln" data-el="pass">      /&gt;</span>
+<span class="ln" data-el="btn">      &lt;<span class="n">Pressable</span> <span class="k">testID</span>=<span class="s">"btn_entrar"</span></span>
+<span class="ln" data-el="btn">        <span class="k">onPress</span>={handleLogin}&gt;</span>
+<span class="ln" data-el="btn">        &lt;<span class="n">Text</span>&gt;Entrar&lt;/<span class="n">Text</span>&gt;</span>
+<span class="ln" data-el="btn">      &lt;/<span class="n">Pressable</span>&gt;</span>
+<span class="ln">    &lt;/<span class="n">View</span>&gt;</span>
+<span class="ln">  );</span>
+<span class="ln">}</span></pre>
+    </div>
+    <div class="stackv">
+      <div class="code" style="flex:none">
+        <div class="code-top"><i class="led r"></i><i class="led y"></i><i class="led g"></i><span>flows/login.yaml</span></div>
+<pre class="xs lines" id="yamlCode"><span class="ln"><span class="k">appId</span>: <span class="s">com.exemplo.maestro</span></span>
+<span class="ln"><span class="d">---</span></span>
+<span class="ln"><span class="d">-</span> <span class="k">launchApp</span></span>
+<span class="ln" data-el="user"><span class="d">-</span> <span class="k">tapOn</span>:</span>
+<span class="ln" data-el="user">    <span class="k">id</span>: <span class="s">"email_input"</span></span>
+<span class="ln" data-el="user"><span class="d">-</span> <span class="k">inputText</span>: <span class="s">"ana@empresa.com"</span></span>
+<span class="ln" data-el="pass"><span class="d">-</span> <span class="k">tapOn</span>:</span>
+<span class="ln" data-el="pass">    <span class="k">id</span>: <span class="s">"senha_input"</span></span>
+<span class="ln" data-el="pass"><span class="d">-</span> <span class="k">inputText</span>: <span class="s">"${SENHA}"</span></span>
+<span class="ln" data-el="btn"><span class="d">-</span> <span class="k">tapOn</span>:</span>
+<span class="ln" data-el="btn">    <span class="k">id</span>: <span class="s">"btn_entrar"</span></span>
+<span class="ln"><span class="d">-</span> <span class="k">assertVisible</span>: <span class="s">"Meus contratos"</span></span></pre>
+      </div>
+      <div class="card" style="flex:1"><h3 style="color:var(--brass)">A única "integração" que existe</h3>
+        <p style="margin-top:6px">O <strong>testID</strong> do React Native vira <strong>Resource ID</strong> no Android e
+          <strong>accessibilityIdentifier</strong> no iOS. O Maestro lê esse valor pelo seletor <code style="font-family:var(--mono);font-size:12px">id</code>.</p>
+        <p style="margin-top:7px">Dá para mirar pelo texto visível (<code style="font-family:var(--mono);font-size:12px">tapOn: "Entrar"</code>),
+          mas isso quebra quando alguém traduz o app ou troca o rótulo. <strong>testID é a prática recomendada.</strong></p>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <p><b>12:45 &ndash; 14:15</b> &middot; <b>Slide principal do seminário.</b> Clique nos três elementos do celular: o JSX e o YAML acendem juntos. Deixe o clique respirar antes de falar.</p>
+    <p>A frase-chave: "a única coisa que eu mudo no meu app React Native é acrescentar <b>testID</b> nos componentes &mdash; e testID nem é do Maestro, é do próprio React Native". Isso responde diretamente a pergunta "qual o contato dela com RN em JS".</p>
+    <p>Comente também o caso do iOS: quando componentes ficam muito aninhados, o RN "engole" o toque, e a documentação recomenda <b>accessible={false}</b> no container externo e <b>accessible={true}</b> no interno.</p>
+  </div>
+</section>
+
+<!-- ============ 12 SELETORES ============ -->
+<section class="slide" data-title="Seletores">
+  <div class="kicker">Ato 03 &middot; como achar um elemento</div>
+  <h2>Seletores: as <em>coordenadas</em> do teste</h2>
+  <div class="tabs" data-group="sel" style="margin-top:14px">
+    <button class="tab on" data-tab="text">text</button>
+    <button class="tab" data-tab="id">id</button>
+    <button class="tab" data-tab="index">index</button>
+    <button class="tab" data-tab="rel">relacionais</button>
+    <button class="tab" data-tab="state">estado &amp; traços</button>
+    <button class="tab" data-tab="point">point</button>
+  </div>
+  <div class="cols c2" style="margin-top:14px">
+    <div class="code">
+      <div class="code-top"><i class="led r"></i><i class="led y"></i><i class="led g"></i><span>seletores</span></div>
+      <div class="pane on" data-pane="text" data-group="sel">
+<pre class="sm"><span class="c"># forma curta: só o texto visível</span>
+<span class="d">-</span> <span class="k">tapOn</span>: <span class="s">"Entrar"</span>
+
+<span class="c"># todo texto é REGEX por padrão</span>
+<span class="d">-</span> <span class="k">tapOn</span>:
+    <span class="k">text</span>: <span class="s">".*Continuar.*"</span>
+
+<span class="c"># cuidado: escapar caracteres especiais</span>
+<span class="d">-</span> <span class="k">assertVisible</span>: <span class="s">"R\$ 199,90"</span></pre></div>
+      <div class="pane" data-pane="id" data-group="sel">
+<pre class="sm"><span class="c"># o mais estável: id técnico</span>
+<span class="d">-</span> <span class="k">tapOn</span>:
+    <span class="k">id</span>: <span class="s">"btn_entrar"</span>
+
+<span class="c"># Android → Resource ID</span>
+<span class="c"># iOS     → accessibilityIdentifier</span>
+<span class="c"># React Native → testID</span>
+
+<span class="d">-</span> <span class="k">assertVisible</span>:
+    <span class="k">id</span>: <span class="s">"icone_carrinho"</span></pre></div>
+      <div class="pane" data-pane="index" data-group="sel">
+<pre class="sm"><span class="c"># três botões "Comprar" na mesma tela?</span>
+<span class="c"># index começa em 0</span>
+<span class="d">-</span> <span class="k">tapOn</span>:
+    <span class="k">id</span>: <span class="s">"btn_comprar"</span>
+    <span class="k">index</span>: <span class="n">2</span>          <span class="c"># o terceiro</span>
+
+<span class="c"># funciona, mas é frágil:</span>
+<span class="c"># mudou a ordem da lista, quebrou o teste.</span></pre></div>
+      <div class="pane" data-pane="rel" data-group="sel">
+<pre class="sm"><span class="c"># "o botão Excluir que está NA LINHA do Plano Anual"</span>
+<span class="d">-</span> <span class="k">tapOn</span>:
+    <span class="k">text</span>: <span class="s">"Excluir"</span>
+    <span class="k">rightOf</span>:
+      <span class="k">text</span>: <span class="s">"Plano Anual"</span>
+
+<span class="c"># outros: above, below, leftOf,</span>
+<span class="c"># childOf, containsChild, containsDescendants</span>
+<span class="d">-</span> <span class="k">assertVisible</span>:
+    <span class="k">id</span>: <span class="s">"card_item"</span>
+    <span class="k">containsChild</span>: <span class="s">"Aprovado"</span></pre></div>
+      <div class="pane" data-pane="state" data-group="sel">
+<pre class="sm"><span class="c"># pelo estado do elemento</span>
+<span class="d">-</span> <span class="k">assertVisible</span>:
+    <span class="k">id</span>: <span class="s">"aceite_termos"</span>
+    <span class="k">checked</span>: <span class="n">true</span>
+
+<span class="d">-</span> <span class="k">assertVisible</span>:
+    <span class="k">text</span>: <span class="s">"Finalizar"</span>
+    <span class="k">enabled</span>: <span class="n">false</span>   <span class="c"># deve estar desabilitado</span>
+
+<span class="c"># e por características físicas</span>
+<span class="d">-</span> <span class="k">tapOn</span>:
+    <span class="k">width</span>: <span class="n">48</span>
+    <span class="k">height</span>: <span class="n">48</span>
+    <span class="k">tolerance</span>: <span class="n">6</span></pre></div>
+      <div class="pane" data-pane="point" data-group="sel">
+<pre class="sm"><span class="c"># último recurso: coordenada na tela</span>
+<span class="d">-</span> <span class="k">tapOn</span>:
+    <span class="k">point</span>: <span class="s">"50%, 50%"</span>   <span class="c"># centro</span>
+
+<span class="d">-</span> <span class="k">tapOn</span>:
+    <span class="k">point</span>: <span class="s">"100, 250"</span>   <span class="c"># pixels absolutos</span>
+
+<span class="c"># útil para canvas, mapa, webview teimosa.</span>
+<span class="err"># ⚠ quebra em telas de tamanho diferente</span></pre></div>
+    </div>
+    <div class="stackv">
+      <div class="card" style="flex:1;display:flex;flex-direction:column;justify-content:center">
+        <h3 style="color:var(--brass);font-size:16px">A regra de bolso</h3>
+        <p style="margin-top:8px"><strong>1º</strong> tente <code style="font-family:var(--mono);font-size:12px">id</code> (testID) &mdash; sobrevive a tradução e a redesign.<br>
+          <strong>2º</strong> use <code style="font-family:var(--mono);font-size:12px">text</code> quando o texto for parte do requisito ("Compra aprovada").<br>
+          <strong>3º</strong> use <strong>relacionais</strong> em listas, onde todo item é parecido.<br>
+          <strong>4º</strong> só use <code style="font-family:var(--mono);font-size:12px">point</code> em último caso.</p>
+        <p style="margin-top:12px"><strong>Analogia:</strong> <em>id</em> é o CPF do elemento, <em>text</em> é o apelido dele,
+          <em>relacional</em> é "o vizinho da casa amarela" e <em>point</em> é a coordenada de GPS &mdash; quanto mais para baixo, mais fácil de dar errado.</p>
+      </div>
+      <div class="card" style="flex:none"><h3>Detalhe que derruba teste</h3>
+        <p style="margin-top:5px">Os seletores <strong>text</strong> e <strong>id</strong> são interpretados como <strong>expressão regular</strong>.
+          Cifrão, colchete e ponto precisam de barra invertida.</p></div>
+    </div>
+  </div>
+  <div class="notes">
+    <p><b>14:15 &ndash; 15:30</b> &middot; Não leia as seis abas. Mostre <b>text</b>, <b>id</b>, <b>relacionais</b> com calma e cite as outras rapidamente.</p>
+    <p>O exemplo relacional é o que mais impressiona: "o botão Excluir que está à direita do Plano Anual". Esse é um problema clássico de lista que em outras ferramentas vira XPath ilegível.</p>
+  </div>
+</section>
+
+<!-- ============ 13 COMANDOS ============ -->
+<section class="slide" data-title="Catálogo de comandos">
+  <div class="kicker">Ato 03 &middot; vocabulário</div>
+  <h2>Mais de 50 comandos &mdash; <em>estes</em> resolvem 90%</h2>
+  <div class="cols c2" style="margin-top:12px">
+    <div class="stackv">
+      <div class="grid3" id="cmdGrid">
+        <button class="card pick cmd on" data-cmd="launchApp"><h3>launchApp</h3></button>
+        <button class="card pick cmd" data-cmd="tapOn"><h3>tapOn</h3></button>
+        <button class="card pick cmd" data-cmd="inputText"><h3>inputText</h3></button>
+        <button class="card pick cmd" data-cmd="assertVisible"><h3>assertVisible</h3></button>
+        <button class="card pick cmd" data-cmd="scrollUntilVisible"><h3>scrollUntil…</h3></button>
+        <button class="card pick cmd" data-cmd="swipe"><h3>swipe</h3></button>
+        <button class="card pick cmd" data-cmd="waitFor"><h3>extendedWait…</h3></button>
+        <button class="card pick cmd" data-cmd="takeScreenshot"><h3>takeScreenshot</h3></button>
+        <button class="card pick cmd" data-cmd="setLocation"><h3>setLocation</h3></button>
+        <button class="card pick cmd" data-cmd="openLink"><h3>openLink</h3></button>
+        <button class="card pick cmd" data-cmd="setAirplane"><h3>setAirplaneMode</h3></button>
+        <button class="card pick cmd" data-cmd="ai"><h3>…WithAI</h3></button>
+      </div>
+      <div class="card" style="flex:none"><h3>O poder de estar fora do app</h3>
+        <p style="margin-top:5px">GPS, modo avião, modo escuro, permissões, notificação, orientação da tela, relógio do sistema, galeria de fotos.
+          Nenhuma ferramenta de caixa-branca consegue tocar nisso.</p></div>
+    </div>
+    <div class="code">
+      <div class="code-top"><i class="led r"></i><i class="led y"></i><i class="led g"></i><span id="cmdName">launchApp</span></div>
+      <div style="flex:1;min-height:0;display:flex">
+<pre class="sm cbox" data-cmd="launchApp"><span class="c"># abre o app do zero, apagando dados</span>
+<span class="d">-</span> <span class="k">launchApp</span>:
+    <span class="k">appId</span>: <span class="s">"com.exemplo.app"</span>
+    <span class="k">clearState</span>: <span class="n">true</span>
+    <span class="k">permissions</span>:
+      <span class="k">camera</span>: <span class="s">allow</span>
+      <span class="k">location</span>: <span class="s">deny</span>
+
+<span class="c"># por que importa: teste que depende do</span>
+<span class="c"># estado anterior é teste que vai falhar</span>
+<span class="c"># na terça-feira sem ninguém entender.</span></pre>
+<pre class="sm cbox" data-cmd="tapOn" hidden><span class="d">-</span> <span class="k">tapOn</span>: <span class="s">"Entrar"</span>
+
+<span class="d">-</span> <span class="k">tapOn</span>:
+    <span class="k">id</span>: <span class="s">"btn_menu"</span>
+    <span class="k">repeat</span>: <span class="n">3</span>
+    <span class="k">delay</span>: <span class="n">300</span>
+
+<span class="c"># variações: doubleTapOn, longPressOn</span>
+<span class="d">-</span> <span class="k">longPressOn</span>: <span class="s">"Mensagem antiga"</span>
+
+<span class="c"># o tapOn já espera o elemento aparecer:</span>
+<span class="c"># não precisa de wait antes.</span></pre>
+<pre class="sm cbox" data-cmd="inputText" hidden><span class="d">-</span> <span class="k">tapOn</span>:
+    <span class="k">id</span>: <span class="s">"email_input"</span>
+<span class="d">-</span> <span class="k">inputText</span>: <span class="s">"ana@empresa.com"</span>
+
+<span class="c"># apagar antes de digitar</span>
+<span class="d">-</span> <span class="k">eraseText</span>
+<span class="d">-</span> <span class="k">inputText</span>: <span class="s">"${EMAIL}"</span>
+<span class="d">-</span> <span class="k">hideKeyboard</span>
+
+<span class="err"># ⚠ no Android: só ASCII.</span>
+<span class="err"># "João" e emoji não entram (bug conhecido)</span></pre>
+<pre class="sm cbox" data-cmd="assertVisible" hidden><span class="c"># a asserção: o teste só passa se isso for verdade</span>
+<span class="d">-</span> <span class="k">assertVisible</span>: <span class="s">"Compra aprovada"</span>
+
+<span class="d">-</span> <span class="k">assertNotVisible</span>: <span class="s">"Erro"</span>
+
+<span class="d">-</span> <span class="k">assertTrue</span>: <span class="s">"${output.total > 0}"</span>
+
+<span class="c"># regressão visual: compara com um print salvo</span>
+<span class="d">-</span> <span class="k">assertScreenshot</span>: <span class="s">"tela_home"</span>
+
+<span class="c"># assertVisible tem retry embutido:</span>
+<span class="c"># ele insiste antes de reprovar.</span></pre>
+<pre class="sm cbox" data-cmd="scrollUntilVisible" hidden><span class="c"># rola até achar — como um humano faria</span>
+<span class="d">-</span> <span class="k">scrollUntilVisible</span>:
+    <span class="k">element</span>:
+      <span class="k">text</span>: <span class="s">"Termos de uso"</span>
+    <span class="k">direction</span>: <span class="s">DOWN</span>
+    <span class="k">timeout</span>: <span class="n">20000</span>
+    <span class="k">speed</span>: <span class="n">40</span>
+
+<span class="c"># compare com a alternativa em outras libs:</span>
+<span class="c"># calcular offset em pixel e torcer.</span>
+<span class="c"># A doc chama isso de comando "idiomático".</span></pre>
+<pre class="sm cbox" data-cmd="swipe" hidden><span class="d">-</span> <span class="k">swipe</span>:
+    <span class="k">direction</span>: <span class="s">LEFT</span>      <span class="c"># carrossel</span>
+
+<span class="d">-</span> <span class="k">swipe</span>:
+    <span class="k">from</span>:
+      <span class="k">id</span>: <span class="s">"item_lista"</span>
+    <span class="k">direction</span>: <span class="s">RIGHT</span>     <span class="c"># arrastar p/ excluir</span>
+
+<span class="d">-</span> <span class="k">swipe</span>:
+    <span class="k">start</span>: <span class="s">"50%, 80%"</span>
+    <span class="k">end</span>: <span class="s">"50%, 20%"</span></pre>
+<pre class="sm cbox" data-cmd="waitFor" hidden><span class="c"># na maioria dos casos você NÃO precisa esperar.</span>
+<span class="c"># quando precisa (upload, processamento):</span>
+<span class="d">-</span> <span class="k">extendedWaitUntil</span>:
+    <span class="k">visible</span>: <span class="s">"Relatório pronto"</span>
+    <span class="k">timeout</span>: <span class="n">60000</span>
+
+<span class="d">-</span> <span class="k">waitForAnimationToEnd</span>:
+    <span class="k">timeout</span>: <span class="n">5000</span>
+
+<span class="c"># repare: espera por CONDIÇÃO, não por tempo.</span></pre>
+<pre class="sm cbox" data-cmd="takeScreenshot" hidden><span class="d">-</span> <span class="k">takeScreenshot</span>: <span class="s">"01-tela-login"</span>
+
+<span class="c"># gravar a jornada inteira em vídeo</span>
+<span class="d">-</span> <span class="k">startRecording</span>: <span class="s">"fluxo-compra"</span>
+<span class="d">-</span> <span class="k">tapOn</span>: <span class="s">"Comprar"</span>
+<span class="d">-</span> <span class="k">stopRecording</span>
+
+<span class="c"># no terminal, gera um .mp4 da execução:</span>
+<span class="c"># maestro record flows/checkout.yaml</span>
+<span class="c"># ótimo para anexar no bug ou no TCC.</span></pre>
+<pre class="sm cbox" data-cmd="setLocation" hidden><span class="c"># fingir que o usuário está em outro lugar</span>
+<span class="d">-</span> <span class="k">setLocation</span>:
+    <span class="k">latitude</span>: <span class="n">-23.6205</span>
+    <span class="k">longitude</span>: <span class="n">-45.4132</span>   <span class="c"># Caraguatatuba</span>
+
+<span class="d">-</span> <span class="k">assertVisible</span>: <span class="s">"Lojas perto de você"</span>
+
+<span class="c"># impossível num teste de componente:</span>
+<span class="c"># aqui é o GPS do aparelho que muda.</span></pre>
+<pre class="sm cbox" data-cmd="openLink" hidden><span class="c"># deep link: entra direto numa tela interna</span>
+<span class="d">-</span> <span class="k">openLink</span>: <span class="s">"maestro://contrato/482"</span>
+
+<span class="c"># Expo Go (não use launchApp nesse caso)</span>
+<span class="d">-</span> <span class="k">openLink</span>: <span class="s">"exp://127.0.0.1:19000"</span>
+
+<span class="c"># atalho valioso: pula 6 telas de navegação</span>
+<span class="c"># e deixa o teste rápido e focado.</span></pre>
+<pre class="sm cbox" data-cmd="setAirplane" hidden><span class="c"># testar o app SEM internet</span>
+<span class="d">-</span> <span class="k">setAirplaneMode</span>: <span class="s">enabled</span>
+<span class="d">-</span> <span class="k">tapOn</span>: <span class="s">"Sincronizar"</span>
+<span class="d">-</span> <span class="k">assertVisible</span>: <span class="s">"Você está offline"</span>
+<span class="d">-</span> <span class="k">setAirplaneMode</span>: <span class="s">disabled</span>
+
+<span class="c"># primos: setDarkMode, setOrientation,</span>
+<span class="c"># setPermissions, travel (muda o relógio),</span>
+<span class="c"># addMedia (põe foto na galeria)</span></pre>
+<pre class="sm cbox" data-cmd="ai" hidden><span class="c"># camada de IA (recursos mais novos)</span>
+<span class="d">-</span> <span class="k">assertWithAI</span>:
+    <span class="k">assertion</span>: <span class="s">"a tela mostra um erro de pagamento"</span>
+
+<span class="d">-</span> <span class="k">assertNoDefectsWithAI</span>   <span class="c"># acha UI quebrada</span>
+
+<span class="d">-</span> <span class="k">extractTextWithAI</span>:
+    <span class="k">query</span>: <span class="s">"o valor total do pedido"</span>
+    <span class="k">outputVariable</span>: <span class="s">TOTAL</span>
+
+<span class="err"># ⚠ exige chave de API / plano pago</span>
+<span class="err"># e não é determinístico: use com critério.</span></pre>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <p><b>15:30 &ndash; 17:00</b> &middot; Não clique nos doze. Escolha <b>launchApp</b>, <b>scrollUntilVisible</b>, <b>setAirplaneMode</b> e <b>setLocation</b> &mdash; são os que mostram o diferencial da caixa-preta. Deixe os outros para as perguntas.</p>
+    <p>Em <b>inputText</b>, já adiante a limitação do Unicode no Android: mostra que você leu os "known issues" e não só a página de vendas.</p>
+  </div>
+</section>
+
+<!-- ============ 14 TOLERÂNCIA ============ -->
+<section class="slide" data-title="Tolerância e zero-wait">
+  <div class="kicker">Ato 03 &middot; o recurso mais importante</div>
+  <h2>Por que o teste <em>para de piscar</em></h2>
+  <div class="cols c2" style="margin-top:14px">
+    <div class="stackv">
+      <div class="tabs" data-group="tol">
+        <button class="tab on" data-tab="sem">sem Maestro</button>
+        <button class="tab" data-tab="com">com Maestro</button>
+      </div>
+      <div class="code" style="flex:1">
+        <div class="code-top"><i class="led r"></i><i class="led y"></i><i class="led g"></i><span>mesma jornada, duas ferramentas</span></div>
+        <div class="pane on" data-pane="sem" data-group="tol">
+<pre class="sm"><span class="k">await</span> driver.<span class="f">pause</span>(<span class="n">3000</span>);
+<span class="k">await</span> <span class="f">waitForElement</span>(loginBtn, <span class="n">10000</span>);
+<span class="k">await</span> loginBtn.<span class="f">click</span>();
+<span class="k">await</span> driver.<span class="f">pause</span>(<span class="n">5000</span>);
+<span class="k">try</span> {
+  <span class="k">await</span> <span class="f">waitForElement</span>(home, <span class="n">15000</span>);
+} <span class="k">catch</span> (e) {
+  <span class="k">await</span> driver.<span class="f">pause</span>(<span class="n">2000</span>);      <span class="c">// gambiarra</span>
+  <span class="k">await</span> <span class="f">waitForElement</span>(home, <span class="n">10000</span>);
+}
+<span class="err">// 6 linhas de espera para 2 linhas de teste</span></pre></div>
+        <div class="pane" data-pane="com" data-group="tol">
+<pre class="sm"><span class="d">-</span> <span class="k">tapOn</span>: <span class="s">"Entrar"</span>
+<span class="d">-</span> <span class="k">assertVisible</span>: <span class="s">"Meus contratos"</span>
+
+<span class="c"># é isso. Sem espera nenhuma escrita à mão.</span>
+<span class="c">#</span>
+<span class="c"># Debaixo do capô o Maestro:</span>
+<span class="c">#  · espera a tela "assentar"</span>
+<span class="c">#  · aguarda animação e conteúdo de rede</span>
+<span class="c">#  · reconsulta a árvore e tenta de novo</span>
+<span class="c">#  · só então reprova</span></pre></div>
+      </div>
+    </div>
+    <div class="stackv">
+      <div class="card"><h3 style="color:var(--brass)">Tolerância embutida</h3>
+        <p>A documentação usa a expressão "abraçar a instabilidade": o celular <em>é</em> instável, então a ferramenta assume isso e
+          reexecuta a busca em vez de reprovar no primeiro erro.</p></div>
+      <div class="card"><h3 style="color:var(--brass)">Espera por condição, não por relógio</h3>
+        <p>Trocar <em>"espere 5 segundos"</em> por <em>"espere até aparecer"</em> deixa o teste ao mesmo tempo mais rápido
+          (não dorme à toa) e mais estável (não desiste cedo demais).</p></div>
+      <div class="card" style="background:linear-gradient(var(--brass-dim),var(--brass-dim)),var(--panel);border-color:var(--brass)">
+        <h3 style="color:var(--brass)">Analogia</h3>
+        <p style="margin-top:5px">Dizer "espere 3 segundos" é combinar de encontrar alguém às 15h em ponto e ir embora às 15h01.
+          Dizer "espere até aparecer" é ligar para a pessoa e esperar ela chegar. <strong>O segundo combinado quase nunca dá errado.</strong></p></div>
+    </div>
+  </div>
+  <div class="notes">
+    <p><b>17:00 &ndash; 18:00</b> &middot; Alterne as duas abas duas vezes &mdash; o contraste visual entre 11 linhas e 2 linhas fala sozinho.</p>
+    <p>Seja honesto na ressalva: o Maestro faz isso por <b>heurística e nova tentativa</b>, não por sincronia com a thread JavaScript. O Detox faz por sincronia real. Guarde essa frase, ela volta no slide de comparação.</p>
+  </div>
+</section>
+
+<!-- ============ 15 MODULARIDADE ============ -->
+<section class="slide" data-title="Modularidade">
+  <div class="kicker">Ato 03 &middot; escalando a suíte</div>
+  <h2>Quando a suíte cresce: <em>reaproveitar</em></h2>
+  <div class="tabs" data-group="mod" style="margin-top:14px">
+    <button class="tab on" data-tab="sub">subflows</button>
+    <button class="tab" data-tab="hook">hooks</button>
+    <button class="tab" data-tab="cond">condições</button>
+    <button class="tab" data-tab="loop">loops &amp; retry</button>
+  </div>
+  <div class="cols c2" style="margin-top:14px">
+    <div class="code">
+      <div class="code-top"><i class="led r"></i><i class="led y"></i><i class="led g"></i><span>modularidade</span></div>
+      <div class="pane on" data-pane="sub" data-group="mod">
+<pre class="sm"><span class="c"># subflows/fazer-login.yaml</span>
+<span class="k">appId</span>: <span class="s">com.exemplo.app</span>
+<span class="d">---</span>
+<span class="d">-</span> <span class="k">tapOn</span>: {<span class="k">id</span>: <span class="s">"email_input"</span>}
+<span class="d">-</span> <span class="k">inputText</span>: <span class="s">"${EMAIL}"</span>
+<span class="d">-</span> <span class="k">tapOn</span>: <span class="s">"Entrar"</span>
+
+<span class="c"># flows/checkout.yaml — reutiliza</span>
+<span class="d">-</span> <span class="k">runFlow</span>:
+    <span class="k">file</span>: <span class="s">../subflows/fazer-login.yaml</span>
+    <span class="k">env</span>:
+      <span class="k">EMAIL</span>: <span class="s">"ana@empresa.com"</span>
+
+<span class="c"># mudou a tela de login? um arquivo só muda.</span></pre></div>
+      <div class="pane" data-pane="hook" data-group="mod">
+<pre class="sm"><span class="c"># roda ANTES e DEPOIS de todo flow</span>
+<span class="k">appId</span>: <span class="s">com.exemplo.app</span>
+<span class="k">onFlowStart</span>:
+  <span class="d">-</span> <span class="k">clearState</span>
+  <span class="d">-</span> <span class="k">runScript</span>: <span class="s">../scripts/criar-usuario.js</span>
+<span class="k">onFlowComplete</span>:
+  <span class="d">-</span> <span class="k">takeScreenshot</span>: <span class="s">"final"</span>
+  <span class="d">-</span> <span class="k">runFlow</span>: <span class="s">../subflows/logout.yaml</span>
+<span class="d">---</span>
+<span class="d">-</span> <span class="k">launchApp</span>
+
+<span class="c"># garante que todo teste começa e termina</span>
+<span class="c"># no mesmo estado. Isso é higiene de suíte.</span></pre></div>
+      <div class="pane" data-pane="cond" data-group="mod">
+<pre class="sm"><span class="c"># só executa SE a condição for verdadeira</span>
+<span class="d">-</span> <span class="k">runFlow</span>:
+    <span class="k">when</span>:
+      <span class="k">visible</span>: <span class="s">"Aceitar cookies"</span>
+    <span class="k">commands</span>:
+      <span class="d">-</span> <span class="k">tapOn</span>: <span class="s">"Aceitar cookies"</span>
+
+<span class="c"># comportamento por plataforma</span>
+<span class="d">-</span> <span class="k">runFlow</span>:
+    <span class="k">when</span>:
+      <span class="k">platform</span>: <span class="s">iOS</span>
+    <span class="k">commands</span>:
+      <span class="d">-</span> <span class="k">tapOn</span>: <span class="s">"Permitir"</span>
+
+<span class="c"># ou uma expressão JavaScript:</span>
+<span class="d">-</span> <span class="k">runFlow</span>:
+    <span class="k">when</span>: {<span class="k">true</span>: <span class="s">"${output.saldo > 100}"</span>}
+    <span class="k">commands</span>: [{<span class="k">tapOn</span>: <span class="s">"Comprar"</span>}]</pre></div>
+      <div class="pane" data-pane="loop" data-group="mod">
+<pre class="sm"><span class="c"># repetir N vezes</span>
+<span class="d">-</span> <span class="k">repeat</span>:
+    <span class="k">times</span>: <span class="n">5</span>
+    <span class="k">commands</span>:
+      <span class="d">-</span> <span class="k">swipe</span>: {<span class="k">direction</span>: <span class="s">LEFT</span>}
+
+<span class="c"># repetir ENQUANTO algo for visível</span>
+<span class="d">-</span> <span class="k">repeat</span>:
+    <span class="k">while</span>:
+      <span class="k">visible</span>: <span class="s">"Carregar mais"</span>
+    <span class="k">commands</span>:
+      <span class="d">-</span> <span class="k">tapOn</span>: <span class="s">"Carregar mais"</span>
+
+<span class="c"># tentar de novo em caso de falha</span>
+<span class="d">-</span> <span class="k">retry</span>:
+    <span class="k">maxRetries</span>: <span class="n">2</span>
+    <span class="k">commands</span>:
+      <span class="d">-</span> <span class="k">tapOn</span>: <span class="s">"Pagar"</span>
+      <span class="d">-</span> <span class="k">assertVisible</span>: <span class="s">"Aprovado"</span></pre></div>
+    </div>
+    <div class="stackv">
+      <div class="card" style="flex:1;display:flex;flex-direction:column;justify-content:center">
+        <h3 style="color:var(--brass);font-size:16px">O YAML não é uma linguagem &mdash; e tudo bem</h3>
+        <p style="margin-top:8px">Quem vem do Detox estranha: onde estão as funções, as classes, o Page Object?
+          O Maestro resolve com <strong>arquivos</strong>: um subflow é a "função" e o <code style="font-family:var(--mono);font-size:12px">env</code> são os parâmetros.
+          A documentação oficial inclusive tem uma receita de <strong>Page Object Model</strong> montada só com pastas e subflows.</p>
+        <p style="margin-top:10px"><strong>Analogia:</strong> a partitura da orquestra tem trechos que se repetem; em vez de copiar as notas,
+          o compositor escreve "repita o refrão".</p>
+      </div>
+      <div class="card" style="flex:none"><h3>Tags + execução ordenada</h3>
+        <p style="margin-top:5px"><code style="font-family:var(--mono);font-size:12px">maestro test --include-tags smoke .maestro/flows</code> roda
+          só o essencial no pull request; a suíte completa fica para a noite.</p></div>
+    </div>
+  </div>
+  <div class="notes">
+    <p><b>18:00 &ndash; 19:00</b> &middot; Mostre <b>subflows</b> e <b>condições</b> com calma; hooks e loops só de passagem.</p>
+    <p>Antecipe a crítica que a banca pode fazer: "YAML não escala". Responda com o slide: subflow é a unidade de reuso, e existe receita oficial de Page Object. Reconheça, porém, que em lógica muito complexa o YAML fica verboso &mdash; e que é exatamente aí que entra o JavaScript, no próximo slide.</p>
+  </div>
+</section>
+
+<!-- ============ 16 JAVASCRIPT ============ -->
+<section class="slide" data-title="JavaScript">
+  <div class="kicker">Ato 03 &middot; a válvula de escape</div>
+  <h2>Quando o YAML não basta: <em>JavaScript</em></h2>
+  <div class="tabs" data-group="js" style="margin-top:14px">
+    <button class="tab on" data-tab="eval">evalScript</button>
+    <button class="tab" data-tab="file">runScript</button>
+    <button class="tab" data-tab="faker">faker</button>
+    <button class="tab" data-tab="http">HTTP</button>
+  </div>
+  <div class="cols c2" style="margin-top:14px">
+    <div class="code">
+      <div class="code-top"><i class="led r"></i><i class="led y"></i><i class="led g"></i><span>javascript nos flows</span></div>
+      <div class="pane on" data-pane="eval" data-group="js">
+<pre class="sm"><span class="c"># expressão inline dentro do próprio YAML</span>
+<span class="d">-</span> <span class="k">evalScript</span>: <span class="s">"${output.email = 'qa' + Date.now() + '@t.com'}"</span>
+<span class="d">-</span> <span class="k">tapOn</span>: {<span class="k">id</span>: <span class="s">"email_input"</span>}
+<span class="d">-</span> <span class="k">inputText</span>: <span class="s">"${output.email}"</span>
+
+<span class="c"># copiar da tela e validar com lógica</span>
+<span class="d">-</span> <span class="k">copyTextFrom</span>: {<span class="k">id</span>: <span class="s">"codigo_pedido"</span>}
+<span class="d">-</span> <span class="k">evalScript</span>: <span class="s">"${output.ok = maestro.copiedText.length === 8}"</span>
+<span class="d">-</span> <span class="k">assertTrue</span>: <span class="s">"${output.ok}"</span></pre></div>
+      <div class="pane" data-pane="file" data-group="js">
+<pre class="sm"><span class="c">// scripts/gerar-cpf.js — arquivo .js de verdade</span>
+<span class="k">function</span> <span class="f">gerarCPF</span>() {
+  <span class="k">const</span> n = () =&gt; Math.<span class="f">floor</span>(Math.<span class="f">random</span>() * <span class="n">9</span>);
+  <span class="k">return</span> Array.<span class="f">from</span>({length: <span class="n">11</span>}, n).<span class="f">join</span>(<span class="s">''</span>);
+}
+output.cpf = <span class="f">gerarCPF</span>();
+console.<span class="f">log</span>(<span class="s">'CPF gerado: '</span> + output.cpf);
+
+<span class="c"># no flow:</span>
+<span class="d">-</span> <span class="k">runScript</span>: <span class="s">../scripts/gerar-cpf.js</span>
+<span class="d">-</span> <span class="k">inputText</span>: <span class="s">"${output.cpf}"</span></pre></div>
+      <div class="pane" data-pane="faker" data-group="js">
+<pre class="sm"><span class="c"># objeto faker embutido: dado falso realista</span>
+<span class="d">-</span> <span class="k">inputText</span>: <span class="s">"${faker.person.fullName()}"</span>
+<span class="d">-</span> <span class="k">inputText</span>: <span class="s">"${faker.internet.email()}"</span>
+<span class="d">-</span> <span class="k">inputText</span>: <span class="s">"${faker.phone.number()}"</span>
+
+<span class="c"># por que isso importa:</span>
+<span class="c"># cadastro com e-mail fixo funciona uma vez</span>
+<span class="c"># e falha na segunda ("e-mail já existe").</span>
+<span class="c"># Com faker, toda execução é nova.</span></pre></div>
+      <div class="pane" data-pane="http" data-group="js">
+<pre class="sm"><span class="c">// scripts/criar-usuario.js</span>
+<span class="k">const</span> resposta = http.<span class="f">post</span>(<span class="s">'https://api.staging/users'</span>, {
+  headers: { <span class="s">'Content-Type'</span>: <span class="s">'application/json'</span> },
+  body: JSON.<span class="f">stringify</span>({ nome: <span class="s">'QA Bot'</span> })
+});
+output.userId = JSON.<span class="f">parse</span>(resposta.body).id;
+
+<span class="c"># prepara o cenário pela API e testa só a UI:</span>
+<span class="c"># o teste fica MUITO mais rápido do que</span>
+<span class="c"># cadastrar tudo clicando na tela.</span></pre></div>
+    </div>
+    <div class="stackv">
+      <div class="card"><h3 style="color:var(--brass)">Motor e limites</h3>
+        <p style="margin-top:5px">Roda em <strong>GraalJS</strong> por padrão, com ECMAScript moderno. Rhino existe, mas é desencorajado.</p>
+        <p style="margin-top:7px">É um <strong>sandbox</strong>: sem acesso ao sistema de arquivos e sem <code style="font-family:var(--mono);font-size:12px">require</code> de pacotes npm.
+          Você não instala lodash nem axios ali dentro.</p></div>
+      <div class="card"><h3 style="color:var(--brass)">Por que o sandbox é proposital</h3>
+        <p style="margin-top:5px">Garante que o flow escrito na sua máquina se comporte igual na máquina do colega e na nuvem.
+          Portabilidade acima de poder.</p>
+        <p style="margin-top:7px"><strong>Cuidado:</strong> não é o JavaScript do seu app. É um script auxiliar do teste &mdash;
+          ele não enxerga o estado do React nem os hooks.</p></div>
+      <div class="card" style="flex:none;background:linear-gradient(var(--brass-dim),var(--brass-dim)),var(--panel);border-color:var(--brass)">
+        <h3 style="color:var(--brass)">Analogia</h3>
+        <p style="margin-top:5px">O YAML é a partitura. O JavaScript é a improvisação combinada em cima dela &mdash;
+          permitida, útil, mas ninguém improvisa a sinfonia inteira.</p></div>
+    </div>
+  </div>
+  <div class="notes">
+    <p><b>19:00 &ndash; 20:00</b> &middot; Este slide é o que conecta o seminário à ementa de JavaScript: mostre <b>evalScript</b> e <b>faker</b>.</p>
+    <p>Deixe explícito o que costuma confundir: esse JS <b>não é</b> o JavaScript do app React Native. É um script do teste, num sandbox sem npm e sem acesso a disco. Quem confundir isso erra a prova.</p>
+  </div>
+</section>
+
+<!-- ============ 17 EXECUÇÃO E CI ============ -->
+<section class="slide" data-title="Execução e CI">
+  <div class="kicker">Ato 03 &middot; rodando de verdade</div>
+  <h2>Executando: no seu terminal e no <em>pull request</em></h2>
+  <div class="cols c2" style="margin-top:14px">
+    <div class="stackv">
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="go" id="runTest">▶ maestro test flows/checkout.yaml</button>
+        <button class="go ghost" id="runFail">▶ simular falha</button>
+      </div>
+      <div class="term" id="term"><span class="mut">$ aguardando comando…</span></div>
+    </div>
+    <div class="stackv">
+      <div class="code" style="flex:1">
+        <div class="code-top"><i class="led r"></i><i class="led y"></i><i class="led g"></i><span>.github/workflows/e2e.yml</span></div>
+<pre class="sm"><span class="k">name</span>: <span class="s">Testes E2E</span>
+<span class="k">on</span>: [<span class="s">pull_request</span>]
+
+<span class="k">jobs</span>:
+  <span class="k">maestro</span>:
+    <span class="k">runs-on</span>: <span class="s">ubuntu-latest</span>
+    <span class="k">steps</span>:
+      <span class="d">-</span> <span class="k">uses</span>: <span class="s">actions/checkout@v4</span>
+      <span class="d">-</span> <span class="k">run</span>: <span class="s">./gradlew assembleDebug</span>
+      <span class="d">-</span> <span class="k">uses</span>: <span class="s">mobile-dev-inc/action-maestro-cloud@v1</span>
+        <span class="k">with</span>:
+          <span class="k">api-key</span>: <span class="s">${{ secrets.MAESTRO_KEY }}</span>
+          <span class="k">app-file</span>: <span class="s">app/build/outputs/app-debug.apk</span></pre>
+      </div>
+      <div class="grid2" style="flex:none">
+        <div class="card"><h3>Relatórios</h3>
+          <p><code style="font-family:var(--mono);font-size:11.5px">--format junit</code> gera XML que o GitHub, o Jenkins e o Bitrise já sabem ler.</p></div>
+        <div class="card"><h3>Evidência</h3>
+          <p>Print e vídeo de cada execução: anexo perfeito para o relatório de bug &mdash; ou para o seu TCC.</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <p><b>20:00 &ndash; 21:00</b> &middot; Clique em <b>maestro test</b> e deixe a saída rolar enquanto você fala. Depois clique em <b>simular falha</b> e destaque a mensagem de erro: ela diz qual comando falhou e salva o print daquele instante.</p>
+    <p>Feche o ato dizendo o valor de negócio: o teste roda sozinho a cada pull request e trava o merge se a jornada de compra quebrar. É automação de verdade, não teste manual disfarçado.</p>
+  </div>
+</section>
+
+<!-- ============ 18 LIMITAÇÕES ============ -->
+<section class="slide" data-title="Limitações">
+  <div class="kicker">Ato 04 &middot; honestidade técnica</div>
+  <h2>O que o Maestro <em>não</em> faz bem</h2>
+  <div class="cols c23" style="margin-top:14px">
+    <div class="stackv">
+      <button class="card pick lim on" data-lim="scope"><h3>Não substitui teste unitário</h3></button>
+      <button class="card pick lim" data-lim="uni"><h3>inputText só aceita ASCII no Android</h3></button>
+      <button class="card pick lim" data-lim="web"><h3>WebView é ponto cego</h3></button>
+      <button class="card pick lim" data-lim="sync"><h3>Sincronização por heurística</h3></button>
+      <button class="card pick lim" data-lim="env"><h3>Dependências de ambiente</h3></button>
+      <button class="card pick lim" data-lim="ios"><h3>Arestas no iOS</h3></button>
+      <button class="card pick lim" data-lim="cloud"><h3>Escala tem preço</h3></button>
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;justify-content:center;padding:22px 24px">
+      <div data-limb="scope">
+        <h3 style="font-size:18px;color:var(--brass)">Ele testa o app inteiro, nunca a peça</h3>
+        <p style="margin-top:9px">Não existe "rodar só essa função" nem medir cobertura de código. Se o cálculo do frete estiver errado,
+          o Maestro só avisa que o valor na tela ficou diferente do esperado &mdash; não aponta a linha.</p>
+        <p style="margin-top:9px"><strong>Como conviver:</strong> Jest embaixo, Maestro em cima. São complementares, não concorrentes.</p></div>
+      <div data-limb="uni" hidden>
+        <h3 style="font-size:18px;color:var(--brass)">Acentuação e emoji quebram no Android</h3>
+        <p style="margin-top:9px">É uma limitação conhecida e documentada: no Android o comando de digitação só suporta caracteres ASCII.
+          Para um app brasileiro, digitar "João" num campo de nome é um problema real.</p>
+        <p style="margin-top:9px"><strong>Como conviver:</strong> use dados de teste sem acento, ou preencha o campo via clipboard
+          (<code style="font-family:var(--mono);font-size:12px">setClipboard</code> + <code style="font-family:var(--mono);font-size:12px">pasteText</code>).</p></div>
+      <div data-limb="web" hidden>
+        <h3 style="font-size:18px;color:var(--brass)">Conteúdo dentro de WebView nem sempre aparece</h3>
+        <p style="margin-top:9px">A árvore de acessibilidade nativa às vezes não expõe o que está renderizado dentro de uma WebView &mdash;
+          e o Maestro simplesmente não enxerga o botão.</p>
+        <p style="margin-top:9px"><strong>Como conviver:</strong> no Android, declarar
+          <code style="font-family:var(--mono);font-size:12px">androidWebViewHierarchy: devtools</code> no topo do flow faz o Maestro inspecionar
+          a página pelo Chrome DevTools. Fluxo híbrido pesado ainda é território de ferramenta web.</p></div>
+      <div data-limb="sync" hidden>
+        <h3 style="font-size:18px;color:var(--brass)">Ele espera bem, mas no escuro</h3>
+        <p style="margin-top:9px">O Maestro não sabe o que a thread JavaScript do React Native está fazendo. Ele observa a tela,
+          espera assentar e tenta de novo. O Detox, por ser caixa-cinza, <em>sabe</em> quando o app terminou de trabalhar.</p>
+        <p style="margin-top:9px"><strong>Consequência:</strong> em apps com animação longa ou polling constante, ainda pode sobrar
+          algum caso raro de instabilidade. Aí você paga com <code style="font-family:var(--mono);font-size:12px">extendedWaitUntil</code>.</p></div>
+      <div data-limb="env" hidden>
+        <h3 style="font-size:18px;color:var(--brass)">Não é 100% "zero setup"</h3>
+        <p style="margin-top:9px">O CLI roda na JVM: versões de Java muito novas ou muito antigas dão problema &mdash; a recomendação oficial
+          é Java 17 ou 21. Antes de cada execução ele instala um app-driver no aparelho, e dispositivos corporativos travados
+          (MDM, fintech, POS) podem bloquear essa instalação. Nesses casos, não há solução: é usar outro aparelho.</p>
+        <p style="margin-top:9px">E iOS continua exigindo macOS com Xcode.</p></div>
+      <div data-limb="ios" hidden>
+        <h3 style="font-size:18px;color:var(--brass)">Detalhes chatos do iOS</h3>
+        <p style="margin-top:9px">O <code style="font-family:var(--mono);font-size:12px">hideKeyboard</code> é instável porque o iOS não oferece API
+          nativa para esconder o teclado &mdash; o Maestro simula um gesto. E listas com paginação
+          (<code style="font-family:var(--mono);font-size:12px">UITableView</code>) podem se comportar de forma estranha por um bug do próprio XCTest,
+          que o Maestro usa por baixo.</p>
+        <p style="margin-top:9px"><strong>Como conviver:</strong> tocar numa área neutra da tela no lugar de esconder o teclado.</p></div>
+      <div data-limb="cloud" hidden>
+        <h3 style="font-size:18px;color:var(--brass)">Local é grátis; paralelo, não</h3>
+        <p style="margin-top:9px">CLI e Studio são open source. Rodar centenas de flows em paralelo, em vários modelos de aparelho,
+          é serviço pago &mdash; com limite recomendado de cerca de 20 minutos por execução.</p>
+        <p style="margin-top:9px">Os comandos com IA (<code style="font-family:var(--mono);font-size:12px">assertWithAI</code>) também dependem de chave de API
+          e, por natureza, não são determinísticos.</p></div>
+    </div>
+  </div>
+  <div class="notes">
+    <p><b>21:00 &ndash; 22:30</b> &middot; Este slide vale muito ponto. Clique em pelo menos quatro itens &mdash; sugestão: <b>não substitui unitário</b>, <b>ASCII no Android</b>, <b>sincronização por heurística</b> e <b>escala tem preço</b>.</p>
+    <p>Postura: nenhuma dessas limitações é fatal, e quase todas têm contorno documentado. Apresentar os limites com naturalidade mostra que você estudou a ferramenta de verdade, não só a página inicial.</p>
+  </div>
+</section>
+
+<!-- ============ 19 COMPARATIVO ============ -->
+<section class="slide" data-title="Comparativo">
+  <div class="kicker">Ato 04 &middot; concorrência</div>
+  <h2>Maestro, Detox, Appium e <em>Testing Library</em></h2>
+  <div style="margin-top:12px;overflow:auto;flex:1;min-height:0">
+    <table>
+      <tr><th style="width:17%"></th><th>Maestro</th><th>Detox</th><th>Appium</th><th>Jest + RNTL</th></tr>
+      <tr><td>Abordagem</td><td>caixa-preta<br>(acessibilidade)</td><td>caixa-cinza<br>(sincroniza com o app)</td><td>caixa-preta<br>(WebDriver)</td><td>caixa-branca<br>(render em memória)</td></tr>
+      <tr><td>Linguagem</td><td>YAML (+ JS opcional)</td><td>JS / TypeScript</td><td>JS, Python, Java, C#…</td><td>JS / TypeScript</td></tr>
+      <tr><td>Toca no projeto?</td><td>não instala nada</td><td>dependência + build nativo</td><td>driver e servidor à parte</td><td>dependência de dev</td></tr>
+      <tr><td>Plataformas</td><td>Android, iOS, RN, Flutter, web</td><td>React Native</td><td>praticamente tudo</td><td>só componente RN</td></tr>
+      <tr><td>Setup até o 1º teste</td><td>minutos</td><td>horas</td><td>horas</td><td>minutos</td></tr>
+      <tr><td>Estabilidade</td><td>alta (retry embutido)</td><td>a mais alta em RN</td><td>a mais instável</td><td>determinística</td></tr>
+      <tr><td>Fora do app</td><td>sim (permissão, GPS, notificação)</td><td>limitado</td><td>sim</td><td>não</td></tr>
+      <tr><td>Curva de aprendizado</td><td>baixa &mdash; QA sem código consegue</td><td>média/alta</td><td>alta</td><td>média</td></tr>
+      <tr class="fav"><td>Escolha quando…</td><td>quer cobrir jornadas críticas rápido, em RN, Flutter ou nativo</td><td>o app é RN e você quer a menor instabilidade possível</td><td>precisa de device farm, navegador e plataforma exótica</td><td>quer testar lógica e componente, não a jornada</td></tr>
+    </table>
+  </div>
+  <p class="sub" style="margin-top:10px">Todos os três de E2E compartilham a mesma fragilidade de fundo: dependem de <strong>seletores</strong>.
+    Se alguém renomear o testID, o teste quebra em qualquer uma das ferramentas.</p>
+  <div class="notes">
+    <p><b>22:30 &ndash; 24:00</b> &middot; Percorra a tabela por <b>linha</b>, não por coluna. As três linhas que mais importam: "toca no projeto?", "plataformas" e a última, em destaque.</p>
+    <p>Recomendação prática que fecha bem: para um time React Native começando em 2026, o caminho mais comum é <b>Maestro para as jornadas críticas</b> e, se aparecer um cenário que exija sincronia fina, acrescentar Detox &mdash; sem abandonar Jest e RNTL na base da pirâmide.</p>
+  </div>
+</section>
+
+<!-- ============ 20 CONCLUSÃO ============ -->
+<section class="slide" data-title="Conclusão">
+  <div class="kicker">Encerramento</div>
+  <h2>Três frases para levar <em>daqui</em></h2>
+  <div class="grid3" style="margin-top:20px">
+    <div class="card" style="padding:20px"><span class="num">01</span>
+      <h3 style="margin-top:8px;font-size:16px">Ele pilota o aparelho, não o app</h3>
+      <p style="margin-top:7px">Por operar pela árvore de acessibilidade, o mesmo arquivo YAML testa React Native, Flutter e nativo,
+        em Android e iOS, sem uma linha a mais no projeto.</p></div>
+    <div class="card" style="padding:20px"><span class="num">02</span>
+      <h3 style="margin-top:8px;font-size:16px">Ele troca espera por condição</h3>
+      <p style="margin-top:7px">Tolerância e retry embutidos atacam a doença crônica do teste E2E: a instabilidade.
+        Menos <code style="font-family:var(--mono);font-size:12px">sleep</code>, menos teste piscando, mais confiança na suíte.</p></div>
+    <div class="card" style="padding:20px"><span class="num">03</span>
+      <h3 style="margin-top:8px;font-size:16px">Ele é o topo da pirâmide</h3>
+      <p style="margin-top:7px">Poucos testes, decisivos, complementando Jest e Testing Library.
+        Não é bala de prata &mdash; é a ferramenta certa para a camada certa.</p></div>
+  </div>
+  <div class="cols c2" style="margin-top:20px;align-items:end">
+    <div>
+      <h3 style="color:var(--brass);margin-bottom:8px">Para experimentar hoje</h3>
+      <ul>
+        <li>Instale o CLI e rode <b>maestro studio</b> no app de contatos do emulador</li>
+        <li>Adicione <b>testID</b> em 3 componentes do seu projeto React Native</li>
+        <li>Escreva um flow de login e rode com <b>--continuous</b></li>
+      </ul>
+    </div>
+    <div style="text-align:right">
+      <p class="sub">Fontes: docs.maestro.dev &middot; página de plataformas suportadas (React Native) &middot;
+        known issues &middot; referência de comandos e seletores &middot; comparativos de mercado 2026</p>
+      <h1 style="font-size:34px;margin-top:14px">Obrigado &mdash; <span style="color:var(--brass);font-style:italic">perguntas?</span></h1>
+    </div>
+  </div>
+  <div class="notes">
+    <p><b>24:00 &ndash; 25:00</b> &middot; Feche pelas três frases, sem ler os cartões inteiros. A terceira é a que mostra maturidade: você não está vendendo a ferramenta, está posicionando ela.</p>
+    <p>Prepare-se para as perguntas mais prováveis: (1) "e se o app não tiver testID?" &rarr; dá para mirar pelo texto, mas é frágil; (2) "roda em aparelho físico?" &rarr; sim, via adb, com as ressalvas de aparelhos travados; (3) "é grátis?" &rarr; CLI e Studio sim, Cloud não; (4) "substitui o Jest?" &rarr; não, camadas diferentes.</p>
+  </div>
+</section>
+
+</div></div>
+
+<script>
+(function(){
+  'use strict';
+  var stage   = document.getElementById('stage');
+  var slides  = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var dots    = document.getElementById('dots');
+  var prog    = document.getElementById('prog');
+  var label   = document.getElementById('label');
+  var count   = document.getElementById('count');
+  var notes   = document.getElementById('notes');
+  var nBody   = document.getElementById('notesBody');
+  var cur = 0;
+
+  /* ---------- escala do palco ---------- */
+  function fit(){
+    var s = Math.min(window.innerWidth / 1280, window.innerHeight / 720) * 0.97;
+    stage.style.transform = 'scale(' + s + ')';
+  }
+  window.addEventListener('resize', fit); fit();
+
+  /* ---------- marcadores ---------- */
+  slides.forEach(function(sl, i){
+    var b = document.createElement('button');
+    b.className = 'dot'; b.title = (i+1) + '. ' + sl.dataset.title;
+    b.addEventListener('click', function(){ go(i); });
+    dots.appendChild(b);
+  });
+
+  function go(i){
+    if(i < 0 || i >= slides.length) return;
+    slides[cur].classList.remove('on');
+    cur = i;
+    slides[cur].classList.add('on');
+    Array.prototype.forEach.call(dots.children, function(d, j){
+      d.classList.toggle('on', j === cur);
+      d.classList.toggle('act', j < cur);
+    });
+    prog.style.width = ((cur) / (slides.length - 1) * 100) + '%';
+    label.textContent = slides[cur].dataset.title;
+    count.textContent = (cur + 1) + ' / ' + slides.length;
+    var nt = slides[cur].querySelector('.notes');
+    nBody.innerHTML = nt ? nt.innerHTML : '<p>—</p>';
+    if(!started) start();
+  }
+
+  /* ---------- teclado e botões ---------- */
+  document.addEventListener('keydown', function(e){
+    var k = e.key;
+    if(k === 'ArrowRight' || k === ' ' || k === 'PageDown' || k === 'Enter'){ e.preventDefault(); go(cur+1); }
+    else if(k === 'ArrowLeft' || k === 'PageUp' || k === 'Backspace'){ e.preventDefault(); go(cur-1); }
+    else if(k === 'Home'){ go(0); }
+    else if(k === 'End'){ go(slides.length-1); }
+    else if(k === 'n' || k === 'N'){ notes.classList.toggle('on'); }
+    else if(k === 'f' || k === 'F'){
+      if(document.fullscreenElement){ document.exitFullscreen(); }
+      else { document.documentElement.requestFullscreen(); }
+    }
+    else if(k === 'r' || k === 'R'){ reset(); }
+  });
+  document.getElementById('bNext').addEventListener('click', function(){ go(cur+1); });
+  document.getElementById('bPrev').addEventListener('click', function(){ go(cur-1); });
+  Array.prototype.forEach.call(document.querySelectorAll('.jump'), function(b){
+    b.addEventListener('click', function(){ go(parseInt(b.dataset.go, 10)); });
+  });
+
+  /* ---------- cronômetro ---------- */
+  var t0 = null, started = false, clock = document.getElementById('clock');
+  function start(){ started = true; t0 = Date.now(); tick(); setInterval(tick, 1000); }
+  function reset(){ t0 = Date.now(); clock.classList.remove('over'); tick(); }
+  function tick(){
+    if(!t0) return;
+    var s = Math.floor((Date.now() - t0) / 1000);
+    var m = Math.floor(s / 60);
+    clock.textContent = ('0'+m).slice(-2) + ':' + ('0'+(s%60)).slice(-2);
+    clock.classList.toggle('over', m >= 25);
+  }
+
+  /* ---------- grupos de seleção ---------- */
+  function linkGroup(btnSel, key, boxSel, boxKey, after){
+    var btns = Array.prototype.slice.call(document.querySelectorAll(btnSel));
+    var boxes = Array.prototype.slice.call(document.querySelectorAll(boxSel));
+    btns.forEach(function(b){
+      b.addEventListener('click', function(){
+        var v = b.getAttribute(key);
+        btns.forEach(function(o){ o.classList.toggle('on', o === b); });
+        boxes.forEach(function(x){ x.hidden = (x.getAttribute(boxKey) !== v); });
+        if(after) after(v, b);
+      });
+    });
+  }
+
+  var painFiles = { flake:'o-teste-instavel.js', sleep:'espera-na-marra.js',
+                    setup:'terminal — configuração', lock:'android/app/build.gradle' };
+  linkGroup('.pain','data-pain','.painbox','data-pain', function(v){
+    document.getElementById('painFile').textContent = painFiles[v];
+  });
+  linkGroup('.box','data-box','#boxAnalogy > div','data-boxa');
+  linkGroup('.pick2','data-lv','[data-lvbox]','data-lvbox');
+  linkGroup('.lim','data-lim','[data-limb]','data-limb');
+  linkGroup('.cmd','data-cmd','.cbox','data-cmd', function(v, b){
+    document.getElementById('cmdName').textContent = b.textContent.trim();
+  });
+  linkGroup('.an','data-an','#anBox > div','data-anb', function(v){
+    Array.prototype.forEach.call(document.querySelectorAll('#anaCode .ln'), function(l){
+      l.classList.toggle('hl', l.getAttribute('data-an') === v);
+    });
+  });
+  /* estado inicial do destaque de anatomia */
+  Array.prototype.forEach.call(document.querySelectorAll('#anaCode .ln[data-an="app"]'), function(l){ l.classList.add('hl'); });
+
+  /* ---------- abas ---------- */
+  Array.prototype.forEach.call(document.querySelectorAll('.tabs[data-group]'), function(box){
+    var g = box.dataset.group;
+    var tabs = Array.prototype.slice.call(box.querySelectorAll('.tab'));
+    var panes = Array.prototype.slice.call(document.querySelectorAll('.pane[data-group="' + g + '"]'));
+    tabs.forEach(function(t){
+      t.addEventListener('click', function(){
+        tabs.forEach(function(o){ o.classList.toggle('on', o === t); });
+        panes.forEach(function(p){ p.classList.toggle('on', p.dataset.pane === t.dataset.tab); });
+      });
+    });
+  });
+
+  /* ---------- celular React Native ---------- */
+  var els = Array.prototype.slice.call(document.querySelectorAll('.el'));
+  var fx = document.getElementById('tapFx');
+  function paint(v){
+    els.forEach(function(e){
+      var isBtn = e.classList.contains('btn-fake');
+      e.classList.toggle('on', !isBtn && e.dataset.el === v);
+      if(isBtn) e.classList.toggle('off', e.dataset.el !== v);
+    });
+    ['jsxCode','yamlCode'].forEach(function(id){
+      Array.prototype.forEach.call(document.querySelectorAll('#' + id + ' .ln'), function(l){
+        l.classList.toggle('hl', l.getAttribute('data-el') === v);
+      });
+    });
+  }
+  els.forEach(function(e){
+    e.addEventListener('click', function(ev){
+      paint(e.dataset.el);
+      var r = e.getBoundingClientRect(), p = document.getElementById('phone').getBoundingClientRect();
+      var sc = p.width / 228;
+      fx.style.left = ((r.left - p.left) / sc + (r.width / sc) / 2) + 'px';
+      fx.style.top  = ((r.top  - p.top ) / sc + (r.height / sc) / 2) + 'px';
+      fx.style.animation = 'none'; void fx.offsetWidth; fx.style.animation = 'ping .6s ease-out';
+    });
+  });
+  paint('user');
+
+  /* ---------- pipeline animado ---------- */
+  var pipeBtn = document.getElementById('runPipe');
+  if(pipeBtn) pipeBtn.addEventListener('click', function(){
+    var nodes = document.querySelectorAll('[data-step]');
+    var arrows = document.querySelectorAll('[data-arrow]');
+    Array.prototype.forEach.call(nodes, function(n){ n.classList.remove('live'); });
+    Array.prototype.forEach.call(arrows, function(a){ a.classList.remove('live'); });
+    var i = 0;
+    (function step(){
+      if(i >= nodes.length) return;
+      var j = i;
+      nodes[j].classList.add('live');
+      if(arrows[j]) setTimeout(function(){ arrows[j].classList.add('live'); }, 260);
+      i++;
+      setTimeout(step, 620);
+    })();
+  });
+
+  /* ---------- terminal simulado ---------- */
+  var term = document.getElementById('term');
+  var okRun = [
+    ['cmd',   '$ maestro test .maestro/flows/checkout.yaml'],
+    ['mut',   ''],
+    ['mut',   'Running on emulator-5554 (Android 14)'],
+    ['mut',   ''],
+    ['ok',    ' ✔  Launch app "com.exemplo.maestro"'],
+    ['ok',    ' ✔  Tap on "Plano Anual"'],
+    ['ok',    ' ✔  Assert visible "Resumo do pedido"'],
+    ['warn',  ' ›  Tap on "Aplicar cupom" (optional — não encontrado, seguindo)'],
+    ['ok',    ' ✔  Confirmar o pagamento'],
+    ['ok',    ' ✔  Assert visible "Compra aprovada"'],
+    ['mut',   ''],
+    ['ok',    ' Flow passou em 11,4s  ·  1/1 flows  ·  0 falhas'],
+    ['mut',   ' Vídeo e prints em ~/.maestro/tests/2026-09-14_193204/']
+  ];
+  var failRun = [
+    ['cmd',   '$ maestro test .maestro/flows/checkout.yaml'],
+    ['mut',   ''],
+    ['ok',    ' ✔  Launch app "com.exemplo.maestro"'],
+    ['ok',    ' ✔  Tap on "Plano Anual"'],
+    ['ok',    ' ✔  Assert visible "Resumo do pedido"'],
+    ['ok',    ' ✔  Confirmar o pagamento'],
+    ['bad',   ' ✖  Assert visible "Compra aprovada"'],
+    ['mut',   ''],
+    ['bad',   ' Element not found: "Compra aprovada"'],
+    ['mut',   ' Tela no momento da falha: "Erro ao processar cartão"'],
+    ['mut',   ' Screenshot: ~/.maestro/tests/.../checkout-failure.png'],
+    ['mut',   ''],
+    ['bad',   ' 1 flow falhou  ·  exit code 1  →  o CI bloqueia o merge']
+  ];
+  function play(lines){
+    term.innerHTML = '';
+    lines.forEach(function(l, i){
+      var s = document.createElement('div');
+      s.className = 'term-line ' + l[0];
+      s.style.animationDelay = (i * 0.28) + 's';
+      s.textContent = l[1] || ' ';
+      term.appendChild(s);
+    });
+  }
+  var rt = document.getElementById('runTest'), rf = document.getElementById('runFail');
+  if(rt) rt.addEventListener('click', function(){ play(okRun); });
+  if(rf) rf.addEventListener('click', function(){ play(failRun); });
+
+  go(0);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<section class="slide" data-title="React Native e testID">
+  <div class="kicker">Ato 03 &middot; o elo com o React Native</div>
+  <h2>Do <em>JSX</em> ao YAML: o caminho do <code style="font-family:var(--mono);font-size:30px;color:var(--brass)">testID</code></h2>
+  <div class="cols" style="grid-template-columns:auto 1fr 1fr;margin-top:12px;gap:18px">
+    <div class="phone" id="phone">
+      <div class="notch"></div>
+      <p style="font-size:11px;color:var(--brass);font-family:var(--mono);margin-bottom:10px">Maestro</p>
+      <div class="fld el on" data-el="user" data-el-default>ana@empresa.com</div>
+      <div class="fld el" data-el="pass">••••••••</div>
+      <div class="btn-fake el off" data-el="btn">Entrar</div>
+      <p class="sub" style="margin-top:14px;font-size:10px;text-align:center">clique nos elementos</p>
+      <div class="tap" id="tapFx"></div>
+    </div>
+    <div class="code">
+      <div class="code-top"><i class="led r"></i><i class="led y"></i><i class="led g"></i><span>LoginScreen.tsx</span></div>
+<pre class="xs lines" id="jsxCode"><span class="ln"><span class="c">// React Native — o SEU código, sem lib de teste</span></span>
+<span class="ln"><span class="k">export function</span> <span class="f">LoginScreen</span>() {</span>
+<span class="ln">  <span class="k">return</span> (</span>
+<span class="ln">    &lt;<span class="n">View</span>&gt;</span>
+<span class="ln" data-el-line="user">      &lt;<span class="n">TextInput</span></span>
+<span class="ln" data-el-line="user">        <span class="k">testID</span>=<span class="s">"email_input"</span></span>
+<span class="ln" data-el-line="user">        <span class="k">placeholder</span>=<span class="s">"E-mail"</span></span>
+<span class="ln" data-el-line="user">      /&gt;</span>
+<span class="ln" data-el-line="pass">      &lt;<span class="n">TextInput</span></span>
+<span class="ln" data-el-line="pass">        <span class="k">testID</span>=<span class="s">"senha_input"</span></span>
+<span class="ln" data-el-line="pass">        <span class="k">secureTextEntry</span></span>
+<span class="ln" data-el-line="pass">      /&gt;</span>
+<span class="ln" data-el-line="btn">      &lt;<span class="n">Pressable</span> <span class="k">testID</span>=<span class="s">"btn_entrar"</span></span>
+<span class="ln" data-el-line="btn">        <span class="k">onPress</span>={handleLogin}&gt;</span>
+<span class="ln" data-el-line="btn">        &lt;<span class="n">Text</span>&gt;Entrar&lt;/<span class="n">Text</span>&gt;</span>
+<span class="ln" data-el-line="btn">      &lt;/<span class="n">Pressable</span>&gt;</span>
+<span class="ln">    &lt;/<span class="n">View</span>&gt;</span>
+<span class="ln">  );</span>
+<span class="ln">}</span></pre>
+    </div>
+    <div class="stackv">
+      <div class="code" style="flex:none">
+        <div class="code-top"><i class="led r"></i><i class="led y"></i><i class="led g"></i><span>flows/login.yaml</span></div>
+<pre class="xs lines" id="yamlCode"><span class="ln"><span class="k">appId</span>: <span class="s">com.exemplo.maestro</span></span>
+<span class="ln"><span class="d">---</span></span>
+<span class="ln"><span class="d">-</span> <span class="k">launchApp</span></span>
+<span class="ln" data-el-line="user"><span class="d">-</span> <span class="k">tapOn</span>:</span>
+<span class="ln" data-el-line="user">    <span class="k">id</span>: <span class="s">"email_input"</span></span>
+<span class="ln" data-el-line="user"><span class="d">-</span> <span class="k">inputText</span>: <span class="s">"ana@empresa.com"</span></span>
+<span class="ln" data-el-line="pass"><span class="d">-</span> <span class="k">tapOn</span>:</span>
+<span class="ln" data-el-line="pass">    <span class="k">id</span>: <span class="s">"senha_input"</span></span>
+<span class="ln" data-el-line="pass"><span class="d">-</span> <span class="k">inputText</span>: <span class="s">"${SENHA}"</span></span>
+<span class="ln" data-el-line="btn"><span class="d">-</span> <span class="k">tapOn</span>:</span>
+<span class="ln" data-el-line="btn">    <span class="k">id</span>: <span class="s">"btn_entrar"</span></span>
+<span class="ln"><span class="d">-</span> <span class="k">assertVisible</span>: <span class="s">"Meus contratos"</span></span></pre>
+      </div>
+      <div class="card" style="flex:1"><h3 style="color:var(--brass)">A única "integração" que existe</h3>
+        <p style="margin-top:6px">O <strong>testID</strong> do React Native vira <strong>Resource ID</strong> no Android e
+          <strong>accessibilityIdentifier</strong> no iOS. O Maestro lê esse valor pelo seletor <code style="font-family:var(--mono);font-size:12px">id</code>.</p>
+        <p style="margin-top:7px">Dá para mirar pelo texto visível (<code style="font-family:var(--mono);font-size:12px">tapOn: "Entrar"</code>),
+          mas isso quebra quando alguém traduz o app ou troca o rótulo. <strong>testID é a prática recomendada.</strong></p>
+      </div>
+    </div>
+  </div>
+</section>

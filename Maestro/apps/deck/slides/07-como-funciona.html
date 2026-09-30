@@ -1,0 +1,28 @@
+<section class="slide" data-title="Como funciona">
+  <div class="kicker">Ato 02 &middot; por dentro</div>
+  <h2>O que acontece entre o <em>YAML</em> e o dedo na tela</h2>
+  <div class="flowdiag" style="margin-top:24px">
+    <div class="node" data-step="0"><b>login.yaml</b><span>seu teste<br>declarativo</span></div>
+    <div class="arrow" data-arrow="0"></div>
+    <div class="node" data-step="1"><b>Maestro CLI</b><span>interpreta o<br>YAML (JVM)</span></div>
+    <div class="arrow" data-arrow="1"></div>
+    <div class="node" data-step="2"><b>Driver companion</b><span>appzinho instalado<br>no aparelho</span></div>
+    <div class="arrow" data-arrow="2"></div>
+    <div class="node" data-step="3"><b>Árvore de<br>acessibilidade</b><span>a mesma do<br>leitor de tela</span></div>
+    <div class="arrow" data-arrow="3"></div>
+    <div class="node" data-step="4"><b>Toque real</b><span>tap, swipe,<br>digitação</span></div>
+  </div>
+  <div style="display:flex;gap:10px;justify-content:center;margin-top:20px">
+    <button class="go" id="runPipe">▶ executar o pipeline</button>
+  </div>
+  <div class="cols c2" style="margin-top:20px;align-items:start">
+    <div class="card"><h3>A árvore de acessibilidade é o segredo</h3>
+      <p>Todo sistema operacional mantém uma árvore com o que está na tela: texto, rótulo, identificador, posição, se está habilitado.
+        Ela existe para o TalkBack e o VoiceOver funcionarem. O Maestro lê essa árvore em vez de ler o seu código &mdash;
+        por isso um teste só serve para Android e iOS, e para app nativo, React Native ou Flutter.</p></div>
+    <div class="card"><h3>Efeito colateral bom: acessibilidade</h3>
+      <p>Se o Maestro não acha o botão, muito provavelmente o <strong>leitor de tela também não acha</strong>.
+        Escrever teste acaba virando um checklist involuntário de acessibilidade do app.</p>
+      <p style="margin-top:8px"><strong>Analogia:</strong> o maestro não lê a cabeça dos músicos; ele lê a partitura que está na estante de todos.</p></div>
+  </div>
+</section>

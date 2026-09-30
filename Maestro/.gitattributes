@@ -1,0 +1,7 @@
+# Normaliza as quebras de linha: LF no repositório, nativo no disco.
+# Evita diffs de arquivo inteiro entre quem usa Windows, macOS e Linux.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.mp4 binary
