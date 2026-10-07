@@ -7,7 +7,7 @@ Sistemas (IFSP).
 São 20 slides interativos sobre testes end-to-end de aplicativos mobile
 escritos em YAML: o problema que a ferramenta resolve, como ela funciona, o elo
 com o React Native via `testID`, o catálogo de comandos e as limitações.
-
+ 
 ---
 
 ## Ver a apresentação
