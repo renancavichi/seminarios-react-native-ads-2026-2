@@ -1,6 +1,7 @@
-# Ferramentas e Bibliotecas para Desenvolvimento com React Native(2026)
+# Ferramentas e Bibliotecas para Desenvolvimento com React Native (2026)
 
 Apresentações realizadas como requisito da disciplina de Desenvolvimento para Dispositivos Móveis do cursos de Análise e Desenvolvimento de Sistemas do IFSP Caraguatatuba.
+Prof. Renan Cavichi
 
 ### Apresentações
 
