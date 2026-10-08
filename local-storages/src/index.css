@@ -1,0 +1,126 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-primary: #6366f1;
+    --color-primary-light: #818cf8;
+    --color-accent: #06b6d4;
+    --color-surface: #1e1b4b;
+    --color-surface-light: #312e81;
+  }
+}
+
+@layer components {
+  .slide-transition-enter {
+    animation: slideInRight 0.4s ease-out forwards;
+  }
+
+  .slide-transition-exit {
+    animation: slideOutLeft 0.4s ease-in forwards;
+  }
+
+  .slide-transition-enter-back {
+    animation: slideInLeft 0.4s ease-out forwards;
+  }
+
+  .slide-transition-exit-back {
+    animation: slideOutRight 0.4s ease-in forwards;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutLeft {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-60px);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(60px);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(99, 102, 241, 0.6);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+.animate-fade-in-delay-1 {
+  animation: fadeIn 0.6s ease-out 0.1s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-delay-2 {
+  animation: fadeIn 0.6s ease-out 0.2s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-delay-3 {
+  animation: fadeIn 0.6s ease-out 0.3s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-delay-4 {
+  animation: fadeIn 0.6s ease-out 0.4s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-delay-5 {
+  animation: fadeIn 0.6s ease-out 0.5s forwards;
+  opacity: 0;
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
