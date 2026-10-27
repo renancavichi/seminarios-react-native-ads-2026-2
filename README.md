@@ -16,6 +16,7 @@ Exemplo:
 - Local Storages ([Tulio Yoshimura](https://github.com/tuliokenji))
 - Reanimated ([Rafael Tomaz](https://github.com/RafaelTomazzz))
 - Victory Native ([Arthur de Morais](https://github.com/ArthurTiso))
+- Moti ([Kauan Edson Leonel Lira](https://github.com/KauanLeonel/seminario-moti))
 
 ##### Orientações
 
