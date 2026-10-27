@@ -1,0 +1,8 @@
+node_modules/
+.game-build/
+dist/
+.openai/*credential*
+.openai/*.zip
+.openai/*.tar.gz
+*.zip
+qa/

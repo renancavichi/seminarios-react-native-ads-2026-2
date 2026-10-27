@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Aprenda Moti em um seminário participativo de 30 minutos: instalação, API, laboratório real, desafios e exemplos de código.">
+  <meta name="theme-color" content="#10121b">
+  <title>Moti — Do estado ao espetáculo</title>
+  <link rel="stylesheet" href="slides.css">
+  <link rel="stylesheet" href="teaching.css">
+  <link rel="stylesheet" href="sequence.css">
+  <script src="data.js" defer></script>
+  <script src="rules.js" defer></script>
+  <script src="slides.js" defer></script>
+</head>
+<body>
+  <header class="toolbar">
+    <a class="brand" href="#slide-1" aria-label="Primeiro slide">MOTI <span>✦</span></a>
+    <div class="tools">
+      <button id="overviewButton" title="Índice (G)">Índice <kbd>G</kbd></button>
+      <button id="notesButton" aria-pressed="false" title="Notas do apresentador (N)">Notas <kbd>N</kbd></button>
+      <button id="fullscreenButton" title="Tela cheia (F)">Tela cheia <kbd>F</kbd></button>
+      <button id="printButton" title="Imprimir ou salvar em PDF">PDF ↗</button>
+    </div>
+  </header>
+  <main id="slides" aria-label="Slides do seminário"></main>
+  <aside id="notes" hidden aria-label="Notas do apresentador"><div><strong>Notas do apresentador</strong><span id="noteTime"></span></div><p id="noteText"></p><p><a href="roteiro.md" target="_blank" rel="noopener">Roteiro completo para preparar a fala ↗</a></p></aside>
+  <footer class="navigation">
+    <div class="chapter"><span id="chapterLabel"></span><small>← → navegar · N notas · G índice · F tela cheia</small></div>
+    <div class="nav-controls"><button id="prevButton" aria-label="Slide anterior">←</button><button id="counter" aria-label="Abrir índice"></button><button id="nextButton" aria-label="Próximo slide">→</button></div>
+    <div class="progress"><div id="progressFill"></div></div>
+  </footer>
+  <dialog id="overview" aria-labelledby="overviewTitle"><div class="dialog-top"><h2 id="overviewTitle">Roteiro do seminário</h2><button data-close="overview" aria-label="Fechar índice">✕</button></div><div id="overviewGrid"></div></dialog>
+  <dialog id="sourceDialog" aria-labelledby="sourceTitle"><div class="dialog-top"><div><small>CÓDIGO DO PROJETO</small><h2 id="sourceTitle"></h2></div><button data-close="sourceDialog" aria-label="Fechar código-fonte">✕</button></div><p id="sourceInfo"></p><pre id="fullSource"></pre></dialog>
+  <dialog id="demoDialog" aria-labelledby="demoTitle">
+    <div class="dialog-top"><div><small>APLICATIVO REAL / EXPO + REACT NATIVE</small><h2 id="demoTitle">Tríade em execução</h2></div><button data-close="demoDialog" aria-label="Fechar demonstração">✕</button></div>
+    <div class="demo-layout">
+      <div class="demo-guide"><span class="eyebrow">DEMONSTRAÇÃO AO VIVO</span><h3>O código está rodando aqui.</h3><p>Este quadro executa a compilação web do aplicativo do projeto, incluindo suas animações Moti.</p>
+        <div class="segmented"><button data-mode="basic">Básica</button><button data-mode="moti">Moti</button></div>
+        <div class="demo-actions"><button data-demo-action="setup">Ativar modo seminário</button><button data-demo-action="slow">Alternar câmera lenta</button><button data-demo-action="reduced">Alternar reduzir movimento</button></div>
+        <div class="choices-live"><button data-demo-choice="rock">Pedra</button><button data-demo-choice="paper">Papel</button><button data-demo-choice="scissors">Tesoura</button></div>
+        <button class="primary" id="demoPlay">Batalhar / voltar à mão</button><button id="demoReset">Reiniciar jogo</button>
+        <p id="demoStatus" role="status">Carregando o aplicativo…</p><p class="small-note">Também é possível tocar diretamente no jogo. No modo seminário, o rival segue tesoura → papel → pedra.</p>
+      </div>
+      <div class="phone-live"><iframe id="liveApp" title="Jogo Tríade original" allow="fullscreen" loading="lazy"></iframe></div>
+    </div>
+  </dialog>
+  <dialog id="quizDialog" aria-labelledby="quizTitle"><div class="dialog-top"><h2 id="quizTitle">Quiz para revisar Moti</h2><button data-close="quizDialog" aria-label="Fechar quiz">✕</button></div><div class="quiz-card"><span class="quiz-count" id="quizCount"></span><h3 id="quizQuestion"></h3><div class="quiz-options" id="quizOptions"></div><div class="quiz-feedback" id="quizFeedback" aria-live="polite"></div><button id="revealQuiz">Revelar resposta →</button><button id="nextQuestion">Próxima pergunta →</button></div></dialog>
+  <dialog id="referencesDialog" aria-labelledby="referencesTitle"><div class="dialog-top"><h2 id="referencesTitle">Fontes e próximos passos</h2><button data-close="referencesDialog" aria-label="Fechar referências">✕</button></div><div id="referencesList"></div><p><a href="provenance.json" target="_blank" rel="noopener">Arquivos e trechos originais utilizados ↗</a></p></dialog>
+  <div id="toast" role="status" hidden></div>
+  <noscript>Ative o JavaScript para navegar pelos slides e testar as demonstrações.</noscript>
+</body>
+</html>
