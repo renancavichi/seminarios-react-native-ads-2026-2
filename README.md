@@ -20,7 +20,11 @@ Exemplo:
 - Tamagui ([Emerson Silva](https://github.com/emersonsoasilva))
 =======
 - Moti ([Kauan Edson Leonel Lira](https://github.com/KauanLeonel/seminario-moti))
+<<<<<<< HEAD
 >>>>>>> 4f08445782e15722873cf47ab115a16af6001cb4
+=======
+- Size-matters ([Kevin Abmael Gomes da Silva](https://github.com/kevin4bmael/apresenta--o-size-matters))
+>>>>>>> 0b9e19aa89f07721b92056b3662e49d76ff07065
 
 ##### Orientações
 
