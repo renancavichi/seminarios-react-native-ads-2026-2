@@ -15,6 +15,7 @@ Exemplo:
 - React Uploady ([@kevin4bmael], https://github.com/kevin4bmael/meu-projeto-uploady)
 - Maestro ([Robert Cortez Rudi](https://github.com/Robert-Cortez-Rudi))
 - Local Storages ([Tulio Yoshimura](https://github.com/tuliokenji))
+- Reanimated ([Rafael Tomaz](https://github.com/RafaelTomazzz))
 
 ##### Orientações
 
