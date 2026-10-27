@@ -17,6 +17,7 @@ Exemplo:
 - Reanimated ([Rafael Tomaz](https://github.com/RafaelTomazzz))
 - Victory Native ([Arthur de Morais](https://github.com/ArthurTiso))
 - Moti ([Kauan Edson Leonel Lira](https://github.com/KauanLeonel/seminario-moti))
+- Size-matters ([Kevin Abmael Gomes da Silva](https://github.com/kevin4bmael/apresenta--o-size-matters))
 
 ##### Orientações
 
