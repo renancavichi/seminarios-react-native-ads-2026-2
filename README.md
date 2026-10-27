@@ -15,7 +15,7 @@ Exemplo:
 - Maestro ([Robert Cortez Rudi](https://github.com/Robert-Cortez-Rudi))
 - Local Storages ([Tulio Yoshimura](https://github.com/tuliokenji))
 - Reanimated ([Rafael Tomaz](https://github.com/RafaelTomazzz))
-- Expo Sensors ([João Gabriel](https://github.com/joaogabrielbeserra)
+- Victory Native ([Arthur de Morais](https://github.com/ArthurTiso))
 
 ##### Orientações
 
