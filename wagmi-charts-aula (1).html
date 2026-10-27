@@ -1,0 +1,540 @@
+<meta charset="utf-8">
+<title>Um gr&#225;fico conta uma hist&#243;ria</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..900&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Kalam:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: cartaz de aula impresso. Papel claro, tinta preta, um roxo forte, anotaes  mo do professor. Tema nico, de propsito. */
+:root{
+  --paper:#FAF9F6; --card:#FFFFFF; --rule:#DDD8E3; --edge:#15121A;
+  --ink:#15121A; --muted:#5E5868; --pen:#820AD1; --penlight:#F0E3FA;
+  --up:#0A8F5C; --down:#D23A2F; --c4:#2459D6; --c5:#C26A00;
+  --marker:#E9D3FA; --bar:#15121A; --barfg:#FAF9F6; --grid:#ECE8F0;
+  --f-display:'Archivo','Arial Black','Helvetica Neue',Arial,sans-serif;
+  --f-body:'Atkinson Hyperlegible','Segoe UI',system-ui,-apple-system,sans-serif;
+  --f-hand:'Kalam','Comic Neue','Bradley Hand','Segoe Print',cursive;
+  --f-mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:clamp(16px,1.2vw + 8px,21px);line-height:1.5;overflow:hidden}
+#deck{position:fixed;inset:0}
+.slide{position:absolute;inset:0;display:flex;padding:calc(env(safe-area-inset-top,0px) + 5vh) clamp(20px,5vw,72px) calc(env(safe-area-inset-bottom,0px) + 88px);overflow-y:auto;visibility:hidden;opacity:0;transition:opacity .3s ease,visibility 0s .3s}
+.slide.on{visibility:visible;opacity:1;transition:opacity .3s ease}
+.slide::after{content:attr(data-n);position:absolute;right:clamp(20px,5vw,72px);top:calc(env(safe-area-inset-top,0px) + 3vh);font-family:var(--f-mono);font-size:13px;color:var(--muted);letter-spacing:.08em}
+.wrap{margin:auto;width:100%;max-width:1120px;display:flex;flex-direction:column;gap:clamp(14px,2.6vh,30px)}
+.notes{display:none}
+
+.eyebrow{font-family:var(--f-mono);font-size:.66em;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:flex;gap:.9em;align-items:center;flex-wrap:wrap}
+.eyebrow b{background:var(--ink);color:var(--paper);padding:.25em .6em;font-weight:600}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;line-height:1}
+h1{font-size:clamp(2.6rem,7.6vw,6.6rem);font-weight:900;font-stretch:125%;letter-spacing:-.03em;text-transform:uppercase;line-height:.92}
+h2{font-size:clamp(1.9rem,4.4vw,3.6rem);font-weight:800;font-stretch:112%;letter-spacing:-.025em}
+h3{font-size:1.15em;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+p{margin:0;max-width:62ch}
+.lead{font-size:1.18em;color:var(--muted);max-width:52ch}
+.mk{background:linear-gradient(transparent 60%,var(--marker) 60%);padding:0 .06em}
+.up{color:var(--up)} .down{color:var(--down)} .pen{color:var(--pen)}
+.small{font-size:.8em;color:var(--muted)}
+.tag{font-family:var(--f-mono);font-size:.62em;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.hand{font-family:var(--f-hand);color:var(--pen);font-size:1.25em;line-height:1.2;transform:rotate(-2deg);display:inline-block}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:clamp(18px,3.4vw,48px);align-items:center}
+.grid2>*{min-width:0}
+.cards{display:grid;gap:16px}
+.c4{grid-template-columns:repeat(4,1fr)} .c3{grid-template-columns:repeat(3,1fr)} .c2{grid-template-columns:repeat(2,1fr)}
+.cards>*{min-width:0}
+.card{background:var(--card);border:2px solid var(--edge);padding:16px 18px;display:flex;flex-direction:column;gap:8px;box-shadow:5px 5px 0 var(--edge)}
+.card p{font-size:.88em;color:var(--muted)}
+.card .q{font-family:var(--f-display);font-weight:800;font-size:1.05em;line-height:1.15;color:var(--ink)}
+.card svg{height:58px;width:auto;max-width:100%;align-self:flex-start}
+@media (max-width:900px){.c4{grid-template-columns:repeat(2,1fr)}.c3{grid-template-columns:1fr 1fr}}
+@media (max-width:640px){.grid2,.c3,.c2{grid-template-columns:1fr}.c4{grid-template-columns:1fr 1fr}}
+
+svg text{font-family:var(--f-mono);fill:var(--muted)}
+.ln{fill:none;stroke:var(--pen);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+.axis{stroke:var(--grid);stroke-width:1}
+.chartbox{background:var(--card);border:2px solid var(--edge);padding:16px;box-shadow:6px 6px 0 var(--pen)}
+.chartbox svg{display:block;width:100%;height:auto}
+
+button{font:inherit;color:inherit}
+.btn{font-family:var(--f-display);font-weight:800;font-size:.85em;background:var(--pen);color:#fff;border:2px solid var(--edge);padding:.6em 1.2em;cursor:pointer;align-self:flex-start;box-shadow:3px 3px 0 var(--edge);transition:transform .1s,box-shadow .1s}
+.btn:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--edge)}
+.btn:focus-visible,.ctrl button:focus-visible,.scn:focus-visible{outline:3px solid var(--pen);outline-offset:3px}
+
+/* capa e fechamento em roxo */
+.slide.purple{background:var(--pen);color:#fff}
+.slide.purple::after{color:rgba(255,255,255,.7)}
+.slide.purple .eyebrow{color:rgba(255,255,255,.8)}
+.slide.purple .eyebrow b{background:#fff;color:var(--pen)}
+.slide.purple .lead,.slide.purple .small{color:rgba(255,255,255,.85)}
+.slide.purple .hand{color:#fff}
+.slide.purple .mk{background:linear-gradient(transparent 60%,rgba(255,255,255,.28) 60%)}
+.slide.purple .card{border-color:#fff;box-shadow:5px 5px 0 #15121A}
+.cover svg.bg{position:absolute;left:0;right:0;bottom:84px;width:100%;height:34vh;pointer-events:none}
+.cover .draw{fill:none;stroke:#fff;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:2600;stroke-dashoffset:2600;animation:draw 2.8s ease-out .2s forwards;opacity:.35}
+@keyframes draw{to{stroke-dashoffset:0}}
+.cover .wrap{position:relative;z-index:1;margin-top:8vh}
+.cover h1 .line2{display:block;color:#fff;-webkit-text-stroke:0}
+.cover h1 .line1{display:block;color:transparent;-webkit-text-stroke:2px #fff}
+@supports not (-webkit-text-stroke:2px #fff){.cover h1 .line1{color:#fff}}
+
+/* chips */
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{background:var(--card);border:2px solid var(--edge);padding:.35em .95em;font-size:.95em;border-radius:999px}
+.chip:nth-child(odd){transform:rotate(-1.2deg)} .chip:nth-child(even){transform:rotate(1deg)}
+
+/* tabela de nmeros */
+.numtable{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.numtable div{border:1px solid var(--rule);padding:8px 4px;text-align:center;font-variant-numeric:tabular-nums;font-size:.9em}
+.numtable span{display:block;font-family:var(--f-mono);font-size:.62em;color:var(--muted);text-transform:uppercase}
+@media (max-width:640px){.numtable{grid-template-columns:repeat(4,1fr)}}
+
+/* demo de arrastar */
+.phone{background:var(--card);border:3px solid var(--edge);border-radius:34px;padding:22px 18px 16px;max-width:400px;width:100%;justify-self:center;box-shadow:8px 8px 0 var(--pen)}
+.phone .price{font-family:var(--f-display);font-weight:800;font-size:2em;font-variant-numeric:tabular-nums;line-height:1}
+.phone .when{font-family:var(--f-mono);font-size:.7em;color:var(--muted);margin-top:6px}
+.phone svg{touch-action:none;cursor:crosshair;margin-top:10px}
+.hint{font-family:var(--f-hand);color:var(--pen);text-align:center;margin-top:4px}
+
+/* linhas */
+.rows{display:flex;flex-direction:column;gap:0}
+.row{display:grid;grid-template-columns:minmax(0,14em) 1fr;gap:18px;align-items:baseline;padding:12px 0;border-bottom:2px solid var(--ink)}
+.row:first-of-type{border-top:2px solid var(--ink)}
+.row>*{min-width:0}
+.row b{font-family:var(--f-display);font-weight:800;font-size:1.02em}
+.row p{color:var(--muted);font-size:.92em}
+.rows>p{padding:6px 0}
+@media (max-width:640px){.row{grid-template-columns:1fr;gap:2px}}
+
+/* cdigo */
+pre.code{margin:0;background:var(--ink);color:#EDE9F2;border:2px solid var(--edge);padding:18px 20px;font-family:var(--f-mono);font-size:clamp(11px,.74em,15px);line-height:1.75;overflow-x:auto;box-shadow:6px 6px 0 var(--pen)}
+.k1{color:#C79BFF;font-weight:600}.k2{color:#4FE0A8;font-weight:600}.k3{color:#86B0FF;font-weight:600}.k4{color:#FFC266;font-weight:600}.k5{color:#FF8A80;font-weight:600}
+.legend .row b{display:flex;gap:.5em;align-items:center}
+.sw{width:.85em;height:.85em;display:inline-block;flex:none;border:2px solid var(--edge)}
+code{font-family:var(--f-mono);font-size:.9em;background:var(--penlight);padding:0 .3em}
+
+/* tabela */
+.tablewrap{overflow-x:auto;border:2px solid var(--edge);background:var(--card);box-shadow:6px 6px 0 var(--edge)}
+table{border-collapse:collapse;width:100%;min-width:720px;font-size:.82em}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--rule);vertical-align:top}
+tr:last-child td,tr:last-child th{border-bottom:0}
+thead th{font-family:var(--f-display);font-weight:800;font-size:1.05em;border-bottom:2px solid var(--edge)}
+th.me,td.me{background:var(--penlight)}
+thead th.me{background:var(--pen);color:#fff}
+tbody th{font-family:var(--f-mono);font-size:.76em;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600;white-space:nowrap}
+
+/* situaes */
+.scn{background:var(--card);border:2px solid var(--edge);padding:16px 18px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:10px;box-shadow:5px 5px 0 var(--edge);transition:transform .12s,box-shadow .12s}
+.scn:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 var(--pen)}
+.scn .ans{display:none;border-top:2px dashed var(--rule);padding-top:10px}
+.scn.open{box-shadow:5px 5px 0 var(--pen)}
+.scn.open .ans{display:block}
+.scn .ans b{font-family:var(--f-display);font-weight:800;color:var(--pen);font-size:1.1em}
+.scn .ans p{font-size:.85em;color:var(--muted);margin-top:4px}
+.scn .tap{font-family:var(--f-hand);color:var(--pen)}
+.scn.open .tap{display:none}
+
+.quote{font-family:var(--f-display);font-weight:800;font-stretch:115%;font-size:clamp(1.8rem,4vw,3.4rem);line-height:1.05;letter-spacing:-.025em;max-width:22ch;text-wrap:balance}
+
+/* controles */
+.ctrl{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;align-items:center;gap:6px;padding:10px 16px calc(env(safe-area-inset-bottom,0px) + 10px);background:var(--paper);border-top:2px solid var(--edge)}
+.ctrl button{background:var(--card);border:2px solid var(--edge);padding:5px 12px;cursor:pointer;font-size:14px;font-family:var(--f-body);font-weight:700;color:var(--ink)}
+.ctrl button:hover{background:var(--penlight)}
+.ctrl .count{font-family:var(--f-mono);font-size:13px;color:var(--muted);min-width:4.5em;text-align:center;font-variant-numeric:tabular-nums}
+.ctrl .sp{flex:1}
+.ctrl .timer{font-family:var(--f-mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.progress{position:fixed;left:0;top:0;height:4px;background:var(--ink);z-index:30;transition:width .3s}
+@media (max-width:560px){.ctrl .hide-s{display:none}}
+
+@media (prefers-reduced-motion:reduce){.slide,.slide.on{transition:none}.cover .draw{animation:none;stroke-dashoffset:0}}
+</style>
+<div class="progress" id="progress"></div>
+<main id="deck">
+
+<section class="slide cover purple">
+  <svg class="bg" viewBox="0 0 1200 300" preserveAspectRatio="none" aria-hidden="true"><path class="draw" d="M0 250 L60 238 L120 246 L180 214 L240 222 L300 190 L360 204 L420 160 L480 172 L540 128 L600 150 L660 104 L720 118 L780 86 L840 112 L900 70 L960 84 L1020 48 L1080 62 L1140 30 L1200 22"/></svg>
+  <div class="wrap">
+    <div class="eyebrow"><b>Aula</b> React Native Wagmi Charts</div>
+    <h1><span class="line1">Um gr&#225;fico</span><span class="line2">conta uma hist&#243;ria</span></h1>
+    <p class="lead">Por que a gente desenha n&#250;meros, como escolher o gr&#225;fico certo e uma ferramenta que ajuda a fazer gr&#225;ficos no celular.</p>
+    <p><span class="hand">sem matem&#225;tica, prometo :)</span></p>
+    <p class="small">Vitor de Oliveira</p>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="wrap">
+    <div class="eyebrow"><b>Parte 1</b> Por que gr&#225;ficos existem</div>
+    <h2>Qual foi o &#250;ltimo gr&#225;fico que voc&#234; olhou hoje?</h2>
+    <p class="lead">Pode ter sido sem perceber.</p>
+    <div class="chips">
+      <span class="chip">A bateria do celular</span>
+      <span class="chip">A previs&#227;o do tempo</span>
+      <span class="chip">O extrato do app do banco</span>
+      <span class="chip">Os passos no rel&#243;gio</span>
+      <span class="chip">O pre&#231;o do d&#243;lar</span>
+      <span class="chip">O tempo de tela da semana</span>
+    </div>
+    <p>A gente j&#225; l&#234; gr&#225;ficos todo dia. <span class="mk">Ningu&#233;m aqui est&#225; come&#231;ando do zero.</span></p>
+    <p><span class="hand">e o seu? qual foi?</span></p>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="wrap">
+    <div class="eyebrow"><b>Parte 1</b> Por que gr&#225;ficos existem</div>
+    <h2>O pre&#231;o do cafezinho no ano</h2>
+    <div class="grid2">
+      <div class="chartbox">
+        <div class="numtable" id="coffeeTable"></div>
+        <div id="coffeeChartWrap" hidden><svg id="coffeeChart" viewBox="0 0 560 280" role="img" aria-label="Gr&#225;fico de linha do pre&#231;o do caf&#233; ao longo do ano"></svg></div>
+      </div>
+      <div class="wrap" style="margin:0;gap:16px">
+        <p>Olhando os n&#250;meros: <b>o caf&#233; ficou mais caro?</b> Quando subiu mais r&#225;pido?</p>
+        <button class="btn" id="coffeeBtn" type="button">Mostrar como gr&#225;fico</button>
+        <p id="coffeeMsg" class="small">N&#250;meros inventados, s&#243; para o exemplo.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="wrap">
+    <div class="eyebrow"><b>Parte 1</b> Como escolher</div>
+    <h2>Escolher o gr&#225;fico &#233; escolher <span class="mk">a pergunta</span></h2>
+    <div class="cards c4">
+      <div class="card">
+        <svg viewBox="0 0 120 60" aria-hidden="true"><polyline class="ln" points="6,48 26,40 46,44 66,26 86,30 114,10"/></svg>
+        <span class="q">Como mudou com o tempo?</span>
+        <p><b>Linha.</b> O pre&#231;o do caf&#233; no ano, o peso na balan&#231;a.</p>
+      </div>
+      <div class="card">
+        <svg viewBox="0 0 120 60" aria-hidden="true"><g style="fill:var(--pen)"><rect x="10" y="20" width="18" height="36"/><rect x="38" y="8" width="18" height="48"/><rect x="66" y="30" width="18" height="26"/><rect x="94" y="38" width="18" height="18"/></g></svg>
+        <span class="q">Quem &#233; maior?</span>
+        <p><b>Barras.</b> Em qual loja vendeu mais.</p>
+      </div>
+      <div class="card">
+        <svg viewBox="0 0 120 60" aria-hidden="true"><circle cx="60" cy="30" r="22" fill="none" style="stroke:var(--rule)" stroke-width="12"/><circle cx="60" cy="30" r="22" fill="none" style="stroke:var(--pen)" stroke-width="12" stroke-dasharray="83 200" transform="rotate(-90 60 30)"/><circle cx="60" cy="30" r="22" fill="none" style="stroke:var(--c5)" stroke-width="12" stroke-dasharray="30 200" stroke-dashoffset="-83" transform="rotate(-90 60 30)"/></svg>
+        <span class="q">Quanto cada parte &#233; do todo?</span>
+        <p><b>Pizza.</b> Para onde foi o sal&#225;rio do m&#234;s.</p>
+      </div>
+      <div class="card">
+        <svg viewBox="0 0 120 60" aria-hidden="true"><g stroke-width="2"><line x1="22" y1="8" x2="22" y2="52" style="stroke:var(--up)"/><rect x="14" y="16" width="16" height="26" style="fill:var(--up)"/><line x1="52" y1="14" x2="52" y2="56" style="stroke:var(--down)"/><rect x="44" y="20" width="16" height="22" style="fill:var(--down)"/><line x1="82" y1="6" x2="82" y2="44" style="stroke:var(--up)"/><rect x="74" y="12" width="16" height="22" style="fill:var(--up)"/><line x1="108" y1="2" x2="108" y2="34" style="stroke:var(--up)"/><rect x="100" y="6" width="16" height="18" style="fill:var(--up)"/></g></svg>
+        <span class="q">Como foi cada dia, por dentro?</span>
+        <p><b>Velas.</b> Onde o dia come&#231;ou, terminou, o mais alto e o mais baixo.</p>
+      </div>
+    </div>
+    <p class="small">Antes de escolher o gr&#225;fico, pense: qual &#233; a d&#250;vida de quem vai olhar?</p>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="wrap">
+    <div class="eyebrow"><b>Parte 1</b> Como ler</div>
+    <h2>Uma vela resume <span class="mk">um dia inteiro</span></h2>
+    <div class="grid2">
+      <div class="chartbox">
+        <svg id="candleSvg" viewBox="0 0 640 330" role="img" aria-label="&#192; esquerda, a temperatura do dia hora a hora; &#224; direita, a mesma informa&#231;&#227;o resumida numa vela"></svg>
+      </div>
+      <div class="rows">
+        <p>A temperatura de um dia, em quatro n&#250;meros:</p>
+        <div class="row"><b>Come&#231;ou</b><p>&#192;s 6h fazia <b>18&#176;</b>.</p></div>
+        <div class="row"><b>Mais baixo</b><p>&#192;s 9h choveu e caiu para <b>15&#176;</b>.</p></div>
+        <div class="row"><b>Mais alto</b><p>&#192;s 14h chegou a <b>27&#176;</b>.</p></div>
+        <div class="row"><b>Terminou</b><p>&#192;s 22h estava <b>24&#176;</b>.</p></div>
+        <p class="small">Terminou mais alto do que come&#231;ou: vela <span class="up"><b>verde</b></span>. Terminou mais baixo: vela <span class="down"><b>vermelha</b></span>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="wrap">
+    <div class="eyebrow"><b>Parte 1</b> No celular</div>
+    <div class="grid2">
+      <div class="wrap" style="margin:0;gap:16px">
+        <h2>No app, a gente <span class="pen">encosta o dedo</span> no gr&#225;fico</h2>
+        <p>Passe o dedo (ou o mouse) em cima do gr&#225;fico. O pre&#231;o e o hor&#225;rio l&#225; em cima mudam para o ponto que voc&#234; est&#225; tocando.</p>
+        <p>Assim ningu&#233;m precisa adivinhar o valor. <span class="mk">O app mostra o n&#250;mero exato.</span></p>
+        <p class="small">&#201; esse tipo de gr&#225;fico que o Wagmi Charts ajuda a fazer.</p>
+      </div>
+      <div class="phone">
+        <div class="tag">A&#231;&#227;o de exemplo &#183; hoje</div>
+        <div class="price" id="dPrice">R$ 0,00</div>
+        <div class="when" id="dWhen">&#218;ltimo pre&#231;o</div>
+        <svg id="dragSvg" viewBox="0 0 380 220" role="img" aria-label="Gr&#225;fico interativo: arraste para ver pre&#231;o e hor&#225;rio"></svg>
+        <div class="hint">passe o dedo aqui</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="wrap">
+    <div class="eyebrow"><b>Parte 2</b> A ferramenta &#183; que problema ela resolve</div>
+    <h2>Fazer esse gr&#225;fico do zero d&#225; <span class="mk">muito</span> trabalho</h2>
+    <div class="rows">
+      <div class="row"><b>Desenhar a linha</b><p>Transformar uma lista de n&#250;meros em pontos na tela, do tamanho certo para qualquer celular.</p></div>
+      <div class="row"><b>Seguir o dedo sem travar</b><p>A tela troca de imagem umas 60 vezes por segundo. Se a conta demorar, o gr&#225;fico engasga.</p></div>
+      <div class="row"><b>Mostrar o valor certo</b><p>Descobrir qual ponto est&#225; embaixo do dedo e escrever o pre&#231;o e o hor&#225;rio.</p></div>
+      <div class="row"><b>Mudar sem piscar</b><p>Quando a pessoa troca de "hoje" para "&#250;ltimo m&#234;s", a linha deve mudar de forma suave.</p></div>
+    </div>
+    <p>D&#225; pra fazer p&#227;o em casa. Ou d&#225; pra usar uma massa pronta e <span class="mk">gastar o tempo no recheio</span>.</p>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="wrap">
+    <div class="eyebrow"><b>Parte 2</b> A ferramenta</div>
+    <h2>React Native <span class="pen">Wagmi Charts</span></h2>
+    <p class="lead">Um c&#243;digo pronto que a gente coloca no aplicativo para desenhar gr&#225;ficos de <b>linha</b> e de <b>velas</b>, j&#225; prontos para a pessoa encostar o dedo.</p>
+    <div class="cards c3">
+      <div class="card"><span class="tag">O nome</span><span class="q">"We're All Gonna Make It"</span><p>Quer dizer "todos n&#243;s vamos conseguir". Uma g&#237;ria otimista da internet.</p></div>
+      <div class="card"><span class="tag">Quem fez</span><span class="q">CoinJar</span><p>Uma empresa australiana de criptomoedas. Fez para o pr&#243;prio app e liberou de gra&#231;a para todo mundo.</p></div>
+      <div class="card"><span class="tag">Por dentro</span><span class="q">Junta 3 bibliotecas famosas</span><p><code>svg</code> desenha, <code>gesture-handler</code> sente o dedo e <code>reanimated</code> anima. O Wagmi junta as tr&#234;s e entrega o gr&#225;fico pronto.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="wrap">
+    <div class="eyebrow"><b>Parte 2</b> Como funciona</div>
+    <h2>Funciona como <span class="mk">pe&#231;as de montar</span></h2>
+    <div class="grid2" style="align-items:start">
+<pre class="code"><span class="k1">&lt;LineChart.Provider</span> data={precos}<span class="k1">&gt;</span>
+  <span class="k2">&lt;LineChart&gt;</span>
+    <span class="k3">&lt;LineChart.Path /&gt;</span>
+    <span class="k4">&lt;LineChart.CursorCrosshair&gt;</span>
+      <span class="k4">&lt;LineChart.Tooltip /&gt;</span>
+    <span class="k4">&lt;/LineChart.CursorCrosshair&gt;</span>
+  <span class="k2">&lt;/LineChart&gt;</span>
+  <span class="k5">&lt;LineChart.PriceText /&gt;</span>
+  <span class="k5">&lt;LineChart.DatetimeText /&gt;</span>
+<span class="k1">&lt;/LineChart.Provider&gt;</span></pre>
+      <div class="rows legend">
+        <div class="row"><b><i class="sw" style="background:var(--pen)"></i>Roxo</b><p>Guarda os n&#250;meros, como um caderno, e passa para as outras pe&#231;as.</p></div>
+        <div class="row"><b><i class="sw" style="background:var(--up)"></i>Verde</b><p>A moldura: o espa&#231;o onde o gr&#225;fico fica.</p></div>
+        <div class="row"><b><i class="sw" style="background:var(--c4)"></i>Azul</b><p>A linha desenhada.</p></div>
+        <div class="row"><b><i class="sw" style="background:var(--c5)"></i>Laranja</b><p>A linha que segue o dedo e a etiqueta com o valor.</p></div>
+        <div class="row"><b><i class="sw" style="background:var(--down)"></i>Vermelho</b><p>O pre&#231;o e o hor&#225;rio que mudam enquanto voc&#234; arrasta.</p></div>
+      </div>
+    </div>
+    <p class="small"><span class="hand" style="font-size:1.4em">tipo Lego</span> N&#227;o quer uma pe&#231;a? Tira. Quer mais uma? Encaixa. Para velas &#233; igual.</p>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="wrap">
+    <div class="eyebrow"><b>Parte 2</b> Principais recursos</div>
+    <h2>O que j&#225; vem pronto</h2>
+    <div class="cards c3">
+      <div class="card"><span class="q">Linha e velas</span><p>Os dois gr&#225;ficos mais usados para mostrar pre&#231;o.</p></div>
+      <div class="card"><span class="q">Linha que segue o dedo</span><p>Pode at&#233; ficar parada no lugar quando a pessoa solta.</p></div>
+      <div class="card"><span class="q">Pre&#231;o e hor&#225;rio</span><p>Mostram o valor exato do ponto que o dedo est&#225; tocando.</p></div>
+      <div class="card"><span class="q">Etiqueta perto do dedo</span><p>Uma caixinha com o valor, do lado do dedo.</p></div>
+      <div class="card"><span class="q">Vibra&#231;&#227;o</span><p>O celular d&#225; um toquinho quando o dedo encosta no gr&#225;fico.</p></div>
+      <div class="card"><span class="q">Acabamento</span><p>Cor embaixo da linha, pontinhos, linhas de refer&#234;ncia.</p></div>
+      <div class="card"><span class="q">Mudan&#231;a suave</span><p>Ao trocar de "hoje" para "&#250;ltimo m&#234;s", a linha muda aos poucos, sem piscar.</p></div>
+      <div class="card"><span class="q">iPhone, Android e navegador</span><p>O mesmo c&#243;digo funciona nos tr&#234;s.</p></div>
+      <div class="card"><span class="q">De gra&#231;a</span><p>Qualquer pessoa ou empresa pode usar sem pagar.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="wrap">
+    <div class="eyebrow"><b>Parte 2</b> Limita&#231;&#245;es</div>
+    <h2>Toda ferramenta tem limite</h2>
+    <div class="rows">
+      <div class="row"><b>S&#243; dois tipos</b><p>Faz linha e velas. Para pizza ou barras, precisa de outra ferramenta.</p></div>
+      <div class="row"><b>Precisa de outras pe&#231;as</b><p>Junto com ela, voc&#234; instala as 3 bibliotecas que ela usa por dentro. Quando uma delas muda de vers&#227;o, &#224;s vezes d&#225; trabalho fazer tudo funcionar junto.</p></div>
+      <div class="row"><b>Pensada para pre&#231;o</b><p>Foi feita para investimentos e moedas. Para outros assuntos, n&#227;o foi pensada.</p></div>
+      <div class="row"><b>Muitos pontos pesam</b><p>Com milhares de n&#250;meros mudando ao vivo, pode ficar lenta. Vale testar num celular mais simples.</p></div>
+      <div class="row"><b>Menos gente usa</b><p>Por isso tem menos gente na internet para tirar d&#250;vidas.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="wrap">
+    <div class="eyebrow"><b>Parte 3</b> Ferramentas parecidas</div>
+    <h2>Lado a lado</h2>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th></th><th class="me">Wagmi Charts</th><th>Victory Native</th><th>Gifted Charts</th><th>Chart Kit</th></tr></thead>
+        <tbody>
+          <tr><th>Que gr&#225;ficos faz</th><td class="me">Linha e velas</td><td>Linha, barra, &#225;rea, pizza</td><td>Muitos: barra, linha, &#225;rea, pizza, rosca</td><td>Linha, barra, pizza</td></tr>
+          <tr><th>Encostar o dedo e ver o valor</th><td class="me">J&#225; vem pronto</td><td>D&#225;, mas voc&#234; precisa montar</td><td>Simples</td><td>Quase n&#227;o tem</td></tr>
+          <tr><th>Melhor para</th><td class="me">Mostrar como um pre&#231;o mudou</td><td>Muitos dados e visual sob medida</td><td>Quem precisa de v&#225;rios tipos de gr&#225;fico</td><td>Um gr&#225;fico simples e parado</td></tr>
+          <tr><th>Cuidado</th><td class="me">S&#243; faz linha e velas</td><td>Mais dif&#237;cil de aprender</td><td>Menos pensado para pre&#231;o</td><td>Recebe poucas atualiza&#231;&#245;es</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="small">N&#227;o existe a melhor. Existe a que combina com o que o gr&#225;fico precisa mostrar.</p>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="wrap">
+    <div class="eyebrow"><b>Parte 3</b> Como escolher</div>
+    <h2>Qual voc&#234; usaria?</h2>
+    <p class="lead">Leia a situa&#231;&#227;o, responda em voz alta e depois clique para ver.</p>
+    <div class="cards c2">
+      <button class="scn" type="button"><span class="q">Mostrar quanto um investimento rendeu no ano. A pessoa encosta o dedo para ver cada dia.</span><span class="tap">clique para ver</span><span class="ans"><b>Wagmi Charts</b><p>Linha que segue o dedo, com pre&#231;o e data: &#233; o que ela faz.</p></span></button>
+      <button class="scn" type="button"><span class="q">Mostrar quanto do gasto do m&#234;s foi com mercado, transporte e lazer.</span><span class="tap">clique para ver</span><span class="ans"><b>Gifted Charts</b><p>Isso &#233; "parte do todo": pizza. O Wagmi n&#227;o faz pizza.</p></span></button>
+      <button class="scn" type="button"><span class="q">Mostrar, hora a hora, onde o pre&#231;o de uma criptomoeda come&#231;ou, terminou, subiu e desceu.</span><span class="tap">clique para ver</span><span class="ans"><b>Wagmi Charts</b><p>Isso &#233; gr&#225;fico de velas, e ela faz.</p></span></button>
+      <button class="scn" type="button"><span class="q">Um painel com milhares de n&#250;meros mudando ao vivo e um visual totalmente diferente.</span><span class="tap">clique para ver</span><span class="ans"><b>Victory Native</b><p>Aguenta muitos dados sem ficar lento e deixa mudar tudo no visual.</p></span></button>
+    </div>
+  </div>
+</section>
+
+<section class="slide purple">
+  <div class="wrap">
+    <div class="eyebrow"><b>Fechamento</b></div>
+    <p class="quote">Ferramenta boa &#233; a que responde <span class="mk">a pergunta certa</span>, para a pessoa certa.</p>
+    <div class="cards c3">
+      <div class="card"><span class="tag">Lembre 1</span><span class="q">Gr&#225;fico serve para entender mais r&#225;pido.</span></div>
+      <div class="card"><span class="tag">Lembre 2</span><span class="q">Primeiro a pergunta, depois o desenho.</span></div>
+      <div class="card"><span class="tag">Lembre 3</span><span class="q">Wagmi Charts mostra como um pre&#231;o mudou. Para pizza ou barras, use outra.</span></div>
+    </div>
+    <p class="small">Obrigado! &#183; github.com/coinjar/react-native-wagmi-charts</p>
+  </div>
+</section>
+
+</main>
+
+<nav class="ctrl" aria-label="Controles da apresenta&#231;&#227;o">
+  <button id="prev" type="button" aria-label="Slide anterior">&#8592;</button>
+  <span class="count" id="count">1 / 14</span>
+  <button id="next" type="button" aria-label="Pr&#243;ximo slide">&#8594;</button>
+  <span class="sp"></span>
+  <span class="timer" id="timer" title="Tempo desde o in&#237;cio">00:00</span>
+  <button id="fsBtn" type="button" class="hide-s">Tela cheia</button>
+</nav>
+
+<script>
+(function(){
+  const NS='http://www.w3.org/2000/svg';
+  const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e};
+  const brl=v=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+
+  /* navega\u00e7\u00e3o */
+  const slides=[...document.querySelectorAll('.slide')];
+  let cur=0, started=null;
+  const count=document.getElementById('count'), prog=document.getElementById('progress');
+  function go(i){
+    cur=Math.max(0,Math.min(slides.length-1,i));
+    slides.forEach((s,k)=>{s.classList.toggle('on',k===cur);s.dataset.n=String(k+1).padStart(2,'0')+' / '+slides.length});
+    count.textContent=(cur+1)+' / '+slides.length;
+    prog.style.width=((cur+1)/slides.length*100)+'%';
+    try{history.replaceState(null,'','#s'+(cur+1))}catch(e){}
+    if(cur>0&&!started)started=Date.now();
+  }
+  const next=()=>go(cur+1), prev=()=>go(cur-1);
+  document.getElementById('next').onclick=next;
+  document.getElementById('prev').onclick=prev;
+  document.getElementById('fsBtn').onclick=()=>{try{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{})}catch(e){}};
+  document.addEventListener('keydown',e=>{
+    const k=e.key;
+    if(e.target.closest&&e.target.closest('button')&&(k===' '||k==='Enter'))return;
+    if(['ArrowRight','PageDown',' '].includes(k)){e.preventDefault();next()}
+    else if(['ArrowLeft','PageUp'].includes(k)){e.preventDefault();prev()}
+    else if(k==='f'||k==='F')document.getElementById('fsBtn').click();
+    else if(k==='Home')go(0); else if(k==='End')go(slides.length-1);
+  });
+  let tx=null,ty=null;
+  const deck=document.getElementById('deck');
+  deck.addEventListener('touchstart',e=>{if(e.target.closest('#dragSvg')){tx=null;return}tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+  deck.addEventListener('touchend',e=>{if(tx===null)return;const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5)(dx<0?next:prev)();tx=null},{passive:true});
+  setInterval(()=>{if(!started)return;const s=Math.floor((Date.now()-started)/1000);document.getElementById('timer').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')},1000);
+
+  /* slide 3: caf\u00e9 */
+  const months=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const coffee=[4.50,4.60,4.60,4.80,4.90,5.00,5.20,5.50,5.40,5.80,6.00,6.30];
+  const tb=document.getElementById('coffeeTable');
+  coffee.forEach((v,i)=>{const d=document.createElement('div');d.innerHTML='<span>'+months[i]+'</span>'+brl(v);tb.appendChild(d)});
+  (function(){
+    const svg=document.getElementById('coffeeChart'),W=560,H=280,L=64,R=20,T=24,B=36;
+    const lo=4.0,hi=6.5,x=i=>L+i*(W-L-R)/11,y=v=>T+(hi-v)/(hi-lo)*(H-T-B);
+    [4.0,4.5,5.0,5.5,6.0,6.5].forEach(v=>{el('line',{x1:L,x2:W-R,y1:y(v),y2:y(v),class:'axis'},svg);const t=el('text',{x:L-8,y:y(v)+4,'text-anchor':'end','font-size':12},svg);t.textContent=brl(v)});
+    months.forEach((m,i)=>{const t=el('text',{x:x(i),y:H-12,'text-anchor':'middle','font-size':12},svg);t.textContent=m});
+    el('polyline',{class:'ln',points:coffee.map((v,i)=>x(i)+','+y(v)).join(' ')},svg);
+    coffee.forEach((v,i)=>el('circle',{cx:x(i),cy:y(v),r:4.5,style:'fill:var(--card);stroke:var(--pen);stroke-width:2.5'},svg));
+    const t=el('text',{x:x(11)-8,y:y(6.3)-12,'text-anchor':'end','font-size':14,style:'fill:var(--ink);font-weight:600'},svg);t.textContent='+40% no ano';
+  })();
+  const wrapC=document.getElementById('coffeeChartWrap');
+  let showing=false;
+  document.getElementById('coffeeBtn').addEventListener('click',function(){
+    showing=!showing;
+    wrapC.hidden=!showing;
+    tb.hidden=showing;
+    this.textContent=showing?'Voltar para os n\u00fameros':'Mostrar como gr\u00e1fico';
+    document.getElementById('coffeeMsg').innerHTML=showing?'<b>Os n\u00fameros s\u00e3o os mesmos.</b> O que mudou foi a rapidez para entender.':'N\u00fameros inventados, s\u00f3 para o exemplo.';
+  });
+
+  /* slide 5: vela */
+  (function(){
+    const svg=document.getElementById('candleSvg'),y=v=>292-(v-13)*17,x=h=>36+(h-6)*20;
+    const hrs=[6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22];
+    const tmp=[18,17,16,15,16.5,19,22,24.5,27,26.4,25.8,25.4,25,24.7,24.4,24.2,24];
+    const lv=[[27,'mais alto 27\u00b0',0],[24,'terminou 24\u00b0',1],[18,'come\u00e7ou 18\u00b0',1],[15,'mais baixo 15\u00b0',0]];
+    lv.forEach(([v])=>el('line',{x1:20,x2:510,y1:y(v),y2:y(v),style:'stroke:var(--rule)','stroke-dasharray':'4 5'},svg));
+    const t0=el('text',{x:36,y:22,'font-size':13},svg);t0.textContent='o dia, hora a hora';
+    const t1=el('text',{x:468,y:22,'font-size':13,'text-anchor':'middle'},svg);t1.textContent='o dia numa vela';
+    el('polyline',{class:'ln',points:hrs.map((h,i)=>x(h)+','+y(tmp[i])).join(' ')},svg);
+    [[6,18,'6h',1],[9,15,'9h',1],[14,27,'14h',-1],[22,24,'22h',-1]].forEach(([h,v,l,d])=>{
+      el('circle',{cx:x(h),cy:y(v),r:6,style:'fill:var(--card);stroke:var(--pen);stroke-width:3'},svg);
+      const t=el('text',{x:x(h),y:y(v)+(d>0?24:-14),'text-anchor':'middle','font-size':13,style:'fill:var(--ink);font-weight:600'},svg);t.textContent=l;
+    });
+    const ar=el('text',{x:404,y:y(21)+10,'font-size':32,'text-anchor':'middle',style:'fill:var(--pen)'},svg);ar.textContent='\u2192';
+    const cx=468;
+    el('line',{x1:cx,x2:cx,y1:y(27),y2:y(15),style:'stroke:var(--up)','stroke-width':5,'stroke-linecap':'round'},svg);
+    el('rect',{x:cx-30,y:y(24),width:60,height:y(18)-y(24),style:'fill:var(--up);stroke:var(--edge)','stroke-width':2},svg);
+    lv.forEach(([v,l,b])=>{const t=el('text',{x:cx+40,y:y(v)+5,'font-size':13,style:b?'fill:var(--ink);font-weight:600':''},svg);t.textContent=l});
+    const c1=el('text',{x:cx,y:y(21)+4,'text-anchor':'middle','font-size':12,style:'fill:#fff;font-weight:600'},svg);c1.textContent='corpo';
+    const c2=el('text',{x:cx-10,y:y(25.6)+4,'text-anchor':'end','font-size':12},svg);c2.textContent='pavio';
+    const c3=el('text',{x:cx-10,y:y(16.4)+4,'text-anchor':'end','font-size':12},svg);c3.textContent='pavio';
+  })();
+
+  /* slide 6: arrastar */
+  (function(){
+    const svg=document.getElementById('dragSvg'),W=380,H=220,P=10;
+    let s=11;const rnd=()=>{s=(s*9301+49297)%233280;return s/233280};
+    const vals=[];let v=42.3;for(let i=0;i<48;i++){v+=(rnd()-0.44)*0.9;vals.push(+v.toFixed(2))}
+    const times=vals.map((_,i)=>{const m=600+i*10;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')});
+    const lo=Math.min(...vals)-0.4,hi=Math.max(...vals)+0.4;
+    const x=i=>P+i*(W-2*P)/(vals.length-1),y=v=>P+(hi-v)/(hi-lo)*(H-2*P);
+    const col=vals[vals.length-1]>=vals[0]?'var(--up)':'var(--down)';
+    const defs=el('defs',{},svg),g=el('linearGradient',{id:'gfill',x1:0,y1:0,x2:0,y2:1},defs);
+    el('stop',{offset:'0%',style:'stop-color:'+col+';stop-opacity:.28'},g);el('stop',{offset:'100%',style:'stop-color:'+col+';stop-opacity:0'},g);
+    const pts=vals.map((v,i)=>x(i)+','+y(v));
+    el('path',{d:'M'+pts.join(' L')+' L'+x(vals.length-1)+','+H+' L'+x(0)+','+H+' Z',fill:'url(#gfill)'},svg);
+    el('polyline',{class:'ln',points:pts.join(' '),style:'stroke:'+col},svg);
+    const cl=el('line',{y1:0,y2:H,style:'stroke:var(--muted)','stroke-width':1.5,visibility:'hidden'},svg);
+    const dot=el('circle',{r:7,style:'fill:'+col+';stroke:var(--card);stroke-width:3',visibility:'hidden'},svg);
+    const price=document.getElementById('dPrice'),when=document.getElementById('dWhen');
+    function rest(){price.textContent=brl(vals[vals.length-1]);when.textContent='\u00daltimo pre\u00e7o';cl.setAttribute('visibility','hidden');dot.setAttribute('visibility','hidden')}
+    function at(ev){
+      const r=svg.getBoundingClientRect(),rx=(ev.clientX-r.left)/r.width*W;
+      const i=Math.max(0,Math.min(vals.length-1,Math.round((rx-P)/(W-2*P)*(vals.length-1))));
+      cl.setAttribute('x1',x(i));cl.setAttribute('x2',x(i));cl.setAttribute('visibility','visible');
+      dot.setAttribute('cx',x(i));dot.setAttribute('cy',y(vals[i]));dot.setAttribute('visibility','visible');
+      price.textContent=brl(vals[i]);when.textContent='Hoje \u00e0s '+times[i];
+    }
+    let down=false;
+    svg.addEventListener('pointerdown',e=>{down=true;try{svg.setPointerCapture(e.pointerId)}catch(_){}at(e)});
+    svg.addEventListener('pointermove',e=>{if(down||e.pointerType==='mouse')at(e)});
+    svg.addEventListener('pointerup',()=>{down=false;rest()});
+    svg.addEventListener('pointercancel',()=>{down=false;rest()});
+    svg.addEventListener('pointerleave',()=>{if(!down)rest()});
+    rest();
+  })();
+
+  /* slide 13 */
+  document.querySelectorAll('.scn').forEach(b=>b.addEventListener('click',()=>b.classList.toggle('open')));
+
+  const m=(location.hash||'').match(/^#s(\d+)$/);
+  go(m?parseInt(m[1],10)-1:0);
+})();
+</script>
