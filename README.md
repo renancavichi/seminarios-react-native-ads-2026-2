@@ -10,9 +10,6 @@ Prof. Renan Cavichi
 
 Exemplo:
 - Gifted Charts (Leticia Pacheco Cabral [@leticia-pachecoo](https://github.com/leticia-pachecoo))
-- React Hook Forms (Eduarda Gonçalves [@Edualnd](https://github.com/Edualnd))
-- Mantine UI (Arthur de Morais [@ArthurTiso](https://github.com/ArthurTiso)) e (Vinicius Garcia [@vinikyo](https://github.com/vinikyo))
-- Base UI (Emerson Soares [@emersonsoasilva](https://github.com/emersonsoasilva))
 - NativeWind (Muriel Roseo [@mauricioRoseo](https://github.com/MauricioRoseo))
 - Motion Frame ([Vitor Ramos Menezes](https://github.com/Vitorram))
 - React Uploady ([@kevin4bmael], https://github.com/kevin4bmael/meu-projeto-uploady)
