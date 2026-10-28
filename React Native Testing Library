@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>React Native Testing Library</title>
+  <style>
+    :root {
+      --bg: #f8f9fa;
+      --surface: #ffffff;
+      --text: #111827;
+      --text-secondary: #4b5563;
+      --text-muted: #6b7280;
+      --border: #e5e7eb;
+      --border-strong: #d1d5db;
+      --accent: #1d4ed8;
+      --accent-soft: #eff6ff;
+      --danger: #b91c1c;
+      --danger-soft: #fef2f2;
+      --success: #15803d;
+      --success-soft: #f0fdf4;
+      --code-bg: #18181b;
+      --code-text: #f4f4f5;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Cascadia Code', Consolas, 'Courier New', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Barra de progresso discreta */
+    .progress-track {
+      width: 100%;
+      height: 3px;
+      background: var(--border);
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.25s ease;
+    }
+
+    /* Cabeçalho minimalista */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 56px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .topbar-title {
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .timer-btn {
+      background: transparent;
+      border: 1px solid var(--border-strong);
+      color: var(--text-secondary);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .timer-btn:hover {
+      border-color: var(--text);
+      color: var(--text);
+    }
+
+    /* Área de Slides */
+    .stage {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: var(--surface);
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 56px 64px;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .slide.active {
+      display: flex;
+    }
+
+    /* Tipografia */
+    .section-label {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    h1 {
+      font-size: 3.4rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      line-height: 1.2;
+      color: var(--text);
+      margin-bottom: 32px;
+    }
+
+    h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .lead {
+      font-size: 1.35rem;
+      line-height: 1.5;
+      color: var(--text-secondary);
+      max-width: 760px;
+    }
+
+    /* Estruturas de Layout */
+    .cols-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+
+    .cols-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 24px;
+    }
+
+    .box-accent {
+      background: var(--accent-soft);
+      border-color: #bfdbfe;
+    }
+
+    .box-danger {
+      background: var(--danger-soft);
+      border-color: #fecaca;
+    }
+
+    .box-success {
+      background: var(--success-soft);
+      border-color: #bbf7d0;
+    }
+
+    .box p {
+      color: var(--text-secondary);
+      font-size: 1.02rem;
+      line-height: 1.55;
+    }
+
+    /* Listas simples e diretas */
+    ul.simple-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    ul.simple-list li {
+      font-size: 1.12rem;
+      line-height: 1.5;
+      color: var(--text-secondary);
+      padding-left: 18px;
+      position: relative;
+    }
+
+    ul.simple-list li::before {
+      content: "—";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    ul.simple-list li strong {
+      color: var(--text);
+    }
+
+    /* Citação */
+    .quote {
+      border-left: 3px solid var(--accent);
+      padding: 8px 0 8px 24px;
+      margin: 16px 0 28px;
+    }
+    .quote p {
+      font-size: 1.55rem;
+      font-weight: 500;
+      line-height: 1.4;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .quote cite {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      font-style: normal;
+    }
+
+    /* Tabelas limpas */
+    table.clean-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 1rem;
+    }
+    table.clean-table th,
+    table.clean-table td {
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px;
+      text-align: left;
+    }
+    table.clean-table th {
+      font-weight: 600;
+      color: var(--text);
+      background: var(--bg);
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    table.clean-table td {
+      color: var(--text-secondary);
+    }
+    table.clean-table tr.row-highlight td {
+      background: var(--accent-soft);
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    /* Blocos de Código */
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      font-family: var(--font-mono);
+      font-size: 0.92rem;
+      line-height: 1.6;
+      padding: 20px 24px;
+      border-radius: 6px;
+      overflow-x: auto;
+    }
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.9em;
+      background: #e5e7eb;
+      color: #111827;
+      padding: 2px 5px;
+      border-radius: 3px;
+    }
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+
+    .kw { color: #93c5fd; }
+    .fn { color: #fde047; }
+    .str { color: #86efac; }
+    .cm { color: #a1a1aa; font-style: italic; }
+
+    /* Notas do Apresentador */
+    .notes-bar {
+      position: fixed;
+      bottom: 52px;
+      left: 0;
+      right: 0;
+      background: #18181b;
+      color: #f4f4f5;
+      padding: 16px 56px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      border-top: 2px solid var(--accent);
+      display: none;
+      z-index: 20;
+    }
+    .notes-bar.open {
+      display: block;
+    }
+    .notes-bar strong {
+      color: #93c5fd;
+      display: block;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+    }
+
+    /* Rodapé */
+    .bottombar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 56px;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .nav-btns {
+      display: flex;
+      gap: 8px;
+    }
+    .nav-btn {
+      background: var(--surface);
+      border: 1px solid var(--border-strong);
+      color: var(--text);
+      padding: 5px 12px;
+      border-radius: 4px;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+    .nav-btn:hover {
+      background: var(--bg);
+    }
+    .slide-num {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="progress-track">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+
+  <header class="topbar">
+    <div class="topbar-title">React Native Testing Library (RNTL)</div>
+    <div class="topbar-right">
+      <button class="timer-btn" id="timerBtn" onclick="toggleTimer()">Cronômetro: <span id="timerText">00:00</span></button>
+    </div>
+  </header>
+
+  <main class="stage">
+
+    <!-- SLIDE 1 -->
+    <section class="slide active" data-time="00:00 – 01:00" data-notes="Apresente o tema. Explique que o objetivo é mostrar como testar interfaces no React Native focando no comportamento do usuário, sem depender de emuladores lentos.">
+      <div class="section-label">Qualidade e Testes no Mobile</div>
+      <h1>React Native<br>Testing Library</h1>
+      <p class="lead">
+        Testes automatizados de componentes e integração focados no comportamento real do usuário.
+      </p>
+    </section>
+
+    <!-- SLIDE 2 -->
+    <section class="slide" data-time="00:30 – 01:30" data-notes="Explique de forma direta o que é a RNTL: a biblioteca oficial da comunidade React Native (mantida pela Callstack) para testar componentes e telas em memória no Node.js, simulando como o usuário enxerga e interage com o app.">
+      <div class="section-label">01 / Introdução</div>
+      <h2>O que é a React Native Testing Library?</h2>
+      <p class="lead" style="margin-bottom: 28px;">
+        É a biblioteca oficial recomendada pela comunidade React Native (<code>@testing-library/react-native</code>) para testar componentes e telas completas simulando o uso real.
+      </p>
+      <div class="cols-3">
+        <div class="box box-accent">
+          <h3>Visão do Usuário</h3>
+          <p>Permite buscar elementos pelo que está visível na tela (textos, rótulos e acessibilidade) e simular toques e digitação.</p>
+        </div>
+        <div class="box">
+          <h3>Execução Leve e Rápida</h3>
+          <p>Roda em milissegundos no Node.js junto ao Jest, renderizando os componentes em memória sem precisar abrir emuladores Android ou iOS.</p>
+        </div>
+        <div class="box">
+          <h3>Padrão de Mercado</h3>
+          <p>Mantida pela <strong>Callstack</strong> e parte da família Testing Library, substituindo ferramentas antigas acopladas ao código interno.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 3 -->
+    <section class="slide" data-time="01:30 – 03:00" data-notes="Destaque a diferença entre Web e Mobile: na Web um bug é corrigido em minutos. No Mobile, depende da aprovação da App Store e Google Play e da atualização do usuário.">
+      <div class="section-label">02 / Contexto</div>
+      <h2>Por que testar no Mobile é diferente?</h2>
+      <div class="cols-3">
+        <div class="box">
+          <h3>Ciclo de Publicação</h3>
+          <p>Diferente da Web, corrigir um erro em produção exige novo build e revisão na App Store / Play Store.</p>
+        </div>
+        <div class="box">
+          <h3>Atualização Lenta</h3>
+          <p>Usuários demoram para atualizar o app. Uma versão com falha permanece ativa por dias ou semanas.</p>
+        </div>
+        <div class="box">
+          <h3>Manutenção de Testes</h3>
+          <p>Testes acoplados à estrutura interna quebram a cada refatoração e acabam abandonados pela equipe.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 4 -->
+    <section class="slide" data-time="03:00 – 04:30" data-notes="Mostre a tabela das camadas de teste. Explique que unitários testam apenas funções isoladas, e E2E (Detox/Maestro) são lentos. A RNTL fica no meio: testa componentes completos rapidamente no Node.js.">
+      <div class="section-label">03 / Estratégia</div>
+      <h2>Onde a RNTL atua?</h2>
+      <table class="clean-table">
+        <thead>
+          <tr>
+            <th>Camada</th>
+            <th>Ferramenta</th>
+            <th>Escopo</th>
+            <th>Execução</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Estático</td>
+            <td>TypeScript / ESLint</td>
+            <td>Tipagem e erros de sintaxe</td>
+            <td>Instantâneo</td>
+          </tr>
+          <tr>
+            <td>Unitário</td>
+            <td>Jest</td>
+            <td>Funções puras e regras isoladas</td>
+            <td>Milissegundos (Node)</td>
+          </tr>
+          <tr class="row-highlight">
+            <td>Integração / Componentes</td>
+            <td>Jest + RNTL</td>
+            <td>Telas, componentes e fluxos de interação</td>
+            <td>Milissegundos (Node)</td>
+          </tr>
+          <tr>
+            <td>End-to-End (E2E)</td>
+            <td>Detox / Maestro</td>
+            <td>App compilado no emulador Android/iOS</td>
+            <td>Minutos (Alto custo)</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- SLIDE 5 -->
+    <section class="slide" data-time="04:30 – 06:30" data-notes="Leia a frase do Kent C. Dodds. Explique que o foco no comportamento evita falsos negativos (testes que quebram ao refatorar useState/Zustand) e falsos positivos (testes que passam mesmo com o botão quebrado na tela).">
+      <div class="section-label">04 / Filosofia</div>
+      <h2>O princípio da Testing Library</h2>
+      <div class="quote">
+        <p>"Quanto mais seus testes se parecem com a forma que seu software é usado, mais confiança eles te dão."</p>
+        <cite>Kent C. Dodds — Criador da Testing Library</cite>
+      </div>
+      <ul class="simple-list">
+        <li><strong>Resistência a refatorações:</strong> Trocar <code>useState</code> por <code>Zustand</code> ou <code>Redux</code> não quebra o teste se a tela continuar funcionando.</li>
+        <li><strong>Sem Falsos Negativos:</strong> O teste não falha apenas porque você renomeou uma variável ou função interna.</li>
+        <li><strong>Sem Falsos Positivos:</strong> O teste só passa se o elemento realmente estiver visível e clicável para o usuário final.</li>
+      </ul>
+    </section>
+
+    <!-- SLIDE 6 -->
+    <section class="slide" data-time="06:30 – 08:30" data-notes="Compare os dois blocos de código. Na esquerda (Enzyme), se mudarmos o nome do state 'count', o teste quebra. Na direita (RNTL), testamos o clique no botão e o texto na tela.">
+      <div class="section-label">05 / Comparação</div>
+      <h2>Implementação vs. Comportamento</h2>
+      <div class="cols-2">
+        <div class="box box-danger">
+          <h3>Abordagem Antiga (Acoplada ao código)</h3>
+          <pre style="margin-top:12px;"><code><span class="cm">// Falha se mudar o nome da variável interna</span>
+<span class="kw">const</span> wrapper = <span class="fn">shallow</span>(&lt;Contador /&gt;);
+<span class="fn">expect</span>(wrapper.<span class="fn">state</span>(<span class="str">'count'</span>)).<span class="fn">toBe</span>(0);
+
+wrapper.<span class="fn">instance</span>().<span class="fn">increment</span>();
+<span class="fn">expect</span>(wrapper.<span class="fn">state</span>(<span class="str">'count'</span>)).<span class="fn">toBe</span>(1);</code></pre>
+        </div>
+
+        <div class="box box-success">
+          <h3>Abordagem com RNTL (Foco no usuário)</h3>
+          <pre style="margin-top:12px;"><code><span class="cm">// Valida o resultado visível na tela</span>
+<span class="fn">render</span>(&lt;Contador /&gt;);
+<span class="fn">expect</span>(screen.<span class="fn">getByText</span>(<span class="str">'Total: 0'</span>)).<span class="fn">toBeOnTheScreen</span>();
+
+<span class="kw">await</span> userEvent.<span class="fn">press</span>(screen.<span class="fn">getByText</span>(<span class="str">'Adicionar'</span>));
+<span class="fn">expect</span>(screen.<span class="fn">getByText</span>(<span class="str">'Total: 1'</span>)).<span class="fn">toBeOnTheScreen</span>();</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 7 -->
+    <section class="slide" data-time="08:30 – 10:00" data-notes="Explique como o teste roda rápido no computador sem abrir o Android Studio ou Xcode: Jest + React Test Renderer + RNTL.">
+      <div class="section-label">06 / Funcionamento</div>
+      <h2>Como roda sem emulador?</h2>
+      <div class="cols-3">
+        <div class="box">
+          <h3>1. Jest (Node.js)</h3>
+          <p>Executa os arquivos de teste, gerencia timers, mocks e faz as validações com <code>expect()</code>.</p>
+        </div>
+        <div class="box">
+          <h3>2. React Test Renderer</h3>
+          <p>Monta em memória uma árvore JavaScript das tags nativas (<code>View</code>, <code>Text</code>, <code>TextInput</code>).</p>
+        </div>
+        <div class="box box-accent">
+          <h3>3. RNTL</h3>
+          <p>Consulta os elementos dessa árvore virtual (<code>screen</code>) e dispara eventos reais (<code>userEvent</code>).</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 8 -->
+    <section class="slide" data-time="10:00 – 11:30" data-notes="Primeiro pilar da API: render() monta o componente, screen faz as consultas, e screen.debug() mostra o JSX no terminal.">
+      <div class="section-label">07 / API Básica</div>
+      <h2>Pilar 1: <code>render</code> e <code>screen</code></h2>
+      <div class="cols-2">
+        <ul class="simple-list">
+          <li><strong><code>render(&lt;Componente /&gt;)</code></strong>: Monta o componente isolado em memória.</li>
+          <li><strong><code>screen</code></strong>: Objeto que representa a tela renderizada e concentra as buscas.</li>
+          <li><strong><code>screen.debug()</code></strong>: Imprime a árvore atual no terminal para depuração.</li>
+        </ul>
+        <pre><code><span class="kw">import</span> { render, screen } <span class="kw">from</span> <span class="str">'@testing-library/react-native'</span>;
+<span class="kw">import</span> { Cabecalho } <span class="kw">from</span> <span class="str">'./Cabecalho'</span>;
+
+<span class="fn">test</span>(<span class="str">'exibe o título corretamente'</span>, () =&gt; {
+  <span class="fn">render</span>(&lt;Cabecalho titulo=<span class="str">"Minha Conta"</span> /&gt;);
+
+  <span class="kw">const</span> elemento = screen.<span class="fn">getByText</span>(<span class="str">'Minha Conta'</span>);
+  <span class="fn">expect</span>(elemento).<span class="fn">toBeOnTheScreen</span>();
+});</code></pre>
+      </div>
+    </section>
+
+    <!-- SLIDE 9 -->
+    <section class="slide" data-time="11:30 – 13:30" data-notes="Segundo pilar: explique a diferença entre getBy (já está na tela), queryBy (retorna null, ótimo para testar que sumiu) e findBy (assíncrono com await).">
+      <div class="section-label">08 / Buscando Elementos</div>
+      <h2>Pilar 2: Queries (<code>getBy</code>, <code>queryBy</code>, <code>findBy</code>)</h2>
+      <table class="clean-table" style="margin-bottom: 24px;">
+        <thead>
+          <tr>
+            <th>Prefixo</th>
+            <th>Se não encontrar</th>
+            <th>Assíncrono?</th>
+            <th>Caso de uso principal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>getBy...</code></td>
+            <td>Lança erro imediato</td>
+            <td>Não</td>
+            <td>Elementos que já devem estar na tela</td>
+          </tr>
+          <tr>
+            <td><code>queryBy...</code></td>
+            <td>Retorna <code>null</code></td>
+            <td>Não</td>
+            <td>Confirmar que um elemento <strong>não</strong> está na tela</td>
+          </tr>
+          <tr class="row-highlight">
+            <td><code>findBy...</code></td>
+            <td>Erro após timeout (1s)</td>
+            <td>Sim (<code>await</code>)</td>
+            <td>Elementos que surgem após resposta de API</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="color: var(--text-secondary); font-size: 0.98rem;">
+        <strong>Ordem de prioridade:</strong> 1º <code>ByRole</code> (Acessibilidade) &rarr; 2º <code>ByText</code> / <code>ByLabelText</code> &rarr; 3º <code>ByPlaceholderText</code> &rarr; 4º <code>ByTestId</code> (último recurso).
+      </p>
+    </section>
+
+    <!-- SLIDE 10 -->
+    <section class="slide" data-time="13:30 – 15:00" data-notes="Terceiro pilar: explique por que userEvent é melhor que fireEvent. Ele simula foco, digitação tecla a tecla, pressIn, pressOut e blur.">
+      <div class="section-label">09 / Interações</div>
+      <h2>Pilar 3: <code>userEvent</code> vs. <code>fireEvent</code></h2>
+      <div class="cols-2" style="margin-bottom: 20px;">
+        <div class="box">
+          <h3><code>fireEvent</code> (Baixo nível)</h3>
+          <p>Chama apenas a propriedade isolada (ex: executa <code>onChangeText</code> diretamente sem focar no campo).</p>
+        </div>
+        <div class="box box-accent">
+          <h3><code>userEvent</code> (Recomendado)</h3>
+          <p>Simula a sequência real do aparelho: <code>focus</code>, digitação caractere por caractere, <code>pressIn</code>, <code>pressOut</code> e <code>blur</code>.</p>
+        </div>
+      </div>
+      <pre><code><span class="kw">const</span> user = userEvent.<span class="fn">setup</span>();
+
+<span class="kw">await</span> user.<span class="fn">type</span>(screen.<span class="fn">getByPlaceholderText</span>(<span class="str">'E-mail'</span>), <span class="str">'aluno@faculdade.br'</span>);
+<span class="kw">await</span> user.<span class="fn">press</span>(screen.<span class="fn">getByRole</span>(<span class="str">'button'</span>, { name: <span class="str">'Continuar'</span> }));</code></pre>
+    </section>
+
+    <!-- SLIDE 11 -->
+    <section class="slide" data-time="15:00 – 17:00" data-notes="Mostre o exemplo completo dividido em Arrange (Preparar), Act (Agir) e Assert (Verificar).">
+      <div class="section-label">10 / Prática</div>
+      <h2>Exemplo Completo: Tela de Login</h2>
+      <pre><code><span class="fn">test</span>(<span class="str">'autentica o usuário e exibe mensagem de boas-vindas'</span>, <span class="kw">async</span> () =&gt; {
+  <span class="cm">// 1. Arrange (Preparar)</span>
+  <span class="kw">const</span> user = userEvent.<span class="fn">setup</span>();
+  <span class="fn">render</span>(&lt;TelaLogin /&gt;);
+
+  <span class="cm">// 2. Act (Agir)</span>
+  <span class="kw">await</span> user.<span class="fn">type</span>(screen.<span class="fn">getByPlaceholderText</span>(<span class="str">'E-mail'</span>), <span class="str">'lucas@email.com'</span>);
+  <span class="kw">await</span> user.<span class="fn">type</span>(screen.<span class="fn">getByPlaceholderText</span>(<span class="str">'Senha'</span>), <span class="str">'123456'</span>);
+  <span class="kw">await</span> user.<span class="fn">press</span>(screen.<span class="fn">getByRole</span>(<span class="str">'button'</span>, { name: <span class="str">'Entrar'</span> }));
+
+  <span class="cm">// 3. Assert (Verificar)</span>
+  <span class="fn">expect</span>(<span class="kw">await</span> screen.<span class="fn">findByText</span>(<span class="str">'Bem-vindo, Lucas!'</span>)).<span class="fn">toBeOnTheScreen</span>();
+  <span class="fn">expect</span>(screen.<span class="fn">queryByText</span>(<span class="str">'Senha incorreta'</span>)).<span class="fn">toBeNull</span>();
+});</code></pre>
+    </section>
+
+    <!-- SLIDE 12 -->
+    <section class="slide" data-time="17:00 – 18:15" data-notes="Explique que não fazemos chamadas HTTP reais nos testes para manter a velocidade e previsibilidade. Usamos mocks para APIs e bibliotecas nativas.">
+      <div class="section-label">11 / Isolamento</div>
+      <h2>Mocks de API e Módulos Nativos</h2>
+      <div class="cols-2">
+        <div class="box">
+          <h3>Requisições HTTP</h3>
+          <p style="margin-bottom: 12px;">Simulamos respostas do backend com <code>jest.spyOn</code> ou <strong>MSW</strong>, garantindo testes rápidos e offline.</p>
+          <pre><code><span class="kw">await</span> <span class="fn">waitFor</span>(() =&gt; {
+  <span class="fn">expect</span>(api.login).<span class="fn">toHaveBeenCalled</span>();
+});</code></pre>
+        </div>
+        <div class="box">
+          <h3>Recursos do Aparelho</h3>
+          <p style="margin-bottom: 12px;">Módulos nativos (<code>AsyncStorage</code>, Câmera, GPS) recebem mocks no arquivo de setup do Jest.</p>
+          <pre><code>jest.<span class="fn">mock</span>(
+  <span class="str">'@react-native-async-storage/async-storage'</span>,
+  () =&gt; mockAsyncStorage
+);</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 13 -->
+    <section class="slide" data-time="18:15 – 19:15" data-notes="Explique como buscar elementos por getByRole melhora a acessibilidade para usuários de TalkBack (Android) e VoiceOver (iOS).">
+      <div class="section-label">12 / Acessibilidade</div>
+      <h2>Impacto na Acessibilidade (TalkBack e VoiceOver)</h2>
+      <div class="cols-2">
+        <ul class="simple-list">
+          <li>Botões apenas com ícones são invisíveis para leitores de tela se não tiverem rótulos.</li>
+          <li>Ao buscar por <code>getByRole</code>, o teste exige que o componente tenha marcação acessível.</li>
+          <li>Propriedades principais: <code>accessibilityRole</code>, <code>accessibilityLabel</code> e <code>accessibilityState</code>.</li>
+        </ul>
+        <pre><code><span class="cm">// Componente acessível</span>
+&lt;Pressable
+  accessibilityRole=<span class="str">"button"</span>
+  accessibilityLabel=<span class="str">"Fechar janela"</span>
+  disabled={carregando}
+&gt;
+  &lt;IconeFechar /&gt;
+&lt;/Pressable&gt;
+
+<span class="cm">// Busca no teste</span>
+<span class="kw">const</span> btn = screen.<span class="fn">getByRole</span>(<span class="str">'button'</span>, {
+  name: <span class="str">'Fechar janela'</span>
+});
+<span class="fn">expect</span>(btn).<span class="fn">toBeDisabled</span>();</code></pre>
+      </div>
+    </section>
+
+    <!-- SLIDE 14 -->
+    <section class="slide" data-time="19:15 – 20:00" data-notes="Recapitule os 3 pontos principais e abra para perguntas.">
+      <div class="section-label">13 / Conclusão</div>
+      <h2>Resumo de Boas Práticas</h2>
+      <div class="cols-3" style="margin-bottom: 36px;">
+        <div class="box">
+          <h3>1. Teste Comportamento</h3>
+          <p>Valide o que aparece na tela, nunca variáveis internas de estado.</p>
+        </div>
+        <div class="box">
+          <h3>2. Priorize Acessibilidade</h3>
+          <p>Prefira <code>getByRole</code> e <code>getByText</code>. Evite depender de <code>testID</code>.</p>
+        </div>
+        <div class="box">
+          <h3>3. Simule Uso Real</h3>
+          <p>Utilize <code>userEvent</code> e fluxos completos em vez de testar funções soltas.</p>
+        </div>
+      </div>
+      <p class="lead" style="color: var(--text); font-weight: 600;">Obrigado. Perguntas?</p>
+    </section>
+
+  </main>
+
+  <aside class="notes-bar" id="notesBar">
+    <strong>Nota do Apresentador (Tecla N para ocultar)</strong>
+    <span id="notesText"></span>
+  </aside>
+
+  <footer class="bottombar">
+    <div class="nav-btns">
+      <button class="nav-btn" onclick="prevSlide()">Anterior</button>
+      <button class="nav-btn" onclick="nextSlide()">Próximo</button>
+      <button class="nav-btn" onclick="toggleNotes()">Notas (N)</button>
+      <button class="nav-btn" onclick="toggleFullscreen()">Tela Cheia (F)</button>
+    </div>
+    <div>Use as setas <code>&larr;</code> <code>&rarr;</code> ou <code>Espaço</code> para navegar</div>
+    <div class="slide-num" id="slideNum">01 / 14</div>
+  </footer>
+
+  <script>
+    const slides = document.querySelectorAll('.slide');
+    const progressFill = document.getElementById('progressFill');
+    const slideNum = document.getElementById('slideNum');
+    const notesBar = document.getElementById('notesBar');
+    const notesText = document.getElementById('notesText');
+
+    let index = 0;
+
+    function renderSlide() {
+      slides.forEach((s, i) => s.classList.toggle('active', i === index));
+      progressFill.style.width = `${((index + 1) / slides.length) * 100}%`;
+      slideNum.textContent = `${String(index + 1).padStart(2, '0')} / ${slides.length}`;
+      notesText.textContent = slides[index].getAttribute('data-notes') || '';
+    }
+
+    function nextSlide() {
+      if (index < slides.length - 1) { index++; renderSlide(); }
+    }
+
+    function prevSlide() {
+      if (index > 0) { index--; renderSlide(); }
+    }
+
+    function toggleNotes() {
+      notesBar.classList.toggle('open');
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+    let seconds = 0;
+    let timer = null;
+    const timerText = document.getElementById('timerText');
+
+    function toggleTimer() {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      } else {
+        timer = setInterval(() => {
+          seconds++;
+          const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+          const s = String(seconds % 60).padStart(2, '0');
+          timerText.textContent = `${m}:${s}`;
+        }, 1000);
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key === 'n' || e.key === 'N') {
+        toggleNotes();
+      } else if (e.key === 'f' || e.key === 'F') {
+        toggleFullscreen();
+      }
+    });
+
+    renderSlide();
+  </script>
+</body>
+</html>
