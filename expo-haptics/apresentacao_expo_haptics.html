@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Um toque conta uma hist&#243;ria &#8212; Expo Haptics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..900&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Kalam:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: cartaz de aula impresso. Papel claro, tinta preta, um roxo forte, anotações à mão do professor. Tema único, de propósito. */
+:root{
+ --paper:#FAF9F6; --card:#FFFFFF; --rule:#DDD8E3; --edge:#15121A;
+ --ink:#15121A; --muted:#5E5868; --pen:#820AD1; --penlight:#F0E3FA;
+ --up:#0A8F5C; --down:#D23A2F; --c4:#2459D6; --c5:#C26A00;
+ --marker:#E9D3FA; --bar:#15121A; --barfg:#FAF9F6; --grid:#ECE8F0;
+ --f-display:'Archivo','Arial Black','Helvetica Neue',Arial,sans-serif;
+ --f-body:'Atkinson Hyperlegible','Segoe UI',system-ui,-apple-system,sans-serif;
+ --f-hand:'Kalam','Comic Neue','Bradley Hand','Segoe Print',cursive;
+ --f-mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+ color-scheme:light;
+}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:clamp(16px,1.2vw + 8px,21px);line-height:1.5;overflow:hidden}
+#deck{position:fixed;inset:0}
+.slide{position:absolute;inset:0;display:flex;padding:calc(env(safe-area-inset-top,0px) + 5vh) clamp(20px,5vw,72px) calc(env(safe-area-inset-bottom,0px) + 88px);overflow-y:auto;visibility:hidden;opacity:0;transition:opacity .3s ease,visibility 0s .3s}
+.slide.on{visibility:visible;opacity:1;transition:opacity .3s ease}
+.slide::after{content:attr(data-n);position:absolute;right:clamp(20px,5vw,72px);top:calc(env(safe-area-inset-top,0px) + 3vh);font-family:var(--f-mono);font-size:13px;color:var(--muted);letter-spacing:.08em}
+.wrap{margin:auto;width:100%;max-width:1120px;display:flex;flex-direction:column;gap:clamp(14px,2.6vh,30px)}
+.notes{display:none}
+
+.eyebrow{font-family:var(--f-mono);font-size:.66em;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:flex;gap:.9em;align-items:center;flex-wrap:wrap}
+.eyebrow b{background:var(--ink);color:var(--paper);padding:.25em .6em;font-weight:600}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;line-height:1}
+h1{font-size:clamp(2.6rem,7.6vw,6.6rem);font-weight:900;font-stretch:125%;letter-spacing:-.03em;text-transform:uppercase;line-height:.92}
+h2{font-size:clamp(1.9rem,4.4vw,3.6rem);font-weight:800;font-stretch:112%;letter-spacing:-.025em}
+h3{font-size:1.15em;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+p{margin:0;max-width:62ch}
+.lead{font-size:1.18em;color:var(--muted);max-width:52ch}
+.mk{background:linear-gradient(transparent 60%,var(--marker) 60%);padding:0 .06em}
+.up{color:var(--up)} .down{color:var(--down)} .pen{color:var(--pen)}
+.small{font-size:.8em;color:var(--muted)}
+.tag{font-family:var(--f-mono);font-size:.62em;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.hand{font-family:var(--f-hand);color:var(--pen);font-size:1.25em;line-height:1.2;transform:rotate(-2deg);display:inline-block}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:clamp(18px,3.4vw,48px);align-items:center}
+.grid2>*{min-width:0}
+.cards{display:grid;gap:16px}
+.c4{grid-template-columns:repeat(4,1fr)} .c3{grid-template-columns:repeat(3,1fr)} .c2{grid-template-columns:repeat(2,1fr)}
+.cards>*{min-width:0}
+.card{background:var(--card);border:2px solid var(--edge);padding:16px 18px;display:flex;flex-direction:column;gap:8px;box-shadow:5px 5px 0 var(--edge)}
+.card p{font-size:.88em;color:var(--muted)}
+.card .q{font-family:var(--f-display);font-weight:800;font-size:1.05em;line-height:1.15;color:var(--ink)}
+.card svg{height:58px;width:auto;max-width:100%;align-self:flex-start}
+@media (max-width:900px){.c4{grid-template-columns:repeat(2,1fr)}.c3{grid-template-columns:1fr 1fr}}
+@media (max-width:640px){.grid2,.c3,.c2{grid-template-columns:1fr}.c4{grid-template-columns:1fr 1fr}}
+
+svg text{font-family:var(--f-mono);fill:var(--muted)}
+.ln{fill:none;stroke:var(--pen);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+.axis{stroke:var(--grid);stroke-width:1}
+.chartbox{background:var(--card);border:2px solid var(--edge);padding:16px;box-shadow:6px 6px 0 var(--pen)}
+.chartbox svg{display:block;width:100%;height:auto}
+
+button{font:inherit;color:inherit}
+.btn{font-family:var(--f-display);font-weight:800;font-size:.85em;background:var(--pen);color:#fff;border:2px solid var(--edge);padding:.6em 1.2em;cursor:pointer;align-self:flex-start;box-shadow:3px 3px 0 var(--edge);transition:transform .1s,box-shadow .1s}
+.btn:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--edge)}
+.btn:focus-visible,.ctrl button:focus-visible,.scn:focus-visible,.sim-btn:focus-visible{outline:3px solid var(--pen);outline-offset:3px}
+
+/* capa e fechamento em roxo */
+.slide.purple{background:var(--pen);color:#fff}
+.slide.purple::after{color:rgba(255,255,255,.7)}
+.slide.purple .eyebrow{color:rgba(255,255,255,.8)}
+.slide.purple .eyebrow b{background:#fff;color:var(--pen)}
+.slide.purple .lead,.slide.purple .small{color:rgba(255,255,255,.85)}
+.slide.purple .hand{color:#fff}
+.slide.purple .mk{background:linear-gradient(transparent 60%,rgba(255,255,255,.28) 60%)}
+.slide.purple .card{border-color:#fff;box-shadow:5px 5px 0 #15121A}
+.cover svg.bg{position:absolute;left:0;right:0;bottom:84px;width:100%;height:34vh;pointer-events:none}
+.cover .draw{fill:none;stroke:#fff;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:2600;stroke-dashoffset:2600;animation:draw 2.8s ease-out .2s forwards;opacity:.35}
+@keyframes draw{to{stroke-dashoffset:0}}
+.cover .wrap{position:relative;z-index:1;margin-top:8vh}
+.cover h1 .line2{display:block;color:#fff;-webkit-text-stroke:0}
+.cover h1 .line1{display:block;color:transparent;-webkit-text-stroke:2px #fff}
+@supports not (-webkit-text-stroke:2px #fff){.cover h1 .line1{color:#fff}}
+
+/* chips */
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{background:var(--card);border:2px solid var(--edge);padding:.35em .95em;font-size:.95em;border-radius:999px}
+.chip:nth-child(odd){transform:rotate(-1.2deg)} .chip:nth-child(even){transform:rotate(1deg)}
+
+/* tabela de eventos */
+.numtable{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.numtable div{border:1px solid var(--rule);padding:10px 6px;text-align:center;font-variant-numeric:tabular-nums;font-size:.88em}
+.numtable span{display:block;font-family:var(--f-mono);font-size:.65em;color:var(--muted);text-transform:uppercase;margin-bottom:2px}
+@media (max-width:640px){.numtable{grid-template-columns:repeat(2,1fr)}}
+
+/* simulador de celular */
+.phone{background:var(--card);border:3px solid var(--edge);border-radius:34px;padding:22px 18px 16px;max-width:410px;width:100%;justify-self:center;box-shadow:8px 8px 0 var(--pen);transition:transform .08s}
+.phone.shake{transform:translate(3px,-2px)}
+.phone .price{font-family:var(--f-display);font-weight:800;font-size:1.75em;font-variant-numeric:tabular-nums;line-height:1.05}
+.phone .when{font-family:var(--f-mono);font-size:.68em;color:var(--muted);margin-top:6px}
+.phone svg{margin-top:10px;display:block;width:100%;height:auto}
+.sim-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.sim-btn{background:var(--paper);border:2px solid var(--edge);padding:7px 6px;font-family:var(--f-display);font-weight:800;font-size:.72em;cursor:pointer;box-shadow:2px 2px 0 var(--edge);transition:transform .08s,box-shadow .08s,background .15s}
+.sim-btn:hover{background:var(--penlight)}
+.sim-btn:active,.sim-btn.active{transform:translate(2px,2px);box-shadow:0 0 0 var(--edge);background:var(--pen);color:#fff}
+.hint{font-family:var(--f-hand);color:var(--pen);text-align:center;margin-top:8px}
+
+/* linhas */
+.rows{display:flex;flex-direction:column;gap:0}
+.row{display:grid;grid-template-columns:minmax(0,14em) 1fr;gap:18px;align-items:baseline;padding:12px 0;border-bottom:2px solid var(--ink)}
+.row:first-of-type{border-top:2px solid var(--ink)}
+.row>*{min-width:0}
+.row b{font-family:var(--f-display);font-weight:800;font-size:1.02em}
+.row p{color:var(--muted);font-size:.92em}
+.rows>p{padding:6px 0}
+@media (max-width:640px){.row{grid-template-columns:1fr;gap:2px}}
+
+/* código */
+pre.code{margin:0;background:var(--ink);color:#EDE9F2;border:2px solid var(--edge);padding:18px 20px;font-family:var(--f-mono);font-size:clamp(11px,.74em,15px);line-height:1.72;overflow-x:auto;box-shadow:6px 6px 0 var(--pen)}
+.k1{color:#C79BFF;font-weight:600}.k2{color:#4FE0A8;font-weight:600}.k3{color:#86B0FF;font-weight:600}.k4{color:#FFC266;font-weight:600}.k5{color:#FF8A80;font-weight:600}
+.legend .row b{display:flex;gap:.5em;align-items:center}
+.sw{width:.85em;height:.85em;display:inline-block;flex:none;border:2px solid var(--edge)}
+code{font-family:var(--f-mono);font-size:.9em;background:var(--penlight);padding:0 .3em}
+
+/* tabela */
+.tablewrap{overflow-x:auto;border:2px solid var(--edge);background:var(--card);box-shadow:6px 6px 0 var(--edge)}
+table{border-collapse:collapse;width:100%;min-width:720px;font-size:.82em}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--rule);vertical-align:top}
+tr:last-child td,tr:last-child th{border-bottom:0}
+thead th{font-family:var(--f-display);font-weight:800;font-size:1.05em;border-bottom:2px solid var(--edge)}
+th.me,td.me{background:var(--penlight)}
+thead th.me{background:var(--pen);color:#fff}
+tbody th{font-family:var(--f-mono);font-size:.76em;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600;white-space:nowrap}
+
+/* situações */
+.scn{background:var(--card);border:2px solid var(--edge);padding:16px 18px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:10px;box-shadow:5px 5px 0 var(--edge);transition:transform .12s,box-shadow .12s}
+.scn:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 var(--pen)}
+.scn .ans{display:none;border-top:2px dashed var(--rule);padding-top:10px}
+.scn.open{box-shadow:5px 5px 0 var(--pen)}
+.scn.open .ans{display:block}
+.scn .ans b{font-family:var(--f-display);font-weight:800;color:var(--pen);font-size:1.1em}
+.scn .ans p{font-size:.85em;color:var(--muted);margin-top:4px}
+.scn .tap{font-family:var(--f-hand);color:var(--pen)}
+.scn.open .tap{display:none}
+
+.quote{font-family:var(--f-display);font-weight:800;font-stretch:115%;font-size:clamp(1.8rem,4vw,3.4rem);line-height:1.05;letter-spacing:-.025em;max-width:22ch;text-wrap:balance}
+
+/* controles */
+.ctrl{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;align-items:center;gap:6px;padding:10px 16px calc(env(safe-area-inset-bottom,0px) + 10px);background:var(--paper);border-top:2px solid var(--edge)}
+.ctrl button{background:var(--card);border:2px solid var(--edge);padding:5px 12px;cursor:pointer;font-size:14px;font-family:var(--f-body);font-weight:700;color:var(--ink)}
+.ctrl button:hover{background:var(--penlight)}
+.ctrl .count{font-family:var(--f-mono);font-size:13px;color:var(--muted);min-width:4.5em;text-align:center;font-variant-numeric:tabular-nums}
+.ctrl .sp{flex:1}
+.ctrl .timer{font-family:var(--f-mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.progress{position:fixed;left:0;top:0;height:4px;background:var(--ink);z-index:30;transition:width .3s}
+@media (max-width:560px){.ctrl .hide-s{display:none}}
+
+@media (prefers-reduced-motion:reduce){.slide,.slide.on{transition:none}.cover .draw{animation:none;stroke-dashoffset:0}}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<main id="deck">
+
+<section class="slide cover purple">
+ <svg class="bg" viewBox="0 0 1200 300" preserveAspectRatio="none" aria-hidden="true"><path class="draw" d="M0 180 L140 180 L175 180 L195 90 L215 250 L235 120 L255 210 L275 180 L450 180 L470 60 L495 270 L520 75 L545 245 L570 150 L590 180 L780 180 L805 40 L830 280 L855 50 L880 265 L905 95 L930 220 L955 180 L1200 180"/></svg>
+ <div class="wrap">
+ <div class="eyebrow"><b>Aula</b> Expo Haptics (Feedback T&#225;til)</div>
+ <h1><span class="line1">Um toque</span><span class="line2">conta uma hist&#243;ria</span></h1>
+ <p class="lead">Por que o celular vibra quando a gente toca na tela, como escolher a sensa&#231;&#227;o certa em cada momento do jogo e a ferramenta do Expo que faz isso.</p>
+ <p><span class="hand">com uma linha de c&#243;digo, prometo :)</span></p>
+ <p class="small">Programa&#231;&#227;o para Dispositivos M&#243;veis &#183; ADS</p>
+ </div>
+</section>
+
+<section class="slide">
+ <div class="wrap">
+ <div class="eyebrow"><b>Parte 1</b> Por que a vibra&#231;&#227;o existe</div>
+ <h2>Qual foi a &#250;ltima vibra&#231;&#227;o que voc&#234; sentiu hoje?</h2>
+ <p class="lead">Pode ter sido sem perceber.</p>
+ <div class="chips">
+ <span class="chip">O Pix enviado no banco</span>
+ <span class="chip">A roleta do despertador</span>
+ <span class="chip">A resposta certa no Duolingo</span>
+ <span class="chip">O tiro ou dano no jogo</span>
+ <span class="chip">A senha errada na tela</span>
+ <span class="chip">O bot&#227;o de curtir</span>
+ </div>
+ <p>A gente j&#225; l&#234; respostas pelo tato todo dia. <span class="mk">Ningu&#233;m aqui est&#225; come&#231;ando do zero.</span></p>
+ <p><span class="hand">e a sua? qual foi?</span></p>
+ </div>
+</section>
+
+<section class="slide">
+ <div class="wrap">
+ <div class="eyebrow"><b>Parte 1</b> Por que a vibra&#231;&#227;o existe</div>
+ <h2>Os momentos de uma partida no celular</h2>
+ <div class="grid2">
+ <div class="chartbox">
+ <div class="numtable" id="hapticTable"></div>
+ <div id="hapticChartWrap" hidden><svg id="hapticChart" viewBox="0 0 560 280" role="img" aria-label="Gr&#225;fico de ondas mostrando a for&#231;a e o ritmo de cada toque t&#225;til no jogo"></svg></div>
+ </div>
+ <div class="wrap" style="margin:0;gap:16px">
+ <p>Olhando s&#243; a tabela: <b>qual momento parece uma batida forte?</b> Qual parece uma comemora&#231;&#227;o de vit&#243;ria?</p>
+ <button class="btn" id="hapticBtn" type="button">Mostrar como onda t&#225;til</button>
+ <p id="hapticMsg" class="small">Tempos e intensidades reais usados em jogos mobile.</p>
+ </div>
+ </div>
+ </div>
+</section>
+
+<section class="slide">
+ <div class="wrap">
+ <div class="eyebrow"><b>Parte 1</b> Como escolher</div>
+ <h2>Escolher a vibra&#231;&#227;o &#233; escolher <span class="mk">a sensa&#231;&#227;o</span></h2>
+ <div class="cards c4">
+ <div class="card">
+ <svg viewBox="0 0 120 60" aria-hidden="true"><g style="stroke:var(--pen);stroke-width:3;stroke-linecap:round"><line x1="18" y1="38" x2="18" y2="22"/><line x1="42" y1="38" x2="42" y2="22"/><line x1="66" y1="38" x2="66" y2="22"/><line x1="90" y1="38" x2="90" y2="22"/></g></svg>
+ <span class="q">Mudou de op&#231;&#227;o?</span>
+ <p><b>Sele&#231;&#227;o.</b> Girar a roleta de hor&#225;rio, trocar de arma no menu ou chave liga/desliga.</p>
+ </div>
+ <div class="card">
+ <svg viewBox="0 0 120 60" aria-hidden="true"><polyline class="ln" points="8,46 38,46 52,8 66,52 78,34 92,46 112,46"/></svg>
+ <span class="q">Bateu ou encostou?</span>
+ <p><b>Impacto.</b> O personagem pulou, pegou uma moeda ou bateu num obst&#225;culo.</p>
+ </div>
+ <div class="card">
+ <svg viewBox="0 0 120 60" aria-hidden="true"><g style="fill:var(--up)"><rect x="24" y="24" width="20" height="28" rx="3"/><rect x="64" y="8" width="20" height="44" rx="3"/></g></svg>
+ <span class="q">Deu tudo certo?</span>
+ <p><b>Sucesso.</b> Dois toques r&#225;pidos: passou de fase, acertou no quiz ou enviou um Pix.</p>
+ </div>
+ <div class="card">
+ <svg viewBox="0 0 120 60" aria-hidden="true"><g style="fill:var(--down)"><rect x="14" y="10" width="20" height="42" rx="3"/><rect x="48" y="10" width="20" height="42" rx="3"/><rect x="82" y="18" width="20" height="34" rx="3"/></g></svg>
+ <span class="q">Deu algo errado?</span>
+ <p><b>Alerta e Erro.</b> Tr&#234;s toques pesados: perdeu uma vida, senha errada ou Game Over.</p>
+ </div>
+ </div>
+ <p class="small">Antes de escolher a fun&#231;&#227;o, pense: o que o dedo do jogador precisa sentir agora?</p>
+ </div>
+</section>
+
+<section class="slide">
+ <div class="wrap">
+ <div class="eyebrow"><b>Parte 1</b> Como funciona no motor</div>
+ <h2>Um pulso curto vale mais que <span class="mk">um treme-treme</span></h2>
+ <div class="grid2">
+ <div class="chartbox">
+ <svg id="pulseSvg" viewBox="0 0 640 330" role="img" aria-label="&#192; esquerda, a vibra&#231;&#227;o antiga e lenta; &#224; direita, o pulso curto e preciso do Haptics"></svg>
+ </div>
+ <div class="rows">
+ <p>Por que o Haptics parece um bot&#227;o de verdade na tela de vidro:</p>
+ <div class="row"><b>Vibra&#231;&#227;o antiga</b><p>Um pesinho girando por <b>400ms</b>: demora para embalar e faz barulho na mesa.</p></div>
+ <div class="row"><b>Partida em 3ms</b><p>O motor moderno (<i>Taptic Engine</i>) empurra em linha reta na mesma hora.</p></div>
+ <div class="row"><b>Toque de 15ms</b><p>D&#225; um "clique" seco no dedo, sem espalhar tremedeira pela m&#227;o.</p></div>
+ <div class="row"><b>Freio imediato</b><p>Para no instante exato em que a anima&#231;&#227;o do bot&#227;o termina.</p></div>
+ <p class="small">Vit&#243;ria no jogo: pulso <span class="up"><b>duplo e leve</b></span>. Game Over: pulso <span class="down"><b>triplo e forte</b></span>.</p>
+ </div>
+ </div>
+ </div>
+</section>
+
+<section class="slide">
+ <div class="wrap">
+ <div class="eyebrow"><b>Parte 1</b> No celular</div>
+ <div class="grid2">
+ <div class="wrap" style="margin:0;gap:16px">
+ <h2>No jogo, a gente <span class="pen">sente a resposta</span> no dedo</h2>
+ <p>Clique nos bot&#245;es do celular ao lado. Veja o formato do pulso na tela e qual comando o aplicativo dispara em cada a&#231;&#227;o.</p>
+ <p>Assim o jogador n&#227;o precisa olhar para o canto da tela. <span class="mk">A pr&#243;pria m&#227;o avisa o que aconteceu.</span></p>
+ <p class="small">Se voc&#234; abrir esta apresenta&#231;&#227;o num celular Android, ele vibra de verdade ao tocar.</p>
+ </div>
+ <div class="phone" id="phoneBox">
+ <div class="tag">Simulador de Haptics &#183; ao vivo</div>
+ <div class="price" id="hName">Pegar Moeda</div>
+ <div class="when" id="hCall">Haptics.impactAsync(Light) &#183; 15ms</div>
+ <svg id="simSvg" viewBox="0 0 380 155" role="img" aria-label="Monitor de onda t&#225;til ao vivo"></svg>
+ <div class="sim-grid" id="simBtns"></div>
+ <div class="hint">toque nos bot&#245;es acima para testar</div>
+ </div>
+ </div>
+ </div>
+</section>
+
+<section class="slide">
+ <div class="wrap">
+ <div class="eyebrow"><b>Parte 2</b> A ferramenta &#183; que problema ela resolve</div>
+ <h2>Programar isso do zero d&#225; <span class="mk">muito</span> trabalho</h2>
+ <div class="rows">
+ <div class="row"><b>Dois mundos diferentes</b><p>O iPhone usa o <i>Taptic Engine</i> (em Swift) e o Android usa o <i>Vibrator Service</i> (em Kotlin). Cada um tem nomes e regras pr&#243;prios.</p></div>
+ <div class="row"><b>Controlar a for&#231;a</b><p>Na vibra&#231;&#227;o simples voc&#234; s&#243; diz "vibre por 100ms", sem escolher se o toque &#233; leve, macio ou seco.</p></div>
+ <div class="row"><b>N&#227;o atrasar o jogo</b><p>Se a vibra&#231;&#227;o sair atrasada depois que o personagem j&#225; pulou, parece que o jogo travou.</p></div>
+ <div class="row"><b>N&#227;o quebrar no navegador</b><p>Quando abrimos o app no PC para testar, chamadas nativas sem prote&#231;&#227;o costumam dar erro na tela.</p></div>
+ </div>
+ <p>D&#225; pra estudar o motor de cada fabricante. Ou d&#225; pra usar a biblioteca pronta e <span class="mk">gastar o tempo criando o jogo</span>.</p>
+ </div>
+</section>
+
+<section class="slide">
+ <div class="wrap">
+ <div class="eyebrow"><b>Parte 2</b> A ferramenta</div>
+ <h2>Biblioteca <span class="pen">Expo Haptics</span></h2>
+ <p class="lead">Um pacote oficial do Expo que a gente instala em segundos para disparar toques de <b>sele&#231;&#227;o</b>, <b>impacto</b> e <b>notifica&#231;&#227;o</b> no Android, iPhone e Web.</p>
+ <div class="cards c3">
+ <div class="card"><span class="tag">O nome</span><span class="q">"Haptics" = Tato</span><p>Vem do grego <i>haptikos</i> ("capaz de tocar"). &#201; o nome dado a toda tecnologia que conversa com o sentido do tato.</p></div>
+ <div class="card"><span class="tag">Quem fez</span><span class="q">Time oficial do Expo</span><p>Faz parte do SDK oficial do Expo. J&#225; vem pronta dentro do aplicativo Expo Go &#8212; &#233; s&#243; ler o QR Code e usar.</p></div>
+ <div class="card"><span class="tag">Por dentro</span><span class="q">Junta 3 motores em 1</span><p>Aciona o <code>Taptic Engine</code> no iOS, o <code>Vibrator</code> no Android e a <code>Web Vibration API</code> usando os mesmos comandos.</p></div>
+ </div>
+ </div>
+</section>
+
+<section class="slide">
+ <div class="wrap">
+ <div class="eyebrow"><b>Parte 2</b> Como funciona</div>
+ <h2>Funciona com <span class="mk">uma linha de c&#243;digo</span></h2>
+ <div class="grid2" style="align-items:start">
+<pre class="code"><span class="k1">import * as Haptics from 'expo-haptics';</span>
+
+<span class="k2">// 1. Trocou de op&#231;&#227;o no menu:</span>
+<span class="k2">Haptics.selectionAsync();</span>
+
+<span class="k3">// 2. Personagem pulou ou bateu:</span>
+<span class="k3">Haptics.impactAsync(</span>
+  <span class="k4">Haptics.ImpactFeedbackStyle.Heavy</span>
+<span class="k3">);</span>
+
+<span class="k5">// 3. Passou de fase ou deu Game Over:</span>
+<span class="k5">Haptics.notificationAsync(</span>
+  <span class="k5">Haptics.NotificationFeedbackType.Success</span>
+<span class="k5">);</span></pre>
+ <div class="rows legend">
+ <div class="row"><b><i class="sw" style="background:var(--pen)"></i>Roxo</b><p>Traz a biblioteca para o arquivo depois de rodar <code>npx expo install expo-haptics</code>.</p></div>
+ <div class="row"><b><i class="sw" style="background:var(--up)"></i>Verde</b><p>Faz o cliquezinho mais leve de todos, para girar roletas ou mudar abas.</p></div>
+ <div class="row"><b><i class="sw" style="background:var(--c4)"></i>Azul</b><p>Dispara uma batida f&#237;sica quando dois objetos batem ou um bot&#227;o &#233; apertado.</p></div>
+ <div class="row"><b><i class="sw" style="background:var(--c5)"></i>Laranja</b><p>Escolhe a for&#231;a da batida: <code>Light</code>, <code>Medium</code>, <code>Heavy</code>, <code>Rigid</code> ou <code>Soft</code>.</p></div>
+ <div class="row"><b><i class="sw" style="background:var(--down)"></i>Vermelho</b><p>Toca um ritmo pronto de resultado: <code>Success</code>, <code>Warning</code> ou <code>Error</code>.</p></div>
+ </div>
+ </div>
+ <p class="small"><span class="hand" style="font-size:1.4em">s&#243; 3 fun&#231;&#245;es!</span> Colocou dentro do <code>onPress</code> do bot&#227;o ou da fun&#231;&#227;o de colis&#227;o, j&#225; est&#225; funcionando.</p>
+ </div>
+</section>
+
+<section class="slide">
+ <div class="wrap">
+ <div class="eyebrow"><b>Parte 2</b> Principais recursos</div>
+ <h2>O que j&#225; vem pronto</h2>
+ <div class="cards c3">
+ <div class="card"><span class="q">Toque de sele&#231;&#227;o</span><p>Um clique discreto para quando a pessoa muda um item no menu ou seletor.</p></div>
+ <div class="card"><span class="q">5 for&#231;as de impacto</span><p>Leve, m&#233;dio, forte, seco (<i>Rigid</i>) e macio (<i>Soft</i>) para cada tipo de batida.</p></div>
+ <div class="card"><span class="q">3 avisos prontos</span><p>Ritmos diferentes para sucesso, alerta de perigo e erro.</p></div>
+ <div class="card"><span class="q">Efeitos extras no Android</span><p>A fun&#231;&#227;o <code>performAndroidHapticsAsync</code> acessa efeitos exclusivos do Android.</p></div>
+ <div class="card"><span class="q">Roda direto no Expo Go</span><p>N&#227;o precisa gerar APK nem configurar pastas nativas para testar na aula.</p></div>
+ <div class="card"><span class="q">Sem pedir permiss&#227;o</span><p>N&#227;o abre nenhuma janela interrompendo o jogador para funcionar.</p></div>
+ <div class="card"><span class="q">N&#227;o trava a tela</span><p>Roda em segundo plano (ass&#237;ncrono) sem derrubar os 60 quadros por segundo.</p></div>
+ <div class="card"><span class="q">iPhone, Android e navegador</span><p>O mesmo c&#243;digo funciona nos tr&#234;s ambientes.</p></div>
+ <div class="card"><span class="q">De gra&#231;a e oficial</span><p>Mantida pelo pr&#243;prio Expo, sem risco de ser abandonada.</p></div>
+ </div>
+ </div>
+</section>
+
+<section class="slide">
+ <div class="wrap">
+ <div class="eyebrow"><b>Parte 2</b> Limita&#231;&#245;es</div>
+ <h2>Toda ferramenta tem limite</h2>
+ <div class="rows">
+ <div class="row"><b>Emulador n&#227;o treme</b><p>No simulador do computador n&#227;o d&#225; para sentir nada. Precisa testar num celular f&#237;sico.</p></div>
+ <div class="row"><b>S&#243; faz toques curtos</b><p>N&#227;o serve para fazer o celular vibrar por 10 segundos seguidos como um despertador.</p></div>
+ <div class="row"><b>Modo silencioso bloqueia</b><p>Se o jogador desativou a vibra&#231;&#227;o nas configura&#231;&#245;es do aparelho, o celular n&#227;o vibra. Por isso o jogo tamb&#233;m precisa mostrar o efeito na tela.</p></div>
+ <div class="row"><b>Muda conforme o celular</b><p>Em celulares mais simples, os 5 n&#237;veis de impacto ficam mais parecidos entre si.</p></div>
+ <div class="row"><b>Se usar demais, cansa</b><p>Vibrar a cada segundo irrita a m&#227;o do jogador. Sempre coloque um bot&#227;o nas configura&#231;&#245;es para desligar.</p></div>
+ </div>
+ </div>
+</section>
+
+<section class="slide">
+ <div class="wrap">
+ <div class="eyebrow"><b>Parte 3</b> Ferramentas parecidas</div>
+ <h2>Lado a lado</h2>
+ <div class="tablewrap">
+ <table>
+ <thead><tr><th></th><th class="me">Expo Haptics</th><th>Vibration (React Native)</th><th>RN Haptic Feedback</th><th>Pulsar Haptics</th></tr></thead>
+ <tbody>
+ <tr><th>O que faz</th><td class="me">Toques curtos de sele&#231;&#227;o, impacto e aviso</td><td>Vibra&#231;&#227;o longa por tempo (ex: 2000ms)</td><td>Toques t&#225;teis de impacto e aviso</td><td>Curvas e ritmos t&#225;teis sob medida</td></tr>
+ <tr><th>Escolhe a for&#231;a (leve/forte)?</th><td class="me">J&#225; vem pronto (5 n&#237;veis)</td><td>N&#227;o (s&#243; escolhe o tempo)</td><td>Sim</td><td>Sim, com controle total</td></tr>
+ <tr><th>Melhor para</th><td class="me">Bot&#245;es, pulos, moedas, vit&#243;rias e erros no Expo</td><td>Alarme, cron&#244;metro ou chamada longa</td><td>Projetos antigos feitos sem Expo</td><td>Jogos grandes com efeitos complexos</td></tr>
+ <tr><th>Cuidado</th><td class="me">N&#227;o faz vibra&#231;&#245;es longas</td><td>Toque grosseiro e barulhento para bot&#245;es</td><td>Exige configura&#231;&#227;o nativa fora do Expo Go</td><td>Mais dif&#237;cil de aprender e configurar</td></tr>
+ </tbody>
+ </table>
+ </div>
+ <p class="small">N&#227;o existe a melhor. Existe a que combina com o que o jogador precisa sentir.</p>
+ </div>
+</section>
+
+<section class="slide">
+ <div class="wrap">
+ <div class="eyebrow"><b>Parte 3</b> Como escolher</div>
+ <h2>Qual voc&#234; usaria?</h2>
+ <p class="lead">Leia a situa&#231;&#227;o, responda em voz alta e depois clique para ver.</p>
+ <div class="cards c2">
+ <button class="scn" type="button"><span class="q">O jogador est&#225; girando uma roleta de pr&#234;mios ou trocando de item no invent&#225;rio.</span><span class="tap">clique para ver</span><span class="ans"><b>Haptics.selectionAsync()</b><p>&#201; o clique mais levinho de todos, feito exatamente para quando uma op&#231;&#227;o muda debaixo do dedo.</p></span></button>
+ <button class="scn" type="button"><span class="q">O personagem bateu de frente num obst&#225;culo ou levou um golpe forte do chef&#227;o.</span><span class="tap">clique para ver</span><span class="ans"><b>Haptics.impactAsync(Heavy)</b><p>Simula uma pancada f&#237;sica forte e &#250;nica no instante exato da batida.</p></span></button>
+ <button class="scn" type="button"><span class="q">O jogador passou de fase com 3 estrelas (ou o cliente acabou de enviar um Pix no app).</span><span class="tap">clique para ver</span><span class="ans"><b>Haptics.notificationAsync(Success)</b><p>Dispara os dois toques r&#225;pidos de comemora&#231;&#227;o que todo mundo reconhece na hora.</p></span></button>
+ <button class="scn" type="button"><span class="q">Um aplicativo de alarme que precisa fazer o celular tremer na mesa por 10 segundos.</span><span class="tap">clique para ver</span><span class="ans"><b>Vibration (do React Native)</b><p>O Expo Haptics s&#243; faz toques curtos. Para vibrar longo sem parar, usa-se a API Vibration.</p></span></button>
+ </div>
+ </div>
+</section>
+
+<section class="slide purple">
+ <div class="wrap">
+ <div class="eyebrow"><b>Fechamento</b></div>
+ <p class="quote">Toque bom &#233; o que faz o vidro do celular parecer <span class="mk">um bot&#227;o de verdade</span>.</p>
+ <div class="cards c3">
+ <div class="card"><span class="tag">Lembre 1</span><span class="q">A tela mostra o jogo, mas &#233; o tato que confirma a a&#231;&#227;o na m&#227;o.</span></div>
+ <div class="card"><span class="tag">Lembre 2</span><span class="q">S&#243; existem 3 fun&#231;&#245;es: sele&#231;&#227;o (leve), impacto (batida) e notifica&#231;&#227;o (sucesso ou erro).</span></div>
+ <div class="card"><span class="tag">Lembre 3</span><span class="q">Expo Haptics faz toques curtos e precisos. Para vibrar longo como alarme, use outra.</span></div>
+ </div>
+ <p class="small">Obrigado! &#183; docs.expo.dev/versions/latest/sdk/haptics</p>
+ </div>
+</section>
+
+</main>
+
+<nav class="ctrl" aria-label="Controles da apresenta&#231;&#227;o">
+ <button id="prev" type="button" aria-label="Slide anterior">&#8592;</button>
+ <span class="count" id="count">1 / 14</span>
+ <button id="next" type="button" aria-label="Pr&#243;ximo slide">&#8594;</button>
+ <span class="sp"></span>
+ <span class="timer" id="timer" title="Tempo desde o in&#237;cio">00:00</span>
+ <button id="fsBtn" type="button" class="hide-s">Tela cheia</button>
+</nav>
+
+<script>
+(function(){
+ const NS='http://www.w3.org/2000/svg';
+ const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e};
+
+ /* navegação */
+ const slides=[...document.querySelectorAll('.slide')];
+ let cur=0, started=null;
+ const count=document.getElementById('count'), prog=document.getElementById('progress');
+ function go(i){
+ cur=Math.max(0,Math.min(slides.length-1,i));
+ slides.forEach((s,k)=>{s.classList.toggle('on',k===cur);s.dataset.n=String(k+1).padStart(2,'0')+' / '+slides.length});
+ count.textContent=(cur+1)+' / '+slides.length;
+ prog.style.width=((cur+1)/slides.length*100)+'%';
+ try{history.replaceState(null,'','#s'+(cur+1))}catch(e){}
+ if(cur>0&&!started)started=Date.now();
+ }
+ const next=()=>go(cur+1), prev=()=>go(cur-1);
+ document.getElementById('next').onclick=next;
+ document.getElementById('prev').onclick=prev;
+ document.getElementById('fsBtn').onclick=()=>{try{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{})}catch(e){}};
+ document.addEventListener('keydown',e=>{
+ const k=e.key;
+ if(e.target.closest&&e.target.closest('button')&&(k===' '||k==='Enter'))return;
+ if(['ArrowRight','PageDown',' '].includes(k)){e.preventDefault();next()}
+ else if(['ArrowLeft','PageUp'].includes(k)){e.preventDefault();prev()}
+ else if(k==='f'||k==='F')document.getElementById('fsBtn').click();
+ else if(k==='Home')go(0); else if(k==='End')go(slides.length-1);
+ });
+ let tx=null,ty=null;
+ const deck=document.getElementById('deck');
+ deck.addEventListener('touchstart',e=>{if(e.target.closest('#phoneBox')){tx=null;return}tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+ deck.addEventListener('touchend',e=>{if(tx===null)return;const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5)(dx<0?next:prev)();tx=null},{passive:true});
+ setInterval(()=>{if(!started)return;const s=Math.floor((Date.now()-started)/1000);document.getElementById('timer').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')},1000);
+
+ /* slide 3: momentos da partida */
+ const moments=[
+  {lbl:'Menu',val:'Força 20%',p:20,c:'var(--muted)'},
+  {lbl:'Moeda',val:'Força 35%',p:35,c:'var(--pen)'},
+  {lbl:'Pulo',val:'Força 55%',p:55,c:'var(--pen)'},
+  {lbl:'Escudo',val:'Força 45%',p:45,c:'var(--c4)'},
+  {lbl:'Turbo',val:'Força 70%',p:70,c:'var(--c5)'},
+  {lbl:'Batida',val:'Força 95%',p:95,c:'var(--down)'},
+  {lbl:'Vitória',val:'2x (60%+90%)',p:90,c:'var(--up)'},
+  {lbl:'Game Over',val:'3x (100%)',p:100,c:'var(--down)'}
+ ];
+ const tb=document.getElementById('hapticTable');
+ moments.forEach(m=>{const d=document.createElement('div');d.innerHTML='<span>'+m.lbl+'</span><b>'+m.val+'</b>';tb.appendChild(d)});
+ (function(){
+ const svg=document.getElementById('hapticChart'),W=560,H=280,L=56,R=20,T=28,B=40;
+ const y=v=>T+(100-v)/100*(H-T-B), x=i=>L+i*(W-L-R)/(moments.length-1);
+ [0,25,50,75,100].forEach(v=>{
+  el('line',{x1:L,x2:W-R,y1:y(v),y2:y(v),class:'axis'},svg);
+  const t=el('text',{x:L-8,y:y(v)+4,'text-anchor':'end','font-size':11},svg);
+  t.textContent=v+'%';
+ });
+ moments.forEach((m,i)=>{
+  const cx=x(i), topY=y(m.p), base=y(0);
+  const t=el('text',{x:cx,y:H-12,'text-anchor':'middle','font-size':11},svg);
+  t.textContent=m.lbl;
+  if(m.lbl==='Vitória'){
+   el('rect',{x:cx-14,y:y(60),width:11,height:base-y(60),rx:3,style:'fill:var(--up)'},svg);
+   el('rect',{x:cx+2,y:topY,width:11,height:base-topY,rx:3,style:'fill:var(--up)'},svg);
+  } else if(m.lbl==='Game Over'){
+   [-15,-3,9].forEach((dx,k)=>{
+    const hVal=k<2?100:80;
+    el('rect',{x:cx+dx,y:y(hVal),width:9,height:base-y(hVal),rx:2,style:'fill:var(--down)'},svg);
+   });
+  } else {
+   el('rect',{x:cx-10,y:topY,width:20,height:base-topY,rx:4,style:'fill:'+m.c},svg);
+  }
+ });
+ const note=el('text',{x:W-R,y:18,'text-anchor':'end','font-size':12,style:'fill:var(--ink);font-weight:600'},svg);
+ note.textContent='Altura = força · Barras = número de toques';
+ })();
+ const wrapH=document.getElementById('hapticChartWrap');
+ let showingH=false;
+ document.getElementById('hapticBtn').addEventListener('click',function(){
+ showingH=!showingH;
+ wrapH.hidden=!showingH;
+ tb.hidden=showingH;
+ this.textContent=showingH?'Voltar para a tabela':'Mostrar como onda tátil';
+ document.getElementById('hapticMsg').innerHTML=showingH?'<b>A informação é a mesma.</b> Mas agora dá para ver na hora quem é leve, forte ou repetido.':'Tempos e intensidades reais usados em jogos mobile.';
+ });
+
+ /* slide 5: vibração antiga vs pulso haptic */
+ (function(){
+ const svg=document.getElementById('pulseSvg');
+ const mid=175;
+ el('line',{x1:24,x2:616,y1:mid,y2:mid,style:'stroke:var(--rule)','stroke-dasharray':'4 5'},svg);
+ const t0=el('text',{x:165,y:28,'font-size':13,'text-anchor':'middle',style:'fill:var(--muted);font-weight:600'},svg);
+ t0.textContent='vibração antiga (400ms)';
+ const t1=el('text',{x:485,y:28,'font-size':13,'text-anchor':'middle',style:'fill:var(--pen);font-weight:600'},svg);
+ t1.textContent='pulso Haptic (15ms)';
+ let dOld='M 30 '+mid;
+ for(let i=0;i<=44;i++){
+  const px=30+i*6.2;
+  const env=Math.sin(Math.PI*(i/44))*88;
+  const py=mid+(i%2===0?-1:1)*env;
+  dOld+=' L '+px.toFixed(1)+' '+py.toFixed(1);
+ }
+ el('path',{d:dOld,fill:'none',style:'stroke:var(--down);stroke-width:3;stroke-linejoin:round'},svg);
+ const lbOld1=el('text',{x:165,y:296,'font-size':12,'text-anchor':'middle'},svg);
+ lbOld1.textContent='demora para ligar e continua tremendo';
+
+ const ar=el('text',{x:338,y:mid+10,'font-size':32,'text-anchor':'middle',style:'fill:var(--pen)'},svg);
+ ar.textContent='→';
+
+ const dNew='M 380 '+mid+' L 445 '+mid+' L 455 58 L 470 282 L 482 140 L 490 '+mid+' L 600 '+mid;
+ el('path',{d:dNew,fill:'none',style:'stroke:var(--up);stroke-width:4.5;stroke-linecap:round;stroke-linejoin:round'},svg);
+ el('circle',{cx:455,cy:58,r:6,style:'fill:var(--card);stroke:var(--up);stroke-width:3'},svg);
+ const lbPeak=el('text',{x:462,y:44,'font-size':12,style:'fill:var(--ink);font-weight:600'},svg);
+ lbPeak.textContent='clique seco (15ms)';
+ const lbStop=el('text',{x:545,y:mid-12,'font-size':12,'text-anchor':'middle',style:'fill:var(--up);font-weight:600'},svg);
+ lbStop.textContent='para na hora';
+ const lbNew1=el('text',{x:485,y:296,'font-size':12,'text-anchor':'middle'},svg);
+ lbNew1.textContent='parece um botão físico de verdade';
+ })();
+
+ /* slide 6: simulador no celular */
+ (function(){
+ const presets=[
+  {label:'Menu',title:'Trocar Opção',call:'Haptics.selectionAsync() · 8ms',color:'var(--c4)',vib:[10],pts:[[0,0],[35,0],[42,-32],[48,24],[54,0],[100,0]]},
+  {label:'Moeda',title:'Pegar Moeda',call:'Haptics.impactAsync(Light) · 15ms',color:'var(--pen)',vib:[18],pts:[[0,0],[30,0],[38,-55],[46,45],[54,-18],[60,0],[100,0]]},
+  {label:'Pulo',title:'Pulo Duplo',call:'Haptics.impactAsync(Medium) · 22ms',color:'var(--pen)',vib:[28],pts:[[0,0],[28,0],[36,-76],[45,64],[54,-28],[62,0],[100,0]]},
+  {label:'Batida',title:'Bater no Muro',call:'Haptics.impactAsync(Heavy) · 35ms',color:'var(--c5)',vib:[50],pts:[[0,0],[22,0],[30,-96],[40,92],[50,-60],[60,35],[68,0],[100,0]]},
+  {label:'Vitória!',title:'Passou de Fase!',call:'Haptics.notificationAsync(Success)',color:'var(--up)',vib:[20,50,35],pts:[[0,0],[18,0],[25,-60],[32,50],[38,0],[54,0],[62,-95],[70,85],[78,-30],[84,0],[100,0]]},
+  {label:'Game Over',title:'Game Over',call:'Haptics.notificationAsync(Error)',color:'var(--down)',vib:[45,40,45,40,65],pts:[[0,0],[10,0],[16,-90],[22,85],[28,0],[38,0],[44,-90],[50,85],[56,0],[66,0],[73,-98],[81,92],[88,-40],[94,0],[100,0]]}
+ ];
+ const svg=document.getElementById('simSvg'),W=380,H=155,mid=H/2;
+ el('line',{x1:10,x2:W-10,y1:mid,y2:mid,style:'stroke:var(--grid);stroke-width:1.5'},svg);
+ const wave=el('polyline',{class:'ln',points:''},svg);
+ const dot=el('circle',{r:6,cx:W/2,cy:mid,style:'fill:var(--pen);stroke:var(--card);stroke-width:2.5'},svg);
+ const hName=document.getElementById('hName'),hCall=document.getElementById('hCall'),phoneBox=document.getElementById('phoneBox'),btnWrap=document.getElementById('simBtns');
+
+ function renderPreset(idx,animate){
+  const p=presets[idx];
+  hName.textContent=p.title;
+  hCall.textContent=p.call;
+  wave.setAttribute('style','stroke:'+p.color+';stroke-width:4');
+  dot.setAttribute('style','fill:'+p.color+';stroke:var(--card);stroke-width:2.5');
+  const poly=p.pts.map(([px,py])=>{
+   const x=14+(px/100)*(W-28);
+   const y=mid+(py/100)*(H*0.42);
+   return x.toFixed(1)+','+y.toFixed(1);
+  }).join(' ');
+  wave.setAttribute('points',poly);
+  const peak=p.pts.reduce((a,b)=>Math.abs(b[1])>Math.abs(a[1])?b:a,p.pts[0]);
+  dot.setAttribute('cx',(14+(peak[0]/100)*(W-28)).toFixed(1));
+  dot.setAttribute('cy',(mid+(peak[1]/100)*(H*0.42)).toFixed(1));
+  [...btnWrap.children].forEach((b,k)=>b.classList.toggle('active',k===idx));
+  if(animate){
+   phoneBox.classList.add('shake');
+   setTimeout(()=>phoneBox.classList.remove('shake'),140);
+   try{if(navigator.vibrate)navigator.vibrate(p.vib)}catch(e){}
+  }
+ }
+
+ presets.forEach((p,idx)=>{
+  const b=document.createElement('button');
+  b.type='button';
+  b.className='sim-btn';
+  b.textContent=p.label;
+  b.onclick=()=>renderPreset(idx,true);
+  btnWrap.appendChild(b);
+ });
+ renderPreset(1,false);
+ })();
+
+ /* slide 13 */
+ document.querySelectorAll('.scn').forEach(b=>b.addEventListener('click',()=>b.classList.toggle('open')));
+
+ const m=(location.hash||'').match(/^#s(\d+)$/);
+ go(m?parseInt(m[1],10)-1:0);
+})();
+</script>
+</body>
+</html>
