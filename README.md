@@ -11,22 +11,16 @@ Prof. Renan Cavichi
 Exemplo:
 - Gifted Charts (Leticia Pacheco Cabral [@leticia-pachecoo](https://github.com/leticia-pachecoo))
 - NativeWind (Muriel Roseo [@mauricioRoseo](https://github.com/MauricioRoseo))
-- Motion Frame ([Vitor Ramos Menezes](https://github.com/Vitorram))
+- React Native Maps ([Vitor Ramos Menezes](https://github.com/Vitorram))
 - Maestro ([Robert Cortez Rudi](https://github.com/Robert-Cortez-Rudi))
 - Local Storages ([Tulio Yoshimura](https://github.com/tuliokenji))
 - Reanimated ([Rafael Tomaz](https://github.com/RafaelTomazzz))
 - Victory Native ([Arthur de Morais](https://github.com/ArthurTiso))
-<<<<<<< HEAD
 - Tamagui ([Emerson Silva](https://github.com/emersonsoasilva))
-=======
 - Moti ([Kauan Edson Leonel Lira](https://github.com/KauanLeonel/seminario-moti))
-<<<<<<< HEAD
->>>>>>> 4f08445782e15722873cf47ab115a16af6001cb4
-=======
 - Size-matters ([Kevin Abmael Gomes da Silva](https://github.com/kevin4bmael/apresenta--o-size-matters))
->>>>>>> 0b9e19aa89f07721b92056b3662e49d76ff07065
+- Authenticação com Biometria ([Lucas Alves](https://github.com/Luskahz), [Apresentação](https://github.com/renancavichi/seminarios-react-native-ads-2026-2/tree/main/authenticacao-biometria))
 - AI SDK Expo (Angelo Gabriel M.G de Souza [@AngeloTPK](https://github.com/AngeloTPK))
-
 ##### Orientações
 
 - Criar uma pasta na raiz com o nome do tópico apresentado pelo grupo, Ex: React Hook Form
