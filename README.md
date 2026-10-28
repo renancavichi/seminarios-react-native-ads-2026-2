@@ -25,6 +25,7 @@ Exemplo:
 =======
 - Size-matters ([Kevin Abmael Gomes da Silva](https://github.com/kevin4bmael/apresenta--o-size-matters))
 >>>>>>> 0b9e19aa89f07721b92056b3662e49d76ff07065
+- AI SDK Expo (Angelo Gabriel M.G de Souza [@AngeloTPK](https://github.com/AngeloTPK))
 
 ##### Orientações
 
