@@ -20,7 +20,7 @@ Exemplo:
 - Moti ([Kauan Edson Leonel Lira](https://github.com/KauanLeonel/seminario-moti))
 - Size-matters ([Kevin Abmael Gomes da Silva](https://github.com/kevin4bmael/apresenta--o-size-matters))
 - Authenticação com Biometria ([Lucas Alves](https://github.com/Luskahz), [Apresentação](https://github.com/renancavichi/seminarios-react-native-ads-2026-2/tree/main/authenticacao-biometria))
-- AI SDK Expo ([@Angelo Gabriel M.G de Souza](https://github.com/AngeloTPK))
+- AI SDK Expo ([Angelo Gabriel M.G de Souza](https://github.com/AngeloTPK))
 ##### Orientações
 
 - Criar uma pasta na raiz com o nome do tópico apresentado pelo grupo, Ex: React Hook Form
