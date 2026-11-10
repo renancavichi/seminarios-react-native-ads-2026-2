@@ -23,6 +23,7 @@ Exemplo:
 - AI SDK Expo ([Angelo Gabriel M.G de Souza](https://github.com/AngeloTPK))
 - Expo Haptics (Vinícius Garcia [@vinikyo](https://github.com/vinikyo))
 - React Native Testing Library (David Rocha Alves[@deiivaum](https://github.com/deiivaum))
+- Login Social (Google, GitHub, Apple, LinkedIn e Facebook) ([Hyan Ferreira](https://github.com/HyanFerreira), [Apresentação](login-social-apresentacao-web/))
 ##### Orientações
 
 - Criar uma pasta na raiz com o nome do tópico apresentado pelo grupo, Ex: React Hook Form
