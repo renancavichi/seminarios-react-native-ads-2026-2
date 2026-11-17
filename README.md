@@ -10,6 +10,7 @@ Prof. Renan Cavichi
 
 Exemplo:
 - Gifted Charts (Leticia Pacheco Cabral [@leticia-pachecoo](https://github.com/leticia-pachecoo))
+- Expo Sensors [@jgabrielfbb](https://github.com/joaogabrielbeserra))
 - NativeWind (Muriel Roseo [@mauricioRoseo](https://github.com/MauricioRoseo))
 - React Native Maps ([Vitor Ramos Menezes](https://github.com/Vitorram))
 - Maestro ([Robert Cortez Rudi](https://github.com/Robert-Cortez-Rudi))
