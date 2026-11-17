@@ -5,10 +5,8 @@ Prof. Renan Cavichi
 
 ### Apresentações
 
-
-
-
 Exemplo:
+
 - Gifted Charts (Leticia Pacheco Cabral [@leticia-pachecoo](https://github.com/leticia-pachecoo))
 - Expo Sensors [@jgabrielfbb](https://github.com/joaogabrielbeserra))
 - NativeWind (Muriel Roseo [@mauricioRoseo](https://github.com/MauricioRoseo))
@@ -26,6 +24,8 @@ Exemplo:
 - React Native Testing Library (David Rocha Alves[@deiivaum](https://github.com/deiivaum))
 - Login Social (Google, GitHub, Apple, LinkedIn e Facebook) ([Hyan Ferreira](https://github.com/HyanFerreira), [Apresentação](login-social-apresentacao-web/))
 - Expo Audio (Luan Ibanhez [@luaniban](https://github.com/luaniban), [Apresentação](expo-audio/))
+- Map Libre (Eduarda Luiz [@edualnd](https://github.com/edualnd), [Apresentação](Map-libre-App/))
+
 ##### Orientações
 
 - Criar uma pasta na raiz com o nome do tópico apresentado pelo grupo, Ex: React Hook Form
