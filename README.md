@@ -25,6 +25,7 @@ Exemplo:
 - Login Social (Google, GitHub, Apple, LinkedIn e Facebook) ([Hyan Ferreira](https://github.com/HyanFerreira), [Apresentação](login-social-apresentacao-web/))
 - Expo Audio (Luan Ibanhez [@luaniban](https://github.com/luaniban), [Apresentação](expo-audio/))
 - Map Libre (Eduarda Luiz [@edualnd](https://github.com/edualnd), [Apresentação](Map-libre-App/))
+- Expo UI (Thiago Cruz Carvalho [@carvalhoTG], (https://github.com/carvalhoTG))
 
 ##### Orientações
 
