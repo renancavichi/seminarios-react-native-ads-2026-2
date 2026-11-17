@@ -1,0 +1,15 @@
+# Para hospedagem com Apache: o Sonora web é uma página única (SPA).
+# Este arquivo vai junto no build (npx expo export -p web copia a pasta public/).
+# Em nginx, a regra equivalente é: try_files $uri $uri/ /index.html;
+
+RewriteEngine On
+
+# HTTPS obrigatório: o navegador só libera o microfone em site seguro.
+RewriteCond %{HTTPS} off
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Qualquer endereço que não seja um arquivo de verdade (/slides, /player,
+# /recorder...) abre o index.html, e o Expo Router mostra a tela certa.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.html [L]
