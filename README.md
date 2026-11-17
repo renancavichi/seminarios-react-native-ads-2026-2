@@ -20,6 +20,7 @@ Exemplo:
 - Size-matters ([Kevin Abmael Gomes da Silva](https://github.com/kevin4bmael/apresenta--o-size-matters))
 - Authenticação com Biometria ([Lucas Alves](https://github.com/Luskahz), [Apresentação](https://github.com/renancavichi/seminarios-react-native-ads-2026-2/tree/main/authenticacao-biometria))
 - AI SDK Expo ([Angelo Gabriel M.G de Souza](https://github.com/AngeloTPK))
+- Wagmi Charts ([Vitor de Oliveira](https://github.com/vitinzor2))
 - Expo Haptics (Vinícius Garcia [@vinikyo](https://github.com/vinikyo))
 - React Native Testing Library (David Rocha Alves[@deiivaum](https://github.com/deiivaum))
 - Login Social (Google, GitHub, Apple, LinkedIn e Facebook) ([Hyan Ferreira](https://github.com/HyanFerreira), [Apresentação](login-social-apresentacao-web/))
