@@ -27,6 +27,7 @@ Exemplo:
 - Expo Audio (Luan Ibanhez [@luaniban](https://github.com/luaniban), [Apresentação](expo-audio/))
 - Map Libre (Eduarda Luiz [@edualnd](https://github.com/edualnd), [Apresentação](Map-libre-App/))
 - Expo UI (Thiago Cruz Carvalho [@carvalhoTG](https://github.com/carvalhoTG))
+- Assinatura Digital (react-native-signature-canvas) (Matheus Manfredini [@matheusmanfredinii](https://github.com/matheusmanfredinii), [Apresentação](assinatura-digital/))
 
 ##### Orientações
 
