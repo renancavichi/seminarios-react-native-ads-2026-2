@@ -1,6 +1,6 @@
 # 📦 React Native Storages - Apresentação
 
-Uma apresentação web interativa sobre as soluções de armazenamento no React Native, abordando **AsyncStorage**, **MMKV**, **Expo SecureStore** e a integração com **Zustand** para gerenciamento de estado persistente.
+Uma apresentação web interativa sobre as soluções de armazenamento no React Native, abordando **AsyncStorage**, **MMKV**, **Expo SecureStore**, **Expo SQLite** e a integração com **Zustand** para gerenciamento de estado persistente.
 
 ![React](https://img.shields.io/badge/React-18.2-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)
@@ -16,8 +16,27 @@ Este projeto é uma apresentação técnica em formato de slides que cobre:
 - **AsyncStorage** — O storage padrão do React Native
 - **MMKV** — Storage ultra-rápido criado pelo Tencent (WeChat)
 - **Expo SecureStore** — Armazenamento criptografado para dados sensíveis
+- **Expo SQLite** — Banco de dados relacional local com suporte a SQL e ACID
 - **Zustand** — State management com persistência integrada
 - **Benchmarks** — Comparação de performance entre as soluções
+
+---
+
+## 📑 Resumo da apresentação
+
+A apresentação começa com o contexto geral de armazenamento local em aplicativos React Native e introduz os principais cenários de uso: persistir preferências, manter sessões, proteger credenciais e armazenar grandes volumes de dados estruturados.
+
+1. **MMKV** apresenta uma solução C++ de alta performance baseada em `mmap`, escrita atômica com `msync` e comunicação direta pela arquitetura JSI/NitroModules. Os slides mostram sua API síncrona, suporte a diferentes tipos, criptografia opcional, Hooks e integração com componentes da interface.
+
+2. **Expo SecureStore** explica como dados sensíveis são armazenados no hardware seguro da plataforma, por meio do Keychain no iOS e do Keystore no Android. Também aborda o tamanho limitado dos itens, o acesso assíncrono, a autenticação biométrica e o fluxo arquitetural das chamadas nativas.
+
+3. **Expo SQLite** apresenta um banco relacional embutido com propriedades ACID, transações, consultas SQL, `WAL` e `Prepared Statements`. A arquitetura utiliza JSI para comunicação direta com o motor C++, enquanto operações assíncronas evitam bloquear a thread principal e operações síncronas pesadas podem afetar os FPS.
+
+4. **Zustand** demonstra como separar o estado da aplicação da persistência local. A apresentação mostra adaptadores para MMKV, AsyncStorage, SecureStore e SQLite, explicando hidratação, armazenamento em memória RAM e gravação em segundo plano.
+
+5. **Comparação e escolha técnica:** MMKV é indicado para preferências e estado não sensível com acesso rápido; SecureStore é a opção adequada para tokens e credenciais; SQLite atende dados relacionais, buscas e grandes volumes; AsyncStorage continua sendo uma API simples, porém mais lenta por depender da Bridge antiga; o Zustand organiza o estado e delega a persistência a um dos storages anteriores.
+
+Ao final, os slides apresentam os casos de uso recomendados, uma tabela comparativa e as referências utilizadas na pesquisa.
 
 ---
 
