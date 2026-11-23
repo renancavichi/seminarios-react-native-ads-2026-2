@@ -2,8 +2,9 @@
 
 Aplicativo prático de **Crachá Digital do IFSP** desenvolvido para demonstrar o uso da biblioteca oficial **`expo-image-picker`** no React Native com Expo.
 
-- **Aluna:** Maíra Kobayashi (`CG3034623`)
+- **Aluna:** Maíra Kobayashi
 - **Curso:** Análise e Desenvolvimento de Sistemas (ADS) — IFSP Câmpus Caraguatatuba
+- **Slides da Apresentação:** [Acessar no Google Apresentações](https://docs.google.com/presentation/d/16NuoSSNd38178k3-bP4yFWixkh6S_ID7xPS8gdxU7kg/edit?usp=sharing)
 - **Documentação Oficial de Referência:** [Expo ImagePicker Docs](https://docs.expo.dev/versions/latest/sdk/imagepicker/)
 
 ---
