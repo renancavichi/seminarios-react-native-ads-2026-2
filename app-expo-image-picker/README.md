@@ -1,4 +1,4 @@
-# 📸 Seminário React Native — Expo Image Picker
+# 📸 Seminário React Native — Expo ImagePicker
 
 Aplicativo prático de **Crachá Digital do IFSP** desenvolvido para demonstrar o uso da biblioteca oficial **`expo-image-picker`** no React Native com Expo.
 
