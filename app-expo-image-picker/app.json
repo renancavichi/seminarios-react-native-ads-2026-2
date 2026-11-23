@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "app-expo-image-picker",
+    "slug": "app-expo-image-picker",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "app-expo-image-picker",
+    "plugins": [
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Permita que o aplicativo acesse sua câmera para tirar a foto da credencial.",
+          "microphonePermission": false
+        }
+      ],
+      "expo-font"
+    ]
+  }
+}

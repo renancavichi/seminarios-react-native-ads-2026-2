@@ -28,6 +28,7 @@ Exemplo:
 - Map Libre (Eduarda Luiz [@edualnd](https://github.com/edualnd), [Apresentação](Map-libre-App/))
 - Expo UI (Thiago Cruz Carvalho [@carvalhoTG](https://github.com/carvalhoTG))
 - Assinatura Digital (react-native-signature-canvas) (Matheus Manfredini [@matheusmanfredinii](https://github.com/matheusmanfredinii), [Apresentação](assinatura-digital/))
+- Expo ImagePicker (Maíra Kobayashi [@mairakobay](https://github.com/mairakobay), [Apresentação](app-expo-image-picker/))
 
 ##### Orientações
 
