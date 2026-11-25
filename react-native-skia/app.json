@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "Avengers: Doomsday (2026) - Skia Interactive",
+    "slug": "avengers-skia-poster",
+    "version": "2.0.0",
+    "orientation": "landscape",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true,
+      "requireFullScreen": true,
+      "infoPlist": {
+        "NSMotionUsageDescription": "O giroscópio é usado para inclinar os emblemas 3D e reagir ao movimento do celular em tempo real."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#010503",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
+    "updates": {
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/efa9f1ec-caf7-4ec6-994a-e936469776de"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "efa9f1ec-caf7-4ec6-994a-e936469776de"
+      }
+    },
+    "owner": "niickcodes"
+  }
+}

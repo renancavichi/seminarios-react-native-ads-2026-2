@@ -1,0 +1,3792 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>React Native Skia: O Poder da GPU no Mobile</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            pastel: {
+              cyan: '#7dd3fc',
+              mint: '#86efac',
+              lavender: '#c4b5fd',
+              peach: '#fda4af',
+              butter: '#fde68a',
+            },
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    html,
+    body,
+    #root {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #eef2ff 0%, #f5f3ff 38%, #ecfeff 72%, #f0fdf4 100%);
+      color: #0f172a;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .bg-pastel-tech {
+      background:
+        radial-gradient(circle at 15% 20%, rgba(125, 211, 252, 0.35) 0%, transparent 45%),
+        radial-gradient(circle at 85% 25%, rgba(196, 181, 253, 0.38) 0%, transparent 45%),
+        radial-gradient(circle at 75% 85%, rgba(134, 239, 172, 0.32) 0%, transparent 45%),
+        radial-gradient(circle at 20% 80%, rgba(253, 164, 175, 0.25) 0%, transparent 40%),
+        linear-gradient(135deg, #eef2ff 0%, #f5f3ff 38%, #ecfeff 72%, #f0fdf4 100%);
+    }
+
+    .bg-pastel-dots {
+      background-image: radial-gradient(rgba(99, 102, 241, 0.16) 1.25px, transparent 1.25px);
+      background-size: 28px 28px;
+    }
+
+    .glass-pastel {
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(167, 139, 250, 0.35);
+      box-shadow: 0 12px 36px rgba(99, 102, 241, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    }
+
+    .glass-pastel-mint {
+      background: rgba(240, 253, 244, 0.78);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(52, 211, 153, 0.4);
+      box-shadow: 0 12px 36px rgba(16, 185, 129, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    }
+
+    .glass-pastel-cyan {
+      background: rgba(240, 249, 255, 0.78);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      box-shadow: 0 12px 36px rgba(14, 165, 233, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    }
+
+    @keyframes floatSlow {
+
+      0%,
+      100% {
+        transform: translate(0px, 0px) scale(1);
+      }
+
+      50% {
+        transform: translate(14px, -18px) scale(1.04);
+      }
+    }
+
+    .aurora-blob {
+      animation: floatSlow 12s ease-in-out infinite;
+    }
+
+    @keyframes slideEnter {
+      from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.99);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .slide-enter {
+      animation: slideEnter 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes phoneVibrate {
+
+      0%,
+      100% {
+        transform: translate(0, 0) rotate(0deg);
+      }
+
+      15% {
+        transform: translate(-3px, 1px) rotate(-0.8deg);
+      }
+
+      30% {
+        transform: translate(3px, -1px) rotate(0.8deg);
+      }
+
+      45% {
+        transform: translate(-3px, -1px) rotate(-0.6deg);
+      }
+
+      60% {
+        transform: translate(3px, 1px) rotate(0.6deg);
+      }
+
+      75% {
+        transform: translate(-2px, 1px) rotate(-0.4deg);
+      }
+
+      90% {
+        transform: translate(2px, -1px) rotate(0.4deg);
+      }
+    }
+
+    .phone-vibrate {
+      animation: phoneVibrate 0.32s ease-in-out;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(226, 232, 240, 0.5);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(139, 92, 246, 0.35);
+      border-radius: 3px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useCallback } = React;
+
+    // --- Crisp SVG Icons ---
+    const Icon = ({ name, className = "w-6 h-6" }) => {
+      const icons = {
+        gpu: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <rect x="4" y="4" width="16" height="16" rx="3" />
+            <rect x="9" y="9" width="6" height="6" rx="1" />
+            <path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3" />
+          </svg>
+        ),
+        layers: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <polygon points="12 2 2 7 12 12 22 7 12 2" />
+            <polyline points="2 17 12 22 22 17" />
+            <polyline points="2 12 12 17 22 12" />
+          </svg>
+        ),
+        sparkles: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <path d="M12 3l1.9 5.8a2 2 0 001.3 1.3L21 12l-5.8 1.9a2 2 0 00-1.3 1.3L12 21l-1.9-5.8a2 2 0 00-1.3-1.3L3 12l5.8-1.9a2 2 0 001.3-1.3L12 3z" />
+          </svg>
+        ),
+        alert: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+        ),
+        code: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <polyline points="16 18 22 12 16 6" />
+            <polyline points="8 6 2 12 8 18" />
+          </svg>
+        ),
+        font: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <polyline points="4 7 4 4 20 4 20 7" />
+            <line x1="9" y1="20" x2="15" y2="20" />
+            <line x1="12" y1="4" x2="12" y2="20" />
+          </svg>
+        ),
+        cpu: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <rect x="6" y="6" width="12" height="12" rx="2" />
+            <path d="M10 2v4M14 2v4M10 18v4M14 18v4M2 10h4M2 14h4M18 10h4M18 14h4" />
+          </svg>
+        ),
+        zap: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+          </svg>
+        ),
+        smartphone: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+            <line x1="12" y1="18" x2="12.01" y2="18" />
+          </svg>
+        ),
+        check: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        ),
+        x: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        ),
+        help: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <circle cx="12" cy="12" r="10" />
+            <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+        ),
+        arrowLeft: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        ),
+        arrowRight: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        ),
+        maximize: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" />
+          </svg>
+        ),
+        grid: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <rect x="3" y="3" width="7" height="7" rx="1.5" />
+            <rect x="14" y="3" width="7" height="7" rx="1.5" />
+            <rect x="14" y="14" width="7" height="7" rx="1.5" />
+            <rect x="3" y="14" width="7" height="7" rx="1.5" />
+          </svg>
+        ),
+        copy: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+          </svg>
+        ),
+      };
+      return icons[name] || null;
+    };
+
+    // --- Code Block (Crisp Dark Editor Contrast on Pastel Background) ---
+    const CodeBlock = ({ code, title = "App.tsx", lang = "tsx" }) => {
+      const [copied, setCopied] = useState(false);
+
+      const handleCopy = (e) => {
+        e.stopPropagation();
+        navigator.clipboard?.writeText(code.trim());
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1800);
+      };
+
+      const highlightLine = (line) => {
+        if (lang === "bash") {
+          return line.split(/(\s+)/).map((part, i) => {
+            if (/^(npx|expo|install|run:ios|run:android|start)$/.test(part)) {
+              return <span key={i} className="text-pastel-cyan font-semibold">{part}</span>;
+            }
+            if (part.startsWith("@") || part.startsWith("--")) {
+              return <span key={i} className="text-pastel-mint">{part}</span>;
+            }
+            if (part.startsWith("#")) {
+              return <span key={i} className="text-slate-400 italic">{part}</span>;
+            }
+            return <span key={i} className="text-slate-100">{part}</span>;
+          });
+        }
+
+        const tokenRegex = /(\/\/.*$|'(?:\\.|[^'])*'|"(?:\\.|[^"])*"|\b(?:import|from|export|default|const|return|function|require|if)\b|<\/?[A-Za-z0-9_]+|\/>|>|\b(?:useFont|useSharedValue|withRepeat|withTiming|useEffect|Canvas|Circle|Group|BackdropBlur|Blur|Shadow|BlurMask|Shader|Path|Points|LinearGradient|Text|Fill|RoundedRect|GestureDetector|CartesianChart|Line)\b|\b\d+(?:\.\d+)?\b)/g;
+        const parts = [];
+        let lastIndex = 0;
+        let match;
+
+        while ((match = tokenRegex.exec(line)) !== null) {
+          if (match.index > lastIndex) {
+            parts.push(<span key={`t-${lastIndex}`} className="text-slate-100">{line.slice(lastIndex, match.index)}</span>);
+          }
+          const token = match[0];
+          let cls = "text-slate-100";
+          if (token.startsWith("//")) cls = "text-slate-400 italic";
+          else if (token.startsWith("'") || token.startsWith('"')) cls = "text-pastel-mint";
+          else if (/^(import|from|export|default|const|return|function|require|if)$/.test(token)) cls = "text-pastel-lavender font-medium";
+          else if (token.startsWith("<") || token === "/>" || token === ">") cls = "text-pastel-cyan font-semibold";
+          else if (/^(useFont|useSharedValue|withRepeat|withTiming|useEffect|Canvas|Circle|Group|BackdropBlur|Blur|Shadow|BlurMask|Shader|Path|Points|LinearGradient|Text|Fill|RoundedRect|GestureDetector|CartesianChart|Line)$/.test(token)) cls = "text-pastel-butter";
+          else if (/^\d/.test(token)) cls = "text-pastel-peach";
+
+          parts.push(<span key={`m-${match.index}`} className={cls}>{token}</span>);
+          lastIndex = tokenRegex.lastIndex;
+        }
+        if (lastIndex < line.length) {
+          parts.push(<span key={`e-${lastIndex}`} className="text-slate-100">{line.slice(lastIndex)}</span>);
+        }
+        return parts;
+      };
+
+      const lines = code.trim().split("\n");
+
+      return (
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="rounded-2xl overflow-hidden border border-indigo-200 bg-[#131a2b] shadow-xl text-left select-text cursor-text"
+        >
+          <div className="flex items-center justify-between px-4 py-2.5 bg-[#1b243b] border-b border-slate-700/70">
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-pastel-peach"></span>
+              <span className="w-3 h-3 rounded-full bg-pastel-butter"></span>
+              <span className="w-3 h-3 rounded-full bg-pastel-mint"></span>
+              <span className="ml-2 text-xs font-mono text-slate-300">{title}</span>
+            </div>
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="flex items-center gap-1.5 text-xs font-mono px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-pastel-cyan transition cursor-pointer"
+            >
+              <Icon name={copied ? "check" : "copy"} className="w-3.5 h-3.5" />
+              <span>{copied ? "Copiado!" : "Copiar"}</span>
+            </button>
+          </div>
+          <pre className="p-3.5 md:p-4 overflow-x-auto whitespace-pre-wrap break-words font-mono text-xs sm:text-[13px] leading-relaxed">
+            {lines.map((line, idx) => (
+              <div key={idx} className="flex">
+                <span className="w-7 shrink-0 text-slate-500 select-none text-right pr-3 text-xs leading-6">{idx + 1}</span>
+                <code className="flex-1 min-w-0 whitespace-pre-wrap break-words">{highlightLine(line)}</code>
+              </div>
+            ))}
+          </pre>
+        </div>
+      );
+    };
+
+    // --- Mobile Smartphone Mockup Frame (Full Portrait Phone) ---
+    const PhoneMockup = ({ title = "Skia Demo", subtitle = "React Native • GPU", vibrating = false, children }) => (
+      <div className={`relative mx-auto w-[258px] h-[465px] rounded-[40px] bg-gradient-to-b from-slate-700 via-slate-800 to-slate-900 p-[9px] shadow-2xl border border-slate-600/80 shrink-0 transition-shadow ${vibrating ? "phone-vibrate ring-4 ring-pastel-mint/50" : ""}`}>
+        {/* Side Hardware Buttons */}
+        <div className="absolute -left-[3px] top-24 w-[3px] h-8 bg-slate-600 rounded-l" />
+        <div className="absolute -left-[3px] top-36 w-[3px] h-12 bg-slate-600 rounded-l" />
+        <div className="absolute -right-[3px] top-28 w-[3px] h-14 bg-slate-600 rounded-r" />
+
+        <div className="w-full h-full rounded-[32px] overflow-hidden bg-[#0b101d] border border-slate-700/60 flex flex-col justify-between">
+          {/* Status Bar + Dynamic Island */}
+          <div className="flex items-center justify-between px-5 pt-2.5 pb-1.5 bg-[#090d18] text-[10px] font-mono text-slate-300 shrink-0">
+            <span className="font-semibold">9:41</span>
+            <div className="w-20 h-4 rounded-full bg-black border border-slate-800 flex items-center justify-end pr-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-sky-400/80"></span>
+            </div>
+            <span className="text-pastel-mint">5G</span>
+          </div>
+
+          {/* Mobile App Header */}
+          <div className="px-4 py-2 border-b border-slate-800/80 flex items-center justify-between shrink-0">
+            <div>
+              <div className="text-xs font-bold text-white leading-tight">{title}</div>
+              <div className="text-[10px] font-mono text-pastel-cyan">{subtitle}</div>
+            </div>
+            <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-[9px] font-mono text-pastel-mint">
+              60 FPS
+            </span>
+          </div>
+
+          {/* Main Interactive App Body */}
+          <div className="flex-1 p-3 flex flex-col justify-center gap-3 overflow-hidden">
+            {children}
+            <div className="rounded-xl bg-slate-900/90 border border-slate-800 p-2.5 text-[10px] font-mono text-slate-400 space-y-1">
+              <div className="flex justify-between">
+                <span>Engine:</span>
+                <span className="text-pastel-lavender">Skia Native</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Thread:</span>
+                <span className="text-pastel-mint">GPU (Metal/Vulkan)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile Bottom Tab Bar + Home Indicator */}
+          <div className="bg-[#090d18] border-t border-slate-800/80 px-5 pt-2 pb-1.5 shrink-0">
+            <div className="flex items-center justify-around text-[9px] font-mono text-slate-500 mb-2">
+              <span className="text-pastel-cyan font-bold">● Demo</span>
+              <span>○ Shaders</span>
+              <span>○ Config</span>
+            </div>
+            <div className="w-24 h-1 rounded-full bg-slate-600/80 mx-auto" />
+          </div>
+        </div>
+      </div>
+    );
+
+    // --- Interactive Cover Background Particles (Pastel on Light) ---
+    const CoverCanvas = () => {
+      const ref = useRef(null);
+      useEffect(() => {
+        const canvas = ref.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        const colors = ["#38bdf8", "#34d399", "#a78bfa", "#fb7185"];
+        const pts = Array.from({ length: 42 }, (_, i) => ({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          vx: (Math.random() - 0.5) * 0.65,
+          vy: (Math.random() - 0.5) * 0.65,
+          r: Math.random() * 2.6 + 1.4,
+          c: colors[i % colors.length],
+        }));
+
+        let id;
+        const draw = () => {
+          id = requestAnimationFrame(draw);
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          for (let i = 0; i < pts.length; i++) {
+            const p = pts[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+            if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = p.c;
+            ctx.fill();
+
+            for (let j = i + 1; j < pts.length; j++) {
+              const q = pts[j];
+              const dist = Math.hypot(p.x - q.x, p.y - q.y);
+              if (dist < 115) {
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(q.x, q.y);
+                ctx.strokeStyle = `rgba(139, 92, 246, ${(1 - dist / 115) * 0.22})`;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+              }
+            }
+          }
+        };
+        id = requestAnimationFrame(draw);
+        return () => cancelAnimationFrame(id);
+      }, []);
+
+      return <canvas ref={ref} width={900} height={500} className="absolute inset-0 w-full h-full opacity-70 pointer-events-none" />;
+    };
+
+    // --- Slide 2 Interactive Comparison ---
+    const Slide2Interactive = () => {
+      const [tab, setTab] = useState("skia");
+      return (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center h-full">
+          <div className="space-y-5">
+            <div className="glass-pastel-mint rounded-2xl p-6 border-l-4 border-l-emerald-400">
+              <div className="flex items-center gap-3 mb-2">
+                <Icon name="check" className="w-6 h-6 text-emerald-600" />
+                <h3 className="text-2xl font-bold text-slate-900">Resolve 90% do app</h3>
+              </div>
+              <p className="text-lg text-slate-700 leading-relaxed">
+                Botões, listas, formulários e layouts Flexbox funcionam perfeitamente com <code className="text-sky-700 bg-sky-100 px-1.5 py-0.5 rounded font-mono text-base">&lt;View&gt;</code>, <code className="text-sky-700 bg-sky-100 px-1.5 py-0.5 rounded font-mono text-base">&lt;Text&gt;</code> e <code className="text-sky-700 bg-sky-100 px-1.5 py-0.5 rounded font-mono text-base">&lt;Image&gt;</code>.
+              </p>
+            </div>
+
+            <div className="glass-pastel rounded-2xl p-6 border-l-4 border-l-rose-400">
+              <div className="flex items-center gap-3 mb-3">
+                <Icon name="alert" className="w-6 h-6 text-rose-500" />
+                <h3 className="text-2xl font-bold text-slate-900">Onde a UI tradicional trava</h3>
+              </div>
+              <ul className="space-y-3 text-lg text-slate-700">
+                <li className="flex items-start gap-3">
+                  <span className="text-rose-500 font-bold mt-0.5">•</span>
+                  <span>Não tem <strong className="text-slate-900">vidro fosco real</strong>, sombras internas ou shaders.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-rose-500 font-bold mt-0.5">•</span>
+                  <span><strong className="text-slate-900">Engasga a CPU</strong> ao animar centenas de elementos simultâneos.</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Interactive Card Preview */}
+          <div onClick={(e) => e.stopPropagation()} className="glass-pastel rounded-2xl p-6 flex flex-col gap-5">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-mono text-xs uppercase tracking-wider text-violet-700 font-semibold">Preview Interativo</span>
+              <div className="flex rounded-xl bg-slate-100 p-1 border border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setTab("view")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition cursor-pointer ${tab === "view" ? "bg-rose-100 text-rose-700 shadow-sm" : "text-slate-500 hover:text-slate-900"
+                    }`}
+                >
+                  &lt;View&gt; Padrão
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTab("skia")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition cursor-pointer ${tab === "skia" ? "bg-sky-100 text-sky-700 shadow-sm" : "text-slate-500 hover:text-slate-900"
+                    }`}
+                >
+                  Skia GPU
+                </button>
+              </div>
+            </div>
+
+            <div className="relative h-56 rounded-2xl overflow-hidden bg-gradient-to-br from-indigo-100 via-sky-100 to-emerald-100 border border-indigo-200/80 flex items-center justify-center p-6">
+              <div className="absolute w-32 h-32 rounded-full bg-sky-300/70 blur-xl -top-4 left-8 animate-pulse" />
+              <div className="absolute w-36 h-36 rounded-full bg-violet-300/70 blur-xl -bottom-6 right-8 animate-pulse" />
+              <div className="absolute w-24 h-24 rounded-full bg-emerald-300/65 blur-lg top-12 right-24" />
+
+              {tab === "view" ? (
+                <div className="relative z-10 w-full max-w-xs rounded-xl bg-white border border-slate-300 p-5 shadow-md text-center">
+                  <div className="text-sm font-mono text-rose-600 mb-1 font-semibold">Fundo Opaco / Sem Blur Real</div>
+                  <div className="text-lg font-bold text-slate-900">Card &lt;View&gt; Tradicional</div>
+                  <div className="text-xs text-slate-500 mt-1">Sem sombras internas ou shaders</div>
+                </div>
+              ) : (
+                <div
+                  className="relative z-10 w-full max-w-xs rounded-2xl p-5 text-center border border-white/80 transition-all duration-300"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(255,255,255,0.55), rgba(224,242,254,0.45))",
+                    backdropFilter: "blur(18px)",
+                    boxShadow: "inset 0 2px 14px rgba(255,255,255,0.9), 0 12px 30px rgba(99,102,241,0.16)",
+                  }}
+                >
+                  <div className="text-sm font-mono text-emerald-700 mb-1 font-semibold">BackdropBlur + InnerShadow</div>
+                  <div className="text-lg font-bold text-slate-900">Vidro Fosco Real na GPU</div>
+                  <div className="text-xs text-slate-700 mt-1">Refração suave em 60/120 FPS</div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // --- Slide 3 Interactive Ecosystem ---
+    const Slide3Interactive = () => {
+      const [selected, setSelected] = useState("React Native");
+      const ecosystem = {
+        Chrome: "O Skia é a biblioteca gráfica 2D usada pelo Google Chrome para desenhar textos, formas vetoriais (como SVGs), imagens e a interface do navegador, trabalhando em conjunto com o motor Blink (que interpreta o código web) e o compositor Viz (que gerencia animações e a exibição na tela).",
+        Android: "É a engine oficial de desenho 2D do sistema operacional Android.",
+        Flutter: "Todo pixel desenhado no Flutter passa pelo motor gráfico Skia/Impeller.",
+        "React Native": "Trazido pela Shopify via @shopify/react-native-skia com API declarativa em JSX.",
+      };
+
+      const androidLayers = [
+        {
+          title: "1. Hardware",
+          desc: "É a parte física do celular: o chip gráfico (GPU) e a tela. Sem isso, nada existe.",
+        },
+        {
+          title: "2. OpenGL ES / Vulkan",
+          desc: 'São os "tradutores" que permitem que os programas conversem com a GPU do celular para usar toda a potência dela.',
+        },
+        {
+          title: "3. SKIA (Desenhista)",
+          desc: "O Skia é o motor gráfico 2D oficial do sistema. Ele transforma instruções de código em linhas, formas, sombras, cores e textos, usando a aceleração da GPU para renderizar tudo na tela.",
+          highlight: true,
+        },
+        {
+          title: "4. Android UI Framework (Os Moldes Prontos)",
+          desc: 'Em vez de o criador de um aplicativo ter que desenhar um botão linha por linha no Skia, o Android já entrega "moldes" prontos (como botões, caixas de texto e listas) que usam o Skia escondido por baixo.',
+        },
+        {
+          title: "5. Interface do Usuário - UI",
+          desc: "É o resultado final que você vê e toca na tela do celular: os ícones, os menus e os aplicativos funcionando perfeitamente.",
+        },
+      ];
+
+      const isAndroid = selected === "Android";
+
+      return (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          <div className="lg:col-span-7 glass-pastel rounded-2xl p-6 md:p-7 flex flex-col justify-between gap-4">
+            {isAndroid ? (
+              <div className="space-y-2.5 overflow-y-auto pr-1">
+                {androidLayers.map((layer) => (
+                  <div
+                    key={layer.title}
+                    className={`p-3 rounded-xl border text-sm leading-snug ${layer.highlight
+                      ? "bg-sky-50/95 border-sky-300 text-slate-800 shadow-sm"
+                      : "bg-white/80 border-slate-200 text-slate-700"
+                      }`}
+                  >
+                    <div className={`font-bold mb-0.5 ${layer.highlight ? "text-sky-800" : "text-slate-900"}`}>
+                      {layer.title}
+                    </div>
+                    <p>{layer.desc}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-violet-100 text-violet-700 border border-violet-200 font-mono text-sm font-semibold">
+                  <Icon name="sparkles" className="w-4 h-4" />
+                  <span>Open-Source • Google + Shopify</span>
+                </div>
+                <p className="text-xl md:text-2xl text-slate-700 leading-relaxed">
+                  A <strong className="text-slate-900">Skia</strong> é uma biblioteca de Código aberto que serve como mecanismo gráfico para o Google Chrome e Chrome OS, Android, Flutter, Mozilla Firefox e Firefox OS, entre muitos outros produtos.
+                </p>
+                <p className="text-lg text-slate-600 leading-relaxed">
+                  Funciona como um <strong className="text-sky-700">Photoshop / Illustrator programável</strong> dentro do app. Clique nos projetos abaixo:
+                </p>
+              </div>
+            )}
+
+            <div onClick={(e) => e.stopPropagation()} className="space-y-3 shrink-0">
+              <div className="flex flex-wrap gap-2.5">
+                {Object.keys(ecosystem).map((tech) => (
+                  <button
+                    key={tech}
+                    type="button"
+                    onClick={() => setSelected(tech)}
+                    className={`px-4 py-2 rounded-xl font-semibold text-base transition cursor-pointer border ${selected === tech
+                      ? "bg-sky-100 border-sky-400 text-sky-900 shadow-sm"
+                      : "bg-white/70 border-slate-200 text-slate-600 hover:border-violet-300"
+                      }`}
+                  >
+                    {tech}
+                  </button>
+                ))}
+              </div>
+              {!isAndroid && (
+                <div className="p-4 rounded-xl bg-white/80 border border-sky-200 text-base text-slate-700">
+                  <strong className="text-sky-700">{selected}:</strong> {ecosystem[selected]}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {isAndroid ? (
+            <div className="lg:col-span-5 glass-pastel rounded-2xl p-4 flex items-center justify-center">
+              <img
+                src="./android-skia-architecture.jpg"
+                alt="Camadas gráficas do Android com Skia"
+                className="w-full h-auto max-h-[460px] object-contain rounded-xl shadow-sm bg-white"
+              />
+            </div>
+          ) : (
+            <div className="lg:col-span-5 glass-pastel-mint rounded-2xl p-7 flex flex-col justify-center gap-5">
+              <h3 className="text-xl font-bold text-emerald-800 flex items-center gap-2">
+                <Icon name="layers" className="w-6 h-6 text-emerald-600" />
+                O que você ganha na prática
+              </h3>
+              <ul className="space-y-4 text-lg text-slate-700">
+                <li className="flex items-center gap-3">
+                  <span className="w-3 h-3 rounded-full bg-sky-400 shrink-0"></span>
+                  <span>Desenhos vetoriais e curvas complexas</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="w-3 h-3 rounded-full bg-emerald-400 shrink-0"></span>
+                  <span>Filtros de imagem, Blur e Blend Modes</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="w-3 h-3 rounded-full bg-violet-400 shrink-0"></span>
+                  <span>Shaders GLSL/SkSL em tempo real</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="w-3 h-3 rounded-full bg-rose-400 shrink-0"></span>
+                  <span>API declarativa em JSX familiar</span>
+                </li>
+              </ul>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    // --- Slide 4 Interactive Canvas + useFont() ---
+    const Slide4Interactive = () => {
+      const [fontLoaded, setFontLoaded] = useState(true);
+      const [radius, setRadius] = useState(20);
+
+      return (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div className="lg:col-span-4 space-y-4">
+            <div className="glass-pastel-cyan rounded-2xl p-5">
+              <div className="flex items-center gap-3 mb-2 text-sky-600">
+                <Icon name="code" className="w-6 h-6" />
+                <h3 className="text-xl font-bold text-slate-900">&lt;Canvas&gt;</h3>
+              </div>
+              <p className="text-base text-slate-700 leading-relaxed">
+                Componente raiz obrigatório: uma <code className="text-sky-700 bg-sky-100 px-1.5 py-0.5 rounded font-mono">&lt;View&gt;</code> especial ligada direto à GPU.
+              </p>
+            </div>
+
+            <div className="glass-pastel rounded-2xl p-5 border-l-4 border-l-amber-400">
+              <div className="flex items-center gap-3 mb-2 text-amber-600">
+                <Icon name="font" className="w-6 h-6" />
+                <h3 className="text-xl font-bold text-slate-900">Sem Fonte Padrão!</h3>
+              </div>
+              <p className="text-base text-slate-700 leading-relaxed">
+                Baixe fontes (ex: Google Fonts <code className="text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded font-mono">.ttf</code>) e carregue com <code className="text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded font-mono">useFont()</code>.
+              </p>
+            </div>
+
+            <div onClick={(e) => e.stopPropagation()} className="glass-pastel rounded-2xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-mono text-violet-700 font-semibold uppercase">Simulador &lt;Canvas&gt;</span>
+                <button
+                  type="button"
+                  onClick={() => setFontLoaded((v) => !v)}
+                  className={`px-3 py-1 rounded-lg text-xs font-mono font-semibold cursor-pointer transition border ${fontLoaded
+                    ? "bg-emerald-100 border-emerald-300 text-emerald-800"
+                    : "bg-rose-100 border-rose-300 text-rose-800"
+                    }`}
+                >
+                  {fontLoaded ? "useFont(): Carregada" : "useFont(): null"}
+                </button>
+              </div>
+              <div
+                className="h-20 flex items-center justify-center bg-[#131a2b] border border-sky-300 shadow-inner transition-all"
+                style={{ borderRadius: `${radius}px` }}
+              >
+                {fontLoaded ? (
+                  <span className="text-xl font-bold text-pastel-cyan">Rodando na GPU!</span>
+                ) : (
+                  <span className="text-xs font-mono text-slate-400 italic">return null (aguardando .ttf...)</span>
+                )}
+              </div>
+              <div className="flex items-center gap-3 text-xs font-mono text-slate-700">
+                <span>r={radius}px</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="40"
+                  value={radius}
+                  onChange={(e) => setRadius(Number(e.target.value))}
+                  className="flex-1 accent-violet-500 cursor-pointer"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="lg:col-span-8">
+            <CodeBlock
+              title="SkiaCard.tsx"
+              lang="tsx"
+              code={`import { Canvas, RoundedRect, Text, useFont } from '@shopify/react-native-skia';
+
+export function SkiaCard() {
+  const font = useFont(require('./assets/Inter-Bold.ttf'), 28);
+  if (!font) return null; // Aguarda carregar o .ttf
+
+  return (
+    <Canvas style={{ width: 320, height: 180 }}>
+      <RoundedRect x={0} y={0} width={320} height={180} r={${radius}} color="#131a2b" />
+      <Text x={24} y={100} text="Rodando na GPU!" font={font} color="#7dd3fc" />
+    </Canvas>
+  );
+}`}
+            />
+          </div>
+        </div>
+      );
+    };
+
+    // --- Slide 6 Interactive Setup Tabs ---
+    const Slide6Interactive = () => {
+      const [version, setVersion] = useState("v2");
+      return (
+        <div className="flex flex-col gap-6">
+          <div onClick={(e) => e.stopPropagation()} className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={() => setVersion("v2")}
+              className={`px-5 py-3 rounded-2xl font-semibold text-base transition cursor-pointer border ${version === "v2"
+                ? "bg-emerald-100 border-emerald-400 text-emerald-900 shadow-sm"
+                : "glass-pastel text-slate-600 hover:text-slate-900"
+                }`}
+            >
+              Skia v2 • Expo Go (Sem Build)
+            </button>
+            <button
+              type="button"
+              onClick={() => setVersion("v3")}
+              className={`px-5 py-3 rounded-2xl font-semibold text-base transition cursor-pointer border ${version === "v3"
+                ? "bg-violet-100 border-violet-400 text-violet-900 shadow-sm"
+                : "glass-pastel text-slate-600 hover:text-slate-900"
+                }`}
+            >
+              Skia v3 • Graphite / WebGPU (Dev Build)
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+            <div className={`lg:col-span-6 rounded-2xl p-7 ${version === "v2" ? "glass-pastel-mint" : "glass-pastel"}`}>
+              <span className={`text-xs font-mono uppercase tracking-wider font-semibold ${version === "v2" ? "text-emerald-700" : "text-violet-700"}`}>
+                {version === "v2" ? "Rápido para prototipar" : "Performance Máxima Multi-Thread"}
+              </span>
+              <h3 className="text-3xl font-extrabold text-slate-900 mt-2 mb-3">
+                {version === "v2" ? "Expo Go (Sem Build Nativo)" : "Development Build (Skia v3)"}
+              </h3>
+              <p className="text-lg text-slate-700 leading-relaxed">
+                {version === "v2"
+                  ? "Ideal para testar ideias rapidamente: instala com npx expo install e roda direto no aplicativo Expo Go sem compilar código nativo."
+                  : "Exige Development Build para habilitar a nova arquitetura Graphite/WebGPU, trazendo renderização multi-thread e máximo desempenho."}
+              </p>
+            </div>
+
+            <div className="lg:col-span-6">
+              <CodeBlock
+                title={version === "v2" ? "Terminal (Expo Go)" : "Terminal (Development Build)"}
+                lang="bash"
+                code={
+                  version === "v2"
+                    ? `npx expo install @shopify/react-native-skia\nnpx expo start`
+                    : `npx expo install @shopify/react-native-skia\nnpx expo run:android`
+                }
+              />
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // --- Slide 7 Interactive CPU vs GPU Mini-Simulator ---
+    const CpuGpuSimulator = () => {
+      const [mode, setMode] = useState("gpu");
+      const [fps, setFps] = useState(60);
+      const canvasRef = useRef(null);
+      const modeRef = useRef(mode);
+
+      useEffect(() => {
+        modeRef.current = mode;
+        setFps(mode === "gpu" ? 60 : 22);
+      }, [mode]);
+
+      useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+
+        const palette = ["#7dd3fc", "#86efac", "#c4b5fd", "#fda4af"];
+        const particles = Array.from({ length: 115 }, (_, i) => ({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          vx: (Math.random() - 0.5) * 3.4,
+          vy: (Math.random() - 0.5) * 3.4,
+          r: Math.random() * 4 + 2.2,
+          color: palette[i % palette.length],
+        }));
+
+        let animId;
+        let lastDraw = performance.now();
+        let frameCount = 0;
+        let fpsTimer = performance.now();
+
+        const render = (now) => {
+          animId = requestAnimationFrame(render);
+          const isCpu = modeRef.current === "cpu";
+          const targetInterval = isCpu ? 45 + (Math.sin(now * 0.01) > 0.7 ? 20 : 0) : 0;
+
+          if (isCpu && now - lastDraw < targetInterval) return;
+
+          const dt = Math.min((now - lastDraw) / 16.67, 3);
+          lastDraw = now;
+
+          frameCount++;
+          if (now - fpsTimer >= 350) {
+            const measured = Math.round((frameCount * 1000) / (now - fpsTimer));
+            setFps(isCpu ? Math.min(24, Math.max(19, measured)) : Math.min(60, Math.max(58, measured)));
+            frameCount = 0;
+            fpsTimer = now;
+          }
+
+          ctx.fillStyle = "rgba(19, 26, 43, 0.32)";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          for (const p of particles) {
+            p.x += p.vx * (isCpu ? 1.15 : dt);
+            p.y += p.vy * (isCpu ? 1.15 : dt);
+            if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+            if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = p.color;
+            ctx.shadowBlur = isCpu ? 0 : 12;
+            ctx.shadowColor = p.color;
+            ctx.fill();
+          }
+
+          ctx.shadowBlur = 0;
+          const cardW = Math.min(canvas.width * 0.52, 460);
+          const cardH = 88;
+          const cardX = (canvas.width - cardW) / 2;
+          const cardY = (canvas.height - cardH) / 2;
+
+          ctx.fillStyle = isCpu ? "rgba(30, 41, 59, 0.88)" : "rgba(19, 26, 43, 0.58)";
+          ctx.strokeStyle = isCpu ? "rgba(253, 164, 175, 0.65)" : "rgba(125, 211, 252, 0.55)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.roundRect(cardX, cardY, cardW, cardH, 16);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.fillStyle = "#f1f5f9";
+          ctx.font = "700 18px 'Plus Jakarta Sans', sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText(
+            isCpu ? "Views JS Thread (Gargalo)" : "Skia Canvas (BackdropBlur + GPU)",
+            canvas.width / 2,
+            cardY + 36
+          );
+          ctx.fillStyle = isCpu ? "#fda4af" : "#86efac";
+          ctx.font = "700 14px 'JetBrains Mono', monospace";
+          ctx.fillText(
+            isCpu ? "Frame time: ~45ms • Travando" : "Frame time: 16.6ms • Liso",
+            canvas.width / 2,
+            cardY + 62
+          );
+        };
+
+        animId = requestAnimationFrame(render);
+        return () => cancelAnimationFrame(animId);
+      }, []);
+
+      const isGpu = mode === "gpu";
+
+      return (
+        <div onClick={(e) => e.stopPropagation()} className="glass-pastel rounded-2xl p-4 flex flex-col gap-3 h-full justify-between">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <span className="text-xs font-mono uppercase tracking-wider text-sky-700 font-semibold">Mini-Simulador ao Vivo</span>
+              <h3 className="text-lg font-bold text-slate-900">115 Partículas + Blur</h3>
+            </div>
+            <div
+              className={`px-3 py-1.5 rounded-xl font-mono font-extrabold text-lg border flex items-center gap-2 transition-colors ${isGpu
+                ? "bg-emerald-100 border-emerald-300 text-emerald-800"
+                : "bg-rose-100 border-rose-300 text-rose-700"
+                }`}
+            >
+              <span className={`w-2.5 h-2.5 rounded-full ${isGpu ? "bg-emerald-500 animate-pulse" : "bg-rose-500"}`}></span>
+              {fps} FPS
+            </div>
+          </div>
+
+          <div className="relative rounded-xl overflow-hidden border border-indigo-200 bg-[#131a2b] flex-1 min-h-[340px] flex items-center justify-center">
+            <canvas ref={canvasRef} width={960} height={420} className="w-full h-full object-contain" />
+          </div>
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setMode((prev) => (prev === "gpu" ? "cpu" : "gpu"));
+            }}
+            className={`w-full py-3 px-4 rounded-xl font-semibold text-sm md:text-base transition-all cursor-pointer flex items-center justify-center gap-2 border ${isGpu
+              ? "bg-gradient-to-r from-sky-100 via-violet-100 to-emerald-100 border-sky-300 text-slate-900 hover:brightness-95"
+              : "bg-rose-100 border-rose-300 text-rose-800 hover:bg-rose-200"
+              }`}
+          >
+            <Icon name="zap" className="w-5 h-5" />
+            Alternar: CPU (Views) vs GPU (Skia)
+          </button>
+        </div>
+      );
+    };
+
+    // --- Slide 7 Video Player ---
+    const DemoVideoPlayer = () => {
+      const [videoReady, setVideoReady] = useState(false);
+
+      return (
+        <div onClick={(e) => e.stopPropagation()} className="glass-pastel-cyan rounded-2xl p-4 flex flex-col gap-3 h-full justify-between">
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="text-xs font-mono uppercase tracking-wider text-emerald-700 font-semibold">Gravação Real</span>
+              <h3 className="text-lg font-bold text-slate-900">App Nativo no Smartphone</h3>
+            </div>
+            <span className="text-xs font-mono px-2.5 py-1 rounded-md bg-white/80 text-sky-700 border border-sky-200">
+              ./demo-celular.mp4
+            </span>
+          </div>
+
+          <div className="relative rounded-xl overflow-hidden border border-sky-200 bg-[#131a2b] flex-1 min-h-[210px] flex items-center justify-center">
+            <video
+              controls
+              loop
+              autoPlay
+              muted
+              playsInline
+              src="./demo-celular.mp4"
+              onLoadedData={() => setVideoReady(true)}
+              onError={() => setVideoReady(false)}
+              className="w-full h-full max-h-[280px] object-contain relative z-10"
+            />
+            {!videoReady && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 pointer-events-none z-0">
+                <div className="w-12 h-12 rounded-full bg-pastel-cyan/20 border border-pastel-cyan/40 flex items-center justify-center text-pastel-cyan mb-2">
+                  <Icon name="smartphone" className="w-6 h-6" />
+                </div>
+                <p className="text-sm font-medium text-slate-200">
+                  Espaço para o vídeo <code className="text-pastel-cyan font-mono">./demo-celular.mp4</code>
+                </p>
+                <p className="text-xs text-slate-400 mt-1">
+                  Coloque o arquivo na mesma pasta deste HTML para reproduzir automaticamente.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    // --- Slide 10 Interactive FAQ ---
+    const Slide10Interactive = () => {
+      const [openIdx, setOpenIdx] = useState(0);
+      const faqs = [
+        {
+          q: "Quando vale a pena usar o Skia?",
+          a: "Quando você precisa criar gráficos customizados, animações muito fluidas (60/120 FPS), assinaturas na tela ou efeitos visuais (como desfoque e sombras avançadas) que ficariam lentos usando Views comuns. Para telas simples de formulários, botões e listas, o React Native padrão continua sendo a melhor escolha.",
+          color: "border-rose-400 ring-2 ring-rose-200",
+        },
+        {
+          q: "Ele substitui o StyleSheet?",
+          a: "Não, eles trabalham juntos. Use o StyleSheet na maior parte do app (cerca de 90%) para montar a estrutura das telas, textos e acessibilidade, e deixe o Skia (10%) apenas para os desenhos, gráficos e efeitos especiais.",
+          color: "border-sky-400 ring-2 ring-sky-200",
+        },
+        {
+          q: "É difícil aprender a usar o Skia?",
+          a: "Para desenhos básicos (formas, cores e sombras), é bem fácil porque usa a mesma estrutura visual do React. A dificuldade só aumenta se você precisar criar animações avançadas, calcular posições na tela sem Flexbox ou programar efeitos gráficos próprios (shaders).",
+          color: "border-emerald-400 ring-2 ring-emerald-200",
+        },
+        {
+          q: "Deixa o aplicativo pesado ou lento?",
+          a: "Aumenta apenas 4 MB a 6 MB no tamanho do download (o equivalente a uma música), mas deixa o app mais rápido em telas complexas: enquanto Views normais podem engasgar a 15 FPS, o Skia roda liso a 60/120 FPS direto no chip gráfico (GPU).",
+          color: "border-violet-400 ring-2 ring-violet-200",
+        },
+      ];
+
+      return (
+        <div className="flex flex-col justify-center gap-5 h-full">
+          <div onClick={(e) => e.stopPropagation()} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {faqs.map((faq, idx) => {
+              const isOpen = openIdx === idx;
+              return (
+                <button
+                  key={faq.q}
+                  type="button"
+                  onClick={() => setOpenIdx(idx)}
+                  className={`text-left rounded-2xl p-5 flex flex-col gap-2.5 transition-all cursor-pointer glass-pastel ${isOpen ? `${faq.color} scale-[1.01]` : "opacity-85 hover:opacity-100"
+                    }`}
+                >
+                  <div className="flex items-start gap-2.5 text-violet-700">
+                    <Icon name="help" className="w-5 h-5 shrink-0 mt-1" />
+                    <h3 className="text-lg md:text-xl font-bold text-slate-900 leading-snug">{faq.q}</h3>
+                  </div>
+                  <p className="text-sm md:text-base text-slate-700 leading-relaxed">{faq.a}</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      );
+    };
+
+    // --- Gráfico em Tempo Real (Victory Native XL + Skia) ---
+    const VictoryLiveChart = ({ lineWidth = 2.5 }) => {
+      const [engine, setEngine] = useState("skia"); // "skia" | "svg"
+      const [selectedInfo, setSelectedInfo] = useState({ val: 104.2, label: "Agora" });
+      const canvasRef = useRef(null);
+      const engineRef = useRef(engine);
+      const lineWidthRef = useRef(lineWidth);
+      const hoverXRef = useRef(0.68);
+
+      useEffect(() => {
+        engineRef.current = engine;
+      }, [engine]);
+
+      useEffect(() => {
+        lineWidthRef.current = lineWidth;
+      }, [lineWidth]);
+
+      useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+
+        let phase = 0;
+        let lastDraw = performance.now();
+        let lastShownText = "";
+        let id;
+
+        const samplePoint = (xNorm, t) =>
+          68 +
+          Math.sin(xNorm * 8.5 - t) * 14 +
+          Math.cos(xNorm * 4.2 - t * 0.65) * 8 +
+          Math.sin(xNorm * 14 - t * 1.3) * 3;
+
+        const render = (now) => {
+          id = requestAnimationFrame(render);
+          const isSvg = engineRef.current === "svg";
+          // Sem Skia (SVG/JS Bridge): trava a ~8 FPS ao interagir
+          if (isSvg && now - lastDraw < 130) return;
+
+          const dt = Math.min((now - lastDraw) / 1000, 0.15);
+          lastDraw = now;
+          phase += dt * (isSvg ? 1.5 : 6.5);
+
+          const count = 48;
+          const pts = Array.from({ length: count }, (_, i) => samplePoint(i / (count - 1), phase));
+
+          const w = canvas.width;
+          const h = canvas.height;
+          ctx.clearRect(0, 0, w, h);
+
+          // Grid sutil
+          ctx.strokeStyle = "rgba(148, 163, 184, 0.12)";
+          ctx.lineWidth = 1;
+          for (let y = 24; y < h; y += 28) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(w, y);
+            ctx.stroke();
+          }
+
+          const mapX = (i) => (i / (pts.length - 1)) * (w - 20) + 10;
+          const mapY = (v) => h - 18 - ((v - 30) / 80) * (h - 36);
+
+          const traceSmoothCurve = () => {
+            ctx.moveTo(mapX(0), mapY(pts[0]));
+            for (let i = 0; i < pts.length - 1; i++) {
+              const x0 = mapX(i);
+              const y0 = mapY(pts[i]);
+              const x1 = mapX(i + 1);
+              const y1 = mapY(pts[i + 1]);
+              if (isSvg) {
+                ctx.lineTo(x1, y1);
+              } else {
+                const mx = (x0 + x1) / 2;
+                const my = (y0 + y1) / 2;
+                ctx.quadraticCurveTo(x0, y0, mx, my);
+              }
+            }
+            ctx.lineTo(mapX(pts.length - 1), mapY(pts[pts.length - 1]));
+          };
+
+          // Área preenchida com gradiente pastel
+          const areaGrad = ctx.createLinearGradient(0, 10, 0, h);
+          areaGrad.addColorStop(0, isSvg ? "rgba(253, 164, 175, 0.32)" : "rgba(134, 239, 172, 0.35)");
+          areaGrad.addColorStop(1, "rgba(19, 26, 43, 0)");
+
+          ctx.beginPath();
+          traceSmoothCurve();
+          ctx.lineTo(mapX(pts.length - 1), h);
+          ctx.lineTo(mapX(0), h);
+          ctx.closePath();
+          ctx.fillStyle = areaGrad;
+          ctx.fill();
+
+          // Linha principal
+          ctx.beginPath();
+          traceSmoothCurve();
+          ctx.strokeStyle = isSvg ? "#fda4af" : "#86efac";
+          ctx.lineWidth = lineWidthRef.current;
+          ctx.stroke();
+
+          // Crosshair interativo suave ao passar o mouse
+          const hoverNorm = Math.max(0, Math.min(1, hoverXRef.current));
+          const hx = hoverNorm * (w - 20) + 10;
+          const hoverVal = samplePoint(hoverNorm, phase);
+          const hy = mapY(hoverVal);
+          const idx = Math.max(0, Math.min(pts.length - 1, Math.round(hoverNorm * (pts.length - 1))));
+
+          ctx.strokeStyle = "rgba(125, 211, 252, 0.55)";
+          ctx.setLineDash([3, 3]);
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.moveTo(hx, 8);
+          ctx.lineTo(hx, h - 8);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          ctx.beginPath();
+          ctx.arc(hx, hy, 5, 0, Math.PI * 2);
+          ctx.fillStyle = "#7dd3fc";
+          ctx.fill();
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          const nextText = `${(pts[idx] + 35).toFixed(1)}-${idx}`;
+          if (nextText !== lastShownText) {
+            lastShownText = nextText;
+            setSelectedInfo({
+              val: (pts[idx] + 35).toFixed(1),
+              label: `Ponto #${idx + 1}`,
+            });
+          }
+        };
+
+        id = requestAnimationFrame(render);
+        return () => cancelAnimationFrame(id);
+      }, []);
+
+      const handlePointer = (e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        hoverXRef.current = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      };
+
+      const isSkia = engine === "skia";
+
+      return (
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded-md bg-slate-800 text-pastel-cyan font-mono text-xs font-bold">
+                R$ {selectedInfo.val} ({selectedInfo.label})
+              </span>
+              <span className="text-[11px] font-mono text-slate-500">Clique ou mova no gráfico</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setEngine((p) => (p === "skia" ? "svg" : "skia"))}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold border transition cursor-pointer ${isSkia
+                  ? "bg-emerald-100 border-emerald-300 text-emerald-800"
+                  : "bg-rose-100 border-rose-300 text-rose-800"
+                }`}
+            >
+              {isSkia ? "Skia GPU (60 FPS Liso)" : "Sem Skia / SVG (Travando ~15 FPS)"}
+            </button>
+          </div>
+          <div
+            onMouseMove={handlePointer}
+            onClick={handlePointer}
+            className="h-28 rounded-xl bg-[#131a2b] border border-rose-300/70 overflow-hidden cursor-crosshair"
+          >
+            <canvas ref={canvasRef} width={520} height={112} className="w-full h-full" />
+          </div>
+        </div>
+      );
+    };
+
+    // --- Slide 4: Integrações que turbinam o Skia ---
+    const SlideIntegrationsInteractive = () => {
+      const [active, setActive] = useState("reanimated");
+      const [duration, setDuration] = useState(900);
+      const [dragPos, setDragPos] = useState({ x: 50, y: 50 });
+      const [isDragging, setIsDragging] = useState(false);
+      const [tilt, setTilt] = useState({ x: 0, y: 0 });
+      const [vibrated, setVibrated] = useState(false);
+      const [hapticStyle, setHapticStyle] = useState("Medium");
+      const [lineWidth, setLineWidth] = useState(2.5);
+
+      const integrations = [
+        {
+          id: "reanimated",
+          lib: "react-native-reanimated",
+          tag: "Animação 60/120 FPS",
+          badgeCls: "bg-sky-100 text-sky-800 border-sky-200",
+          borderCls: "border-sky-400 ring-2 ring-sky-200",
+          desc: "A dupla principal. Permite animar propriedades do Skia (SharedValues) direto na UI Thread (C++), garantindo 60/120 FPS sem engasgos mesmo se o JavaScript estiver ocupado.",
+          codeTitle: "ReanimatedSkia.tsx",
+          code: `const r = useSharedValue(20);
+useEffect(() => {
+  r.value = withRepeat(withTiming(55, { duration: ${duration} }), -1, true);
+}, []);
+
+return (
+  <Canvas style={{ flex: 1 }}>
+    <Circle cx={150} cy={100} r={r} color="#7dd3fc" />
+  </Canvas>
+);`,
+        },
+        {
+          id: "gesture",
+          lib: "react-native-gesture-handler",
+          tag: "Gestos Nativos",
+          badgeCls: "bg-violet-100 text-violet-800 border-violet-200",
+          borderCls: "border-violet-400 ring-2 ring-violet-200",
+          desc: "Captura gestos complexos (arrastar, girar, toque longo) nativamente e envia direto para o Skia sem atraso.",
+          codeTitle: "GestureSkia.tsx",
+          code: `const cx = useSharedValue(${Math.round(dragPos.x * 2.4)});
+const cy = useSharedValue(${Math.round(dragPos.y * 1.8)});
+const pan = Gesture.Pan().onChange((e) => {
+  cx.value += e.changeX; // Direto na UI Thread!
+  cy.value += e.changeY;
+});
+
+return (
+  <GestureDetector gesture={pan}>
+    <Canvas style={{ flex: 1 }}>
+      <Circle cx={cx} cy={cy} r={34} color="#c4b5fd" />
+    </Canvas>
+  </GestureDetector>
+);`,
+        },
+        {
+          id: "sensors",
+          lib: "expo-sensors & expo-haptics",
+          tag: "Hardware & Imersão",
+          badgeCls: "bg-emerald-100 text-emerald-800 border-emerald-200",
+          borderCls: "border-emerald-400 ring-2 ring-emerald-200",
+          desc: "Conectam a GPU ao hardware físico do celular (giroscópio e vibração tátil), criando imersão real (como no app dos Vingadores).",
+          codeTitle: "SensorsHaptics.tsx",
+          code: `// Inclinação atual: X=${tilt.x.toFixed(1)}° Y=${tilt.y.toFixed(1)}°
+Gyroscope.addListener(({ x, y }) => {
+  tiltX.value = x * 25;
+  tiltY.value = y * 25;
+});
+
+// Ao tocar no card da GPU:
+Haptics.impactAsync(Haptics.ImpactFeedbackStyle.${hapticStyle});`,
+        },
+        {
+          id: "victory",
+          lib: "victory-native (XL)",
+          tag: "Gráficos Prontos",
+          badgeCls: "bg-rose-100 text-rose-800 border-rose-200",
+          borderCls: "border-rose-400 ring-2 ring-rose-200",
+          desc: "Usa o Skia por baixo para entregar gráficos prontos e interativos sem você precisar fazer cálculos matemáticos de escala na mão.",
+          codeTitle: "VictorySkiaChart.tsx",
+          code: `<CartesianChart data={DATA} xKey="mes" yKeys={["fps"]}>
+  {({ points }) => (
+    <Line points={points.fps} color="#86efac" strokeWidth={${lineWidth}} />
+  )}
+</CartesianChart>`,
+        },
+      ];
+
+      const current = integrations.find((item) => item.id === active);
+      const bars = [
+        { label: "Jan", val: 42 },
+        { label: "Fev", val: 68 },
+        { label: "Mar", val: 95 },
+        { label: "Abr", val: 76 },
+        { label: "Mai", val: 118 },
+      ];
+
+      const handleDragMove = (e) => {
+        if (!isDragging) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = Math.max(12, Math.min(88, ((e.clientX - rect.left) / rect.width) * 100));
+        const y = Math.max(18, Math.min(82, ((e.clientY - rect.top) / rect.height) * 100));
+        setDragPos({ x, y });
+      };
+
+      const handleTiltMove = (e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const nx = ((e.clientX - rect.left) / rect.width - 0.5) * 24;
+        const ny = ((e.clientY - rect.top) / rect.height - 0.5) * -24;
+        setTilt({ x: nx, y: ny });
+      };
+
+      const triggerHaptic = () => {
+        setVibrated(true);
+        navigator.vibrate?.(40);
+        setTimeout(() => setVibrated(false), 350);
+      };
+
+      return (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center h-full">
+          {/* Left: 4 Interactive Library Cards */}
+          <div onClick={(e) => e.stopPropagation()} className="lg:col-span-4 flex flex-col gap-2.5 justify-center">
+            {integrations.map((item) => {
+              const isSelected = item.id === active;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setActive(item.id)}
+                  className={`text-left rounded-2xl p-3.5 transition-all cursor-pointer glass-pastel ${isSelected ? `${item.borderCls} scale-[1.01]` : "opacity-80 hover:opacity-100"
+                    }`}
+                >
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <code className="text-sm font-mono font-bold text-slate-900">{item.lib}</code>
+                    <span className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md border ${item.badgeCls}`}>
+                      {item.tag}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-700 leading-relaxed">{item.desc}</p>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Middle: Corresponding Mobile Code + Live Controls */}
+          <div onClick={(e) => e.stopPropagation()} className="lg:col-span-5 flex flex-col gap-3 justify-center min-h-0">
+            <CodeBlock title={current.codeTitle} lang="tsx" code={current.code} />
+
+            <div className="glass-pastel rounded-xl px-4 py-3 flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-slate-700">
+              {active === "reanimated" && (
+                <>
+                  <span className="font-semibold text-sky-800">duration={duration}ms</span>
+                  <input
+                    type="range"
+                    min="300"
+                    max="1800"
+                    step="100"
+                    value={duration}
+                    onChange={(e) => setDuration(Number(e.target.value))}
+                    className="flex-1 accent-sky-500 cursor-pointer"
+                  />
+                </>
+              )}
+              {active === "gesture" && (
+                <span>Arraste o círculo no celular para atualizar <strong className="text-violet-700">cx</strong> e <strong className="text-violet-700">cy</strong> no código!</span>
+              )}
+              {active === "sensors" && (
+                <div className="flex items-center justify-between w-full gap-2">
+                  <span className="font-semibold text-emerald-800">Intensidade Haptics:</span>
+                  <div className="flex gap-1.5">
+                    {["Light", "Medium", "Heavy"].map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => setHapticStyle(s)}
+                        className={`px-2.5 py-1 rounded-lg border cursor-pointer transition ${hapticStyle === s ? "bg-emerald-100 border-emerald-400 text-emerald-900 font-bold" : "bg-white/70 border-slate-200"
+                          }`}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {active === "victory" && (
+                <>
+                  <span className="font-semibold text-rose-700">strokeWidth={lineWidth}</span>
+                  <input
+                    type="range"
+                    min="1"
+                    max="5"
+                    step="0.5"
+                    value={lineWidth}
+                    onChange={(e) => setLineWidth(Number(e.target.value))}
+                    className="flex-1 accent-rose-500 cursor-pointer"
+                  />
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Right: Full Smartphone Mockup */}
+          <div onClick={(e) => e.stopPropagation()} className="lg:col-span-3 flex items-center justify-center">
+            <PhoneMockup title="App Mobile" subtitle={current.lib} vibrating={vibrated}>
+              {active === "reanimated" && (
+                <div className="h-48 rounded-2xl bg-[#131a2b] border border-sky-200/40 flex flex-col items-center justify-center gap-4 px-3 overflow-hidden">
+                  <div className="relative flex items-center justify-center">
+                    <div
+                      style={{ animationDuration: `${duration}ms` }}
+                      className="w-16 h-16 rounded-full bg-gradient-to-tr from-pastel-cyan to-pastel-lavender animate-ping opacity-75 absolute"
+                    />
+                    <div className="relative w-16 h-16 rounded-full bg-gradient-to-tr from-pastel-cyan via-pastel-lavender to-pastel-mint shadow-lg flex items-center justify-center text-slate-900 font-mono text-xs font-bold">
+                      60 FPS
+                    </div>
+                  </div>
+                  <div className="text-center font-mono text-[11px] text-slate-200 space-y-1">
+                    <div className="text-pastel-mint font-bold">UI Thread (C++) livre</div>
+                    <div className="text-slate-400">SharedValue sem travar JS</div>
+                  </div>
+                </div>
+              )}
+
+              {active === "gesture" && (
+                <div
+                  onMouseMove={handleDragMove}
+                  onMouseUp={() => setIsDragging(false)}
+                  onMouseLeave={() => setIsDragging(false)}
+                  className="relative h-48 rounded-2xl bg-[#131a2b] border border-violet-300/50 overflow-hidden cursor-grab active:cursor-grabbing"
+                >
+                  <div className="absolute top-2.5 left-3 text-[11px] font-mono text-slate-400 pointer-events-none">
+                    Arraste • X:{Math.round(dragPos.x)}% Y:{Math.round(dragPos.y)}%
+                  </div>
+                  <div
+                    onMouseDown={() => setIsDragging(true)}
+                    style={{ left: `${dragPos.x}%`, top: `${dragPos.y}%`, transform: "translate(-50%, -50%)" }}
+                    className="absolute w-14 h-14 rounded-full bg-gradient-to-br from-pastel-lavender to-pastel-cyan border-2 border-white/80 shadow-xl flex items-center justify-center text-[11px] font-mono font-bold text-slate-900 select-none"
+                  >
+                    Pan
+                  </div>
+                </div>
+              )}
+
+              {active === "sensors" && (
+                <div
+                  onMouseMove={handleTiltMove}
+                  onMouseLeave={() => setTilt({ x: 0, y: 0 })}
+                  className="h-48 rounded-2xl bg-[#131a2b] border border-emerald-300/50 flex flex-col items-center justify-center px-3 gap-4 overflow-hidden"
+                >
+                  <div
+                    style={{ transform: `perspective(400px) rotateY(${tilt.x}deg) rotateX(${tilt.y}deg)` }}
+                    className={`px-4 py-3 rounded-xl bg-gradient-to-br from-sky-400/30 to-emerald-400/30 border border-white/30 text-white font-semibold text-xs text-center transition-transform duration-75 ${vibrated ? "translate-x-1" : ""
+                      }`}
+                  >
+                    Mova (Giroscópio)
+                  </div>
+                  <button
+                    type="button"
+                    onClick={triggerHaptic}
+                    className="px-4 py-2 rounded-xl bg-pastel-mint text-slate-900 font-mono text-xs font-bold hover:brightness-95 transition cursor-pointer"
+                  >
+                    {vibrated ? "Vibrou! (Haptics)" : "Testar Haptics"}
+                  </button>
+                </div>
+              )}
+
+              {active === "victory" && <VictoryLiveChart lineWidth={lineWidth} />}
+            </PhoneMockup>
+          </div>
+        </div>
+      );
+    };
+
+    // --- Slide 11: Acessibilidade no Skia ---
+    const SlideAccessibilityInteractive = () => {
+      const [mode, setMode] = useState("workaround"); // "raw" | "workaround"
+      const [focused, setFocused] = useState("button"); // "card" | "button"
+
+      const isWorkaround = mode === "workaround";
+
+      const screenReaderText = !isWorkaround
+        ? 'TalkBack / VoiceOver: "Imagem sem descrição" (texto e botão invisíveis)'
+        : focused === "button"
+          ? 'TalkBack / VoiceOver: "Botão: Comprar Agora, R$ 99 — toque duas vezes"'
+          : 'TalkBack / VoiceOver: "Card promocional GPU Skia"';
+
+      return (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center h-full">
+          {/* Left: Explanation */}
+          <div className="lg:col-span-5 space-y-4">
+            <div className="glass-pastel rounded-2xl p-5 border-l-4 border-l-rose-400">
+              <div className="inline-block px-2.5 py-0.5 rounded-md bg-rose-100 text-rose-700 font-mono text-xs font-semibold mb-2">
+                Por padrão: Sem acessibilidade nativa
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-2">Por quê?</h3>
+              <p className="text-base text-slate-700 leading-relaxed">
+                Para leitores de tela (<strong className="text-slate-900">TalkBack</strong> no Android e <strong className="text-slate-900">VoiceOver</strong> no iOS), tudo dentro de um <code className="text-sky-700 bg-sky-100 px-1.5 py-0.5 rounded font-mono">&lt;Canvas&gt;</code> é enxergado como uma <strong className="text-rose-700">única imagem vazia</strong>. Eles não leem textos desenhados nem identificam botões internos.
+              </p>
+            </div>
+
+            <div className="glass-pastel-mint rounded-2xl p-5 border-l-4 border-l-emerald-400 space-y-2.5">
+              <h3 className="text-xl font-bold text-slate-900">Como contornar na prática</h3>
+              <p className="text-sm md:text-base text-slate-700 leading-relaxed">
+                Coloque <code className="text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded font-mono">&lt;View&gt;</code>s transparentes por cima das áreas interativas com <code className="text-sky-700 bg-sky-100 px-1 py-0.5 rounded font-mono">accessible=&#123;true&#125;</code> e <code className="text-violet-700 bg-violet-100 px-1 py-0.5 rounded font-mono">accessibilityLabel</code>, ou deixe botões e textos principais no React Native tradicional.
+              </p>
+              <div className="p-3 rounded-xl bg-white/80 border border-violet-200 text-xs md:text-sm text-slate-700 leading-relaxed">
+                <strong className="text-violet-700">Na prática:</strong> Enquanto o Skia desenha os pixels do <code className="font-mono text-sky-700">&lt;Canvas&gt;</code>, o Framework constrói em paralelo uma <strong>Árvore de Acessibilidade</strong> (<code className="text-violet-700 bg-violet-100 px-1 rounded font-mono">AccessibilityNodeInfo</code> / <code className="text-violet-700 bg-violet-100 px-1 rounded font-mono">Semantics Tree</code>) com essas <code className="font-mono text-emerald-700">&lt;View&gt;</code>s. O TalkBack lê essa árvore invisível, e não os pixels do Skia.
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Interactive Screen Reader Simulator + Code */}
+          <div onClick={(e) => e.stopPropagation()} className="lg:col-span-7 flex flex-col gap-4">
+            <div className="glass-pastel-cyan rounded-2xl p-4 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-xs font-mono uppercase tracking-wider text-sky-800 font-semibold">
+                  Simulador TalkBack / VoiceOver
+                </span>
+                <div className="flex rounded-xl bg-white/80 p-1 border border-slate-200">
+                  <button
+                    type="button"
+                    onClick={() => setMode("raw")}
+                    className={`px-3 py-1 rounded-lg text-xs font-mono font-semibold transition cursor-pointer ${!isWorkaround ? "bg-rose-100 text-rose-800 shadow-sm" : "text-slate-500 hover:text-slate-900"
+                      }`}
+                  >
+                    Só &lt;Canvas&gt;
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMode("workaround")}
+                    className={`px-3 py-1 rounded-lg text-xs font-mono font-semibold transition cursor-pointer ${isWorkaround ? "bg-emerald-100 text-emerald-800 shadow-sm" : "text-slate-500 hover:text-slate-900"
+                      }`}
+                  >
+                    Com &lt;View&gt; Acessível
+                  </button>
+                </div>
+              </div>
+
+              {/* Visual Canvas + Overlay */}
+              <div className="relative rounded-xl bg-[#131a2b] border border-sky-200 p-4 flex items-center justify-between gap-4">
+                <div
+                  onClick={() => setFocused("card")}
+                  className={`flex-1 rounded-lg p-3 transition cursor-pointer ${isWorkaround && focused === "card" ? "ring-2 ring-pastel-mint border border-dashed border-pastel-mint" : ""
+                    }`}
+                >
+                  <div className="text-xs font-mono text-pastel-lavender">Skia &lt;Canvas&gt; (Pixels)</div>
+                  <div className="text-lg font-bold text-white">Plano Pro GPU • R$ 99</div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setFocused("button")}
+                  className={`relative px-4 py-2.5 rounded-xl font-bold text-sm transition cursor-pointer ${isWorkaround
+                      ? "bg-gradient-to-r from-pastel-cyan to-pastel-mint text-slate-900 ring-2 ring-pastel-mint ring-offset-2 ring-offset-[#131a2b]"
+                      : "bg-slate-700 text-slate-200 opacity-90"
+                    }`}
+                >
+                  Comprar Agora
+                  {isWorkaround && (
+                    <span className="absolute -top-2.5 -right-2 px-1.5 py-0.5 rounded bg-emerald-400 text-[10px] font-mono text-slate-950 font-bold">
+                      View
+                    </span>
+                  )}
+                </button>
+              </div>
+
+              {/* Screen Reader Output Banner */}
+              <div
+                className={`px-3.5 py-2.5 rounded-xl border font-mono text-xs sm:text-sm font-semibold transition ${isWorkaround
+                    ? "bg-emerald-100/90 border-emerald-300 text-emerald-900"
+                    : "bg-rose-100/90 border-rose-300 text-rose-900"
+                  }`}
+              >
+                {screenReaderText}
+              </div>
+            </div>
+
+            <CodeBlock
+              title="AccessibleSkia.tsx"
+              lang="tsx"
+              code={`<View style={{ position: 'relative' }}>
+  <Canvas style={{ width: 320, height: 100 }}>
+    {/* Visual bonito desenhado na GPU (pixels) */}
+  </Canvas>
+  <View
+    accessible={true}
+    accessibilityRole="button"
+    accessibilityLabel="Botão Comprar Agora, R$ 99"
+    style={StyleSheet.absoluteFill}
+  />
+</View>`}
+            />
+          </div>
+        </div>
+      );
+    };
+
+    // --- Slide 3: Efeitos Visuais Impossíveis no RN Comum ---
+    const AiOrbCanvas = ({ strokeWidth = 0.8, waveIntensity = 5 }) => {
+      const ref = useRef(null);
+      const paramsRef = useRef({ strokeWidth, waveIntensity });
+
+      useEffect(() => {
+        paramsRef.current = { strokeWidth, waveIntensity };
+      }, [strokeWidth, waveIntensity]);
+
+      useEffect(() => {
+        const canvas = ref.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        let t = 0;
+        let id;
+
+        // Partículas externas cintilantes ao redor da orbe
+        const haloPts = Array.from({ length: 90 }, (_, i) => {
+          const a = (i / 90) * Math.PI * 2 + Math.random() * 0.25;
+          const dist = 48 + Math.random() * 14;
+          return { a, dist, r: Math.random() * 1.25 + 0.6, phase: Math.random() * 6.28 };
+        });
+
+        const draw = () => {
+          id = requestAnimationFrame(draw);
+          t += 0.025;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          const cx = canvas.width / 2;
+          const cy = canvas.height / 2;
+
+          // Brilho de fundo azul-ciano (topo esq) -> violeta/magenta (base dir)
+          const glow = ctx.createLinearGradient(cx - 50, cy - 50, cx + 50, cy + 50);
+          glow.addColorStop(0, "rgba(56, 189, 248, 0.30)");
+          glow.addColorStop(0.5, "rgba(167, 139, 250, 0.22)");
+          glow.addColorStop(1, "rgba(232, 121, 249, 0.30)");
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(cx, cy, 58, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Partículas externas cintilantes
+          for (const hp of haloPts) {
+            const pulse = 0.35 + 0.65 * Math.sin(t * 2 + hp.phase);
+            const px = cx + Math.cos(hp.a + t * 0.08) * hp.dist;
+            const py = cy + Math.sin(hp.a + t * 0.08) * hp.dist;
+            ctx.fillStyle = px < cx
+              ? `rgba(125, 211, 252, ${pulse * 0.8})`
+              : `rgba(232, 121, 249, ${pulse * 0.8})`;
+            ctx.beginPath();
+            ctx.arc(px, py, hp.r, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          // Malha 3D -> 2D ondulada (Wireframe Mesh Orb)
+          const latSteps = 16;
+          const lonSteps = 26;
+          const baseR = 40;
+          const grid = [];
+
+          for (let i = 0; i <= latSteps; i++) {
+            const phi = (i / latSteps) * Math.PI;
+            const row = [];
+            for (let j = 0; j <= lonSteps; j++) {
+              const theta = (j / lonSteps) * Math.PI * 2 + t * 0.35;
+              const { strokeWidth: sw, waveIntensity: wi } = paramsRef.current;
+              const disp =
+                Math.sin(phi * 4 + t * 2.1) * Math.cos(theta * 3 - t * 1.4) * wi +
+                Math.cos(phi * 6 - t * 1.6) * Math.sin(theta * 5 + t * 1.8) * (wi * 0.55);
+              const r = baseR + disp;
+
+              const x3 = r * Math.sin(phi) * Math.cos(theta);
+              const y3 = r * Math.cos(phi);
+              const z3 = r * Math.sin(phi) * Math.sin(theta);
+
+              const rotY = y3 * Math.cos(0.35) - z3 * Math.sin(0.35);
+              const rotZ = y3 * Math.sin(0.35) + z3 * Math.cos(0.35);
+
+              row.push({ x: cx + x3, y: cy + rotY, z: rotZ });
+            }
+            grid.push(row);
+          }
+
+          const strokeGrad = ctx.createLinearGradient(cx - 46, cy - 46, cx + 46, cy + 46);
+          strokeGrad.addColorStop(0, "rgba(125, 211, 252, 0.88)");
+          strokeGrad.addColorStop(0.5, "rgba(167, 139, 250, 0.75)");
+          strokeGrad.addColorStop(1, "rgba(244, 114, 182, 0.90)");
+
+          ctx.strokeStyle = strokeGrad;
+          ctx.lineWidth = paramsRef.current.strokeWidth;
+
+          for (let i = 0; i <= latSteps; i++) {
+            ctx.beginPath();
+            for (let j = 0; j <= lonSteps; j++) {
+              const pt = grid[i][j];
+              if (j === 0) ctx.moveTo(pt.x, pt.y);
+              else ctx.lineTo(pt.x, pt.y);
+            }
+            ctx.stroke();
+          }
+
+          for (let j = 0; j < lonSteps; j++) {
+            ctx.beginPath();
+            for (let i = 0; i <= latSteps; i++) {
+              const pt = grid[i][j];
+              if (i === 0) ctx.moveTo(pt.x, pt.y);
+              else ctx.lineTo(pt.x, pt.y);
+            }
+            ctx.stroke();
+          }
+
+          // Pontinhos brilhantes nos vértices frontais
+          for (let i = 1; i < latSteps; i += 2) {
+            for (let j = 0; j < lonSteps; j += 2) {
+              const pt = grid[i][j];
+              if (pt.z > 4) {
+                ctx.fillStyle = pt.x < cx ? "rgba(186, 230, 253, 0.92)" : "rgba(245, 208, 254, 0.92)";
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, 1.05, 0, Math.PI * 2);
+                ctx.fill();
+              }
+            }
+          }
+        };
+
+        id = requestAnimationFrame(draw);
+        return () => cancelAnimationFrame(id);
+      }, []);
+      return <canvas ref={ref} width={220} height={134} className="w-52 h-32" />;
+    };
+
+    const SlideEffectsInteractive = () => {
+      const [active, setActive] = useState("blur");
+      const [blurAmount, setBlurAmount] = useState(18);
+      const [innerDepth, setInnerDepth] = useState(6);
+      const [neonBlur, setNeonBlur] = useState(18);
+      const [neonColor, setNeonColor] = useState("#86efac");
+      const [orbStroke, setOrbStroke] = useState(0.8);
+      const [orbWave, setOrbWave] = useState(5);
+
+      const effects = [
+        {
+          id: "blur",
+          name: "Vidro Fosco Real",
+          api: "BackdropBlur",
+          tag: "Estilo iOS",
+          badgeCls: "bg-sky-100 text-sky-800 border-sky-200",
+          ringCls: "border-sky-400 ring-2 ring-sky-200",
+          desc: "Desfoca dinamicamente tudo o que passa atrás do cartão em tempo real na GPU.",
+          codeTitle: "GlassCard.tsx",
+          code: `<Canvas style={{ flex: 1 }}>
+  <Circle cx={120} cy={80} r={60} color="#7dd3fc" />
+  <BackdropBlur blur={${blurAmount}} clip={{ x: 40, y: 30, width: 220, height: 110 }}>
+    <Fill color="rgba(255, 255, 255, 0.22)" />
+  </BackdropBlur>
+</Canvas>`,
+        },
+        {
+          id: "inner",
+          name: "Sombras Internas",
+          api: "InnerShadow",
+          tag: "Profundidade",
+          badgeCls: "bg-violet-100 text-violet-800 border-violet-200",
+          ringCls: "border-violet-400 ring-2 ring-violet-200",
+          desc: "Cria relevo interno (neumorfismo e cavidades suaves), algo impossível com shadowColor do RN.",
+          codeTitle: "InnerShadowCard.tsx",
+          code: `<RoundedRect x={24} y={24} width={240} height={110} r={24} color="#e2e8f0">
+  <Shadow dx={${innerDepth}} dy={${innerDepth}} blur={${innerDepth * 2}} color="rgba(15, 23, 42, 0.28)" inner />
+  <Shadow dx={-${innerDepth}} dy={-${innerDepth}} blur={${innerDepth * 2}} color="rgba(255, 255, 255, 0.9)" inner />
+</RoundedRect>`,
+        },
+        {
+          id: "neon",
+          name: "Brilho Neon",
+          api: "BlurMask",
+          tag: "Glow GPU",
+          badgeCls: "bg-emerald-100 text-emerald-800 border-emerald-200",
+          ringCls: "border-emerald-400 ring-2 ring-emerald-200",
+          desc: "Adiciona aura luminosa e brilho neon nítido em bordas, ícones e textos.",
+          codeTitle: "NeonGlow.tsx",
+          code: `<RoundedRect x={40} y={40} width={220} height={80} r={18} color="${neonColor}">
+  <BlurMask blur={${neonBlur}} style="solid" />
+</RoundedRect>`,
+        },
+        {
+          id: "shader",
+          name: "Orbes de IA (Malha & Shaders)",
+          api: "Path + Points + Shader",
+          tag: "Tempo Real",
+          badgeCls: "bg-rose-100 text-rose-800 border-rose-200",
+          ringCls: "border-rose-400 ring-2 ring-rose-200",
+          desc: "Projeção 3D → 2D desenhada com <Path>, <Points> e <BlurMask> (ou Shaders SkSL) rodando direto na GPU.",
+          codeTitle: "AiMeshOrb.tsx",
+          code: `<Canvas style={{ flex: 1 }}>
+  <Path path={wireframe3DMesh(wave=${orbWave})} style="stroke" strokeWidth={${orbStroke}}>
+    <LinearGradient colors={["#7dd3fc", "#a78bfa", "#f472b6"]} />
+    <BlurMask blur={8} style="solid" />
+  </Path>
+  <Points points={haloParticles} mode="points" color="#e879f9" />
+</Canvas>`,
+        },
+      ];
+
+      const current = effects.find((e) => e.id === active);
+
+      return (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center h-full">
+          {/* Left: 4 Effect Cards */}
+          <div onClick={(e) => e.stopPropagation()} className="lg:col-span-4 flex flex-col gap-2.5 justify-center">
+            {effects.map((item) => {
+              const isSelected = item.id === active;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setActive(item.id)}
+                  className={`text-left rounded-2xl p-3.5 transition-all cursor-pointer glass-pastel ${isSelected ? `${item.ringCls} scale-[1.01]` : "opacity-80 hover:opacity-100"
+                    }`}
+                >
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <span className="text-sm md:text-base font-bold text-slate-900">
+                      {item.name} <code className="text-[11px] font-mono text-violet-700 ml-1">({item.api})</code>
+                    </span>
+                    <span className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md border ${item.badgeCls}`}>
+                      {item.tag}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-700 leading-relaxed">{item.desc}</p>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Middle: Corresponding Mobile Code + Live Controls */}
+          <div onClick={(e) => e.stopPropagation()} className="lg:col-span-5 flex flex-col gap-3 justify-center min-h-0">
+            <CodeBlock title={current.codeTitle} lang="tsx" code={current.code} />
+
+            <div className="glass-pastel rounded-xl px-4 py-3 flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-slate-700">
+              {active === "blur" && (
+                <>
+                  <span className="font-semibold text-sky-800">blur={blurAmount}px</span>
+                  <input
+                    type="range"
+                    min="2"
+                    max="32"
+                    value={blurAmount}
+                    onChange={(e) => setBlurAmount(Number(e.target.value))}
+                    className="flex-1 accent-sky-500 cursor-pointer"
+                  />
+                </>
+              )}
+              {active === "inner" && (
+                <>
+                  <span className="font-semibold text-violet-800">dx/dy={innerDepth}px</span>
+                  <input
+                    type="range"
+                    min="2"
+                    max="14"
+                    value={innerDepth}
+                    onChange={(e) => setInnerDepth(Number(e.target.value))}
+                    className="flex-1 accent-violet-500 cursor-pointer"
+                  />
+                </>
+              )}
+              {active === "neon" && (
+                <div className="flex items-center justify-between w-full gap-3">
+                  <div className="flex items-center gap-1.5">
+                    {["#86efac", "#7dd3fc", "#c4b5fd", "#fda4af"].map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => setNeonColor(c)}
+                        style={{ backgroundColor: c }}
+                        className={`w-5 h-5 rounded-full cursor-pointer border-2 ${neonColor === c ? "border-slate-900 scale-110" : "border-white"}`}
+                      />
+                    ))}
+                  </div>
+                  <span className="font-semibold text-emerald-800">blur={neonBlur}</span>
+                  <input
+                    type="range"
+                    min="6"
+                    max="34"
+                    value={neonBlur}
+                    onChange={(e) => setNeonBlur(Number(e.target.value))}
+                    className="flex-1 accent-emerald-500 cursor-pointer"
+                  />
+                </div>
+              )}
+              {active === "shader" && (
+                <div className="flex items-center justify-between w-full gap-3">
+                  <span className="font-semibold text-rose-700">wave={orbWave}</span>
+                  <input
+                    type="range"
+                    min="2"
+                    max="10"
+                    value={orbWave}
+                    onChange={(e) => setOrbWave(Number(e.target.value))}
+                    className="flex-1 accent-rose-500 cursor-pointer"
+                  />
+                  <span className="font-semibold text-violet-700">stroke={orbStroke}</span>
+                  <input
+                    type="range"
+                    min="0.5"
+                    max="2.2"
+                    step="0.1"
+                    value={orbStroke}
+                    onChange={(e) => setOrbStroke(Number(e.target.value))}
+                    className="flex-1 accent-violet-500 cursor-pointer"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right: Full Smartphone Mockup */}
+          <div onClick={(e) => e.stopPropagation()} className="lg:col-span-3 flex items-center justify-center">
+            <PhoneMockup title={current.name} subtitle={current.api}>
+              {active === "blur" && (
+                <div className="relative h-48 rounded-2xl overflow-hidden bg-gradient-to-br from-sky-200 via-violet-200 to-emerald-200 flex items-center justify-center px-3">
+                  <div className="w-20 h-20 rounded-full bg-sky-400/80 absolute left-4 top-6 animate-pulse" />
+                  <div className="w-20 h-20 rounded-full bg-rose-400/75 absolute right-4 bottom-6 animate-pulse" />
+                  <div
+                    className="relative z-10 px-4 py-3.5 rounded-2xl border border-white/80 text-center transition-all"
+                    style={{
+                      background: "rgba(255,255,255,0.42)",
+                      backdropFilter: `blur(${blurAmount}px)`,
+                      WebkitBackdropFilter: `blur(${blurAmount}px)`,
+                      boxShadow: "0 8px 28px rgba(99,102,241,0.18)",
+                    }}
+                  >
+                    <div className="text-xs font-bold text-slate-900">Cartão iOS</div>
+                    <div className="text-[10px] font-mono text-slate-700 mt-0.5">blur={blurAmount}px</div>
+                  </div>
+                </div>
+              )}
+
+              {active === "inner" && (
+                <div className="h-48 rounded-2xl bg-slate-200 flex items-center justify-center px-3">
+                  <div
+                    className="px-4 py-5 rounded-2xl bg-slate-200 text-center transition-all"
+                    style={{
+                      boxShadow: `inset ${innerDepth}px ${innerDepth}px ${innerDepth * 2}px rgba(100,116,139,0.42), inset -${innerDepth}px -${innerDepth}px ${innerDepth * 2}px rgba(255,255,255,0.95)`,
+                    }}
+                  >
+                    <div className="text-xs font-bold text-slate-800">Relevo Interno</div>
+                    <div className="text-[10px] font-mono text-slate-500 mt-0.5">dx/dy={innerDepth}px</div>
+                  </div>
+                </div>
+              )}
+
+              {active === "neon" && (
+                <div className="h-48 rounded-2xl bg-[#131a2b] flex items-center justify-center px-3">
+                  <div
+                    className="px-5 py-4 rounded-2xl border-2 font-mono font-bold text-xs text-center transition-all"
+                    style={{
+                      borderColor: neonColor,
+                      color: neonColor,
+                      boxShadow: `0 0 ${neonBlur}px ${neonColor}, inset 0 0 ${Math.round(neonBlur * 0.6)}px ${neonColor}`,
+                      textShadow: `0 0 ${Math.round(neonBlur * 0.5)}px ${neonColor}`,
+                    }}
+                  >
+                    Neon BlurMask
+                  </div>
+                </div>
+              )}
+
+              {active === "shader" && (
+                <div className="h-48 rounded-2xl bg-[#0d1220] flex flex-col items-center justify-center gap-1 px-2">
+                  <AiOrbCanvas strokeWidth={orbStroke} waveIntensity={orbWave} />
+                  <div className="text-center font-mono text-[10px] text-pastel-cyan font-bold">
+                    Orbe 3D • wave={orbWave}
+                  </div>
+                </div>
+              )}
+            </PhoneMockup>
+          </div>
+        </div>
+      );
+    };
+
+    // --- Slides 13-16: Construindo na Prática (Passo a Passo Progressivo) ---
+    const ProgressiveWalletStep = ({ step }) => {
+      const [hoverIdx, setHoverIdx] = useState(14);
+      const [dragging, setDragging] = useState(false);
+      const [sheen, setSheen] = useState({ x: 35, y: 35 });
+      const chartRef = useRef(null);
+
+      // Valores da curva da carteira cripto (18 pontos)
+      const curve = [11200, 11480, 11310, 11690, 12050, 11890, 12240, 12580, 12390, 12810, 13120, 12950, 13440, 13780, 12450, 13290, 13940, 14390];
+      const labels = ["09h", "10h", "11h", "12h", "13h", "14h", "15h", "16h", "17h", "18h", "19h", "20h", "21h", "22h", "Agora", "+1h", "+2h", "+3h"];
+
+      const stepsMeta = [
+        {
+          n: 1,
+          title: "Etapa 1 — A Base Tradicional",
+          libs: ["<View>", "StyleSheet", "Flexbox"],
+          badgeCls: "bg-sky-100 text-sky-800 border-sky-200",
+          explanation: "90% do aplicativo começa com componentes padrão e Flexbox. Estrutura e textos do saldo não precisam do Skia.",
+          differential: "Sem Skia ainda: layout declarativo rápido e acessível.",
+          codeTitle: "CarteiraStep1.tsx",
+          code: `// 1. Base tradicional em React Native
+export function CarteiraCripto() {
+  return (
+    <View style={styles.card}>
+      <Text style={styles.label}>Carteira Cripto</Text>
+      <Text style={styles.saldo}>R$ 12.450,00</Text>
+    </View>
+  );
+}`,
+        },
+        {
+          n: 2,
+          title: "Etapa 2 — O Gráfico na GPU",
+          libs: ["victory-native", "@shopify/react-native-skia"],
+          badgeCls: "bg-emerald-100 text-emerald-800 border-emerald-200",
+          explanation: "A victory-native calcula as coordenadas, enquanto o <Canvas> do Skia desenha a curva suave na GPU.",
+          differential: "Diferencial Skia: LinearGradient + BlurMask neon sem pesar na CPU.",
+          codeTitle: "CarteiraStep2.tsx",
+          code: `// 2. + Gráfico neon na GPU com Skia
+<View style={styles.card}>
+  <Text style={styles.saldo}>R$ 12.450,00</Text>
+  <CartesianChart data={DATA} xKey="h" yKeys={["v"]}>
+    {({ points }) => (
+      <Line points={points.v} color="#4ade80" strokeWidth={3}>
+        <BlurMask blur={10} style="solid" />
+      </Line>
+    )}
+  </CartesianChart>
+</View>`,
+        },
+        {
+          n: 3,
+          title: "Etapa 3 — Interatividade a 60 FPS",
+          libs: ["Gesture Handler", "Reanimated", "Skia"],
+          badgeCls: "bg-violet-100 text-violet-800 border-violet-200",
+          explanation: "Os gestos atualizam SharedValues do Skia direto na UI Thread (C++), sem travar o JavaScript.",
+          differential: "Diferencial Skia: passe o mouse no gráfico — a bolinha e o saldo respondem a 60 FPS.",
+          codeTitle: "CarteiraStep3.tsx",
+          code: `// 3. + Gestos e Reanimated na UI Thread (60 FPS)
+const x = useSharedValue(0);
+const pan = Gesture.Pan().onChange((e) => {
+  x.value = e.x; // Atualiza ponto + saldo sem passar pelo JS!
+});
+
+<GestureDetector gesture={pan}>
+  <Canvas style={styles.chart}>
+    <Circle cx={x} cy={y} r={5} color="#86efac" />
+  </Canvas>
+</GestureDetector>`,
+        },
+        {
+          n: 4,
+          title: "Etapa 4 — Vidro Fosco e Sensores",
+          libs: ["BackdropBlur", "Gyroscope", "Skia GPU"],
+          badgeCls: "bg-rose-100 text-rose-800 border-rose-200",
+          explanation: "O vidro translúcido desfocando o gráfico atrás em tempo real é exclusivo do Skia na GPU, reagindo ao giroscópio.",
+          differential: "Diferencial Skia: mova o mouse no celular para ver o reflexo deslizar no vidro fosco.",
+          codeTitle: "CarteiraStep4.tsx",
+          code: `// 4. + Cartão com Vidro Fosco Real + Giroscópio
+Gyroscope.addListener(({ x, y }) => {
+  reflexoX.value = x * 40;
+});
+
+<Canvas style={StyleSheet.absoluteFill}>
+  <BackdropBlur blur={10} clip={glassCardRect}>
+    <LinearGradient colors={["rgba(255,255,255,0.3)", "transparent"]} />
+  </BackdropBlur>
+</Canvas>`,
+        },
+      ];
+
+      const meta = stepsMeta[step - 1];
+
+      useEffect(() => {
+        if (step < 2) return;
+        const canvas = chartRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+
+        const minV = 10900;
+        const maxV = 14700;
+        const pts = curve.map((v, i) => ({
+          x: (i / (curve.length - 1)) * (w - 16) + 8,
+          y: h - 14 - ((v - minV) / (maxV - minV)) * (h - 28),
+        }));
+
+        // Degradê transparente verde-neon abaixo da curva
+        const areaGrad = ctx.createLinearGradient(0, 8, 0, h);
+        areaGrad.addColorStop(0, "rgba(57, 255, 20, 0.32)");
+        areaGrad.addColorStop(0.65, "rgba(134, 239, 172, 0.10)");
+        areaGrad.addColorStop(1, "rgba(19, 26, 43, 0)");
+
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 0; i < pts.length - 1; i++) {
+          const xc = (pts[i].x + pts[i + 1].x) / 2;
+          const yc = (pts[i].y + pts[i + 1].y) / 2;
+          ctx.quadraticCurveTo(pts[i].x, pts[i].y, xc, yc);
+        }
+        ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
+        ctx.lineTo(pts[pts.length - 1].x, h);
+        ctx.lineTo(pts[0].x, h);
+        ctx.closePath();
+        ctx.fillStyle = areaGrad;
+        ctx.fill();
+
+        // Curva verde-neon com brilho (BlurMask)
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 0; i < pts.length - 1; i++) {
+          const xc = (pts[i].x + pts[i + 1].x) / 2;
+          const yc = (pts[i].y + pts[i + 1].y) / 2;
+          ctx.quadraticCurveTo(pts[i].x, pts[i].y, xc, yc);
+        }
+        ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
+        ctx.strokeStyle = "#4ade80";
+        ctx.lineWidth = 2.6;
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = "rgba(74, 222, 128, 0.85)";
+        ctx.stroke();
+        ctx.restore();
+
+        // Etapa 3+: Bolinha luminosa acompanhando o cursor
+        if (step >= 3) {
+          const p = pts[hoverIdx];
+          ctx.strokeStyle = "rgba(134, 239, 172, 0.45)";
+          ctx.setLineDash([3, 3]);
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(p.x, 6);
+          ctx.lineTo(p.x, h - 6);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 7, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(74, 222, 128, 0.35)";
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+          ctx.fillStyle = "#86efac";
+          ctx.fill();
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+      }, [step, hoverIdx]);
+
+      const handleChartPointer = (e) => {
+        if (step < 3) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+        setHoverIdx(Math.round(ratio * (curve.length - 1)));
+      };
+
+      const handlePhoneTilt = (e) => {
+        if (step < 4) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+        const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+        setSheen({ x, y });
+      };
+
+      const displayedBalance =
+        step >= 3
+          ? `R$ ${curve[hoverIdx].toLocaleString("pt-BR")},00`
+          : "R$ 12.450,00";
+
+      return (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center h-full">
+          {/* Left Column: Step Details & Skia Differential */}
+          <div className="lg:col-span-4 space-y-4">
+            {/* Step Progress Pills */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              {[1, 2, 3, 4].map((n) => (
+                <span
+                  key={n}
+                  className={`px-2.5 py-1 rounded-full text-xs font-mono font-bold border transition ${n === step
+                      ? "bg-sky-100 border-sky-400 text-sky-900 shadow-sm"
+                      : n < step
+                        ? "bg-emerald-100 border-emerald-300 text-emerald-800"
+                        : "bg-white/60 border-slate-200 text-slate-400"
+                    }`}
+                >
+                  {n}/4
+                </span>
+              ))}
+            </div>
+
+            <div className="glass-pastel rounded-2xl p-5 space-y-3">
+              <div className="flex flex-wrap gap-1.5">
+                {meta.libs.map((lib) => (
+                  <code key={lib} className={`px-2 py-0.5 rounded-md border text-[11px] font-mono font-semibold ${meta.badgeCls}`}>
+                    {lib}
+                  </code>
+                ))}
+              </div>
+              <h3 className="text-xl md:text-2xl font-extrabold text-slate-900">{meta.title}</h3>
+              <p className="text-sm md:text-base text-slate-700 leading-relaxed">{meta.explanation}</p>
+            </div>
+
+            <div className="glass-pastel-mint rounded-2xl p-4 border-l-4 border-l-emerald-400">
+              <p className="text-sm font-medium text-slate-800 leading-relaxed">
+                {meta.differential}
+              </p>
+            </div>
+          </div>
+
+          {/* Middle Column: Evolving Mobile Code */}
+          <div onClick={(e) => e.stopPropagation()} className="lg:col-span-5 flex flex-col justify-center min-h-0">
+            <CodeBlock title={meta.codeTitle} lang="tsx" code={meta.code} />
+          </div>
+
+          {/* Right Column: Progressive Interactive Smartphone Mockup */}
+          <div onClick={(e) => e.stopPropagation()} className="lg:col-span-3 flex items-center justify-center">
+            <PhoneMockup title="Carteira Cripto" subtitle={`Etapa ${step} de 4`}>
+              <div
+                onMouseMove={handlePhoneTilt}
+                className="relative rounded-2xl bg-[#131a2b] border border-slate-700/80 p-3.5 flex flex-col gap-3 overflow-hidden transition-all duration-300"
+                style={{ minHeight: "238px" }}
+              >
+                {/* Header: Carteira Cripto + Saldo */}
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="text-[11px] font-mono text-slate-400">Carteira Cripto</div>
+                    <div className="text-xl font-extrabold text-white tracking-tight mt-0.5 transition-all">
+                      {displayedBalance}
+                    </div>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-[10px] font-mono text-pastel-mint font-semibold">
+                    {step >= 3 ? labels[hoverIdx] : "+12,4%"}
+                  </span>
+                </div>
+
+                {/* Etapa 2+: Gráfico Neon em Canvas */}
+                {step >= 2 ? (
+                  <div
+                    onMouseDown={() => setDragging(true)}
+                    onMouseUp={() => setDragging(false)}
+                    onMouseLeave={() => setDragging(false)}
+                    onMouseMove={(e) => {
+                      if (step >= 3) handleChartPointer(e);
+                    }}
+                    onClick={handleChartPointer}
+                    className={`relative h-32 rounded-xl bg-[#0b101d] border border-emerald-400/25 overflow-hidden transition-all duration-500 ${step >= 3 ? "cursor-crosshair" : ""
+                      }`}
+                  >
+                    <canvas ref={chartRef} width={220} height={128} className="w-full h-full" />
+                    {step === 3 && (
+                      <div className="absolute bottom-1.5 right-2 text-[9px] font-mono text-pastel-mint/80 pointer-events-none">
+                        Passe o mouse / arraste
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="h-32 rounded-xl border border-dashed border-slate-700/70 flex items-center justify-center text-center px-3">
+                    <span className="text-[11px] font-mono text-slate-500">
+                      Apenas &lt;View&gt; + StyleSheet (estático)
+                    </span>
+                  </div>
+                )}
+
+                {/* Etapa 4: Cartão Virtual Vidro Fosco + Reflexo (Gyroscope) */}
+                {step >= 4 && (
+                  <div
+                    className="absolute inset-x-3 bottom-2.5 top-[92px] rounded-2xl border border-white/45 p-3 flex flex-col justify-between pointer-events-none transition-all duration-300"
+                    style={{
+                      background: `radial-gradient(circle at ${sheen.x}% ${sheen.y}%, rgba(255,255,255,0.36), rgba(125,211,252,0.12) 48%, rgba(15,23,42,0.22) 100%)`,
+                      backdropFilter: "blur(9px)",
+                      WebkitBackdropFilter: "blur(9px)",
+                      boxShadow: "0 10px 24px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255,255,255,0.5)",
+                    }}
+                  >
+                    <div className="flex items-center justify-between gap-2 whitespace-nowrap">
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-white font-bold">
+                        Skia Glass
+                      </span>
+                      <span className="text-[10px] font-mono text-pastel-cyan">BackdropBlur</span>
+                    </div>
+                    <div className="flex items-end justify-between gap-2">
+                      <div className="text-xs font-mono text-white/90 tracking-widest">•••• 4829</div>
+                      <div className="text-[9px] font-mono text-pastel-mint whitespace-nowrap">
+                        Mova o mouse
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </PhoneMockup>
+          </div>
+        </div>
+      );
+    };
+
+    // --- Slide 08 Interactive CPU, GPU & FPS ---
+    const SlideCpuGpuFpsInteractive = () => {
+      const [selectedUnit, setSelectedUnit] = useState("GPU");
+
+      return (
+        <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedUnit("CPU");
+              }}
+              className={`text-left glass-pastel rounded-2xl p-5 flex flex-col justify-between border-t-4 border-t-rose-400 transition cursor-pointer ${selectedUnit === "CPU"
+                ? "ring-2 ring-rose-400 shadow-md"
+                : "hover:ring-1 hover:ring-rose-300"
+                }`}
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-11 h-11 rounded-xl bg-rose-100 border border-rose-200 flex items-center justify-center text-rose-600">
+                    <Icon name="cpu" className="w-6 h-6" />
+                  </div>
+                  <span className="text-xs font-mono px-2.5 py-1 rounded-lg bg-rose-100/80 text-rose-700 font-semibold">
+                    Clique: CPU
+                  </span>
+                </div>
+                <h3 className="text-2xl font-extrabold text-slate-900 mb-2">CPU</h3>
+                <p className="text-base text-slate-700 leading-relaxed">
+                  Calcula layout e hierarquia das Views de forma sequencial.
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-slate-200 text-xs font-mono font-semibold text-rose-600">
+                Gargala com muitos objetos
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedUnit("GPU");
+              }}
+              className={`text-left glass-pastel-cyan rounded-2xl p-5 flex flex-col justify-between border-t-4 border-t-sky-400 transition cursor-pointer ${selectedUnit === "GPU"
+                ? "ring-2 ring-sky-400 shadow-md"
+                : "hover:ring-1 hover:ring-sky-300"
+                }`}
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-11 h-11 rounded-xl bg-sky-100 border border-sky-200 flex items-center justify-center text-sky-600">
+                    <Icon name="gpu" className="w-6 h-6" />
+                  </div>
+                  <span className="text-xs font-mono px-2.5 py-1 rounded-lg bg-sky-100/80 text-sky-700 font-semibold">
+                    Clique: GPU
+                  </span>
+                </div>
+                <h3 className="text-2xl font-extrabold text-slate-900 mb-2">GPU</h3>
+                <p className="text-base text-slate-700 leading-relaxed">
+                  Calcula <strong className="text-slate-900">milhões de pixels em paralelo</strong> via:
+                </p>
+                <div className="flex flex-wrap gap-2 mt-3">
+                  <span className="px-2.5 py-1 rounded-lg bg-white/80 border border-sky-200 font-mono text-xs text-sky-800">Metal (iOS)</span>
+                  <span className="px-2.5 py-1 rounded-lg bg-white/80 border border-violet-200 font-mono text-xs text-violet-800">Vulkan (Android)</span>
+                </div>
+              </div>
+              <div className="mt-4 pt-3 border-t border-sky-200/70 text-xs font-mono font-semibold text-sky-700">
+                Processamento paralelo
+              </div>
+            </button>
+
+            <div className="glass-pastel-mint rounded-2xl p-5 flex flex-col justify-between border-t-4 border-t-emerald-400">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-11 h-11 rounded-xl bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-600">
+                    <Icon name="zap" className="w-6 h-6" />
+                  </div>
+                  <span className="text-xs font-mono px-2.5 py-1 rounded-lg bg-emerald-100/80 text-emerald-700 font-semibold">
+                    Quadros por segundo
+                  </span>
+                </div>
+                <h3 className="text-2xl font-extrabold text-slate-900 mb-2">FPS</h3>
+                <p className="text-xs md:text-sm text-slate-700 leading-relaxed mb-2">
+                  <strong className="text-slate-900">Quadros por segundo</strong> mede quantas imagens completas a tela desenha a cada segundo.
+                </p>
+                <p className="text-xs md:text-sm text-slate-700 leading-relaxed">
+                  Em <strong className="text-emerald-700">60 FPS</strong>, cada quadro precisa ficar pronto em no máximo <code className="font-mono font-semibold text-violet-700">16,6 ms</code> (em <strong className="text-emerald-700">120 FPS</strong>, apenas <code className="font-mono font-semibold text-violet-700">8,3 ms</code>). O Skia envia o <code className="font-mono font-semibold text-violet-700">&lt;Canvas&gt;</code> direto para a GPU, evitando que a CPU estoure esse limite.
+                </p>
+              </div>
+              <div className="mt-3 pt-3 border-t border-emerald-200/70 text-xs font-mono font-semibold text-emerald-700">
+                Fluidez instantânea
+              </div>
+            </div>
+          </div>
+
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className={`glass-pastel rounded-2xl p-4 md:p-5 border-l-4 transition ${selectedUnit === "CPU" ? "border-l-rose-400 bg-rose-50/40" : "border-l-sky-400 bg-sky-50/40"
+              }`}
+          >
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedUnit("CPU")}
+                  className={`px-3 py-1 rounded-lg text-xs font-mono font-bold border transition cursor-pointer ${selectedUnit === "CPU"
+                    ? "bg-rose-100 border-rose-300 text-rose-800"
+                    : "bg-white/80 border-slate-200 text-slate-600 hover:border-rose-300"
+                    }`}
+                >
+                  CPU (Sem Skia)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedUnit("GPU")}
+                  className={`px-3 py-1 rounded-lg text-xs font-mono font-bold border transition cursor-pointer ${selectedUnit === "GPU"
+                    ? "bg-sky-100 border-sky-300 text-sky-800"
+                    : "bg-white/80 border-slate-200 text-slate-600 hover:border-sky-300"
+                    }`}
+                >
+                  GPU (Com Skia)
+                </button>
+              </div>
+              <span className="text-xs font-mono text-slate-500">
+                Clique em CPU ou GPU acima para alternar
+              </span>
+            </div>
+
+            {selectedUnit === "CPU" ? (
+              <p className="text-sm md:text-base text-slate-700 leading-relaxed">
+                <strong className="text-rose-700">Sem Skia (na CPU):</strong> se você tiver muitos elementos se mexendo ao mesmo tempo, o processador demora mais de <code className="font-mono font-semibold text-violet-700">16 ms</code> para recalcular tudo — aí ele "pula" quadros, o FPS cai e você sente o aplicativo travando.
+              </p>
+            ) : (
+              <p className="text-sm md:text-base text-slate-700 leading-relaxed">
+                <strong className="text-sky-700">Com Skia (na GPU):</strong> como o desenho vai direto para a placa de vídeo (<code className="font-mono font-semibold text-violet-700">C++ / Metal / Vulkan</code>), ela consegue pintar todos os elementos bem dentro dessa janela de <code className="font-mono font-semibold text-violet-700">8 a 16 ms</code>, mantendo os <strong className="text-emerald-700">60 a 120 FPS</strong> cravados.
+              </p>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    // --- Slide 14 Interactive Typography & Font Pipeline ---
+    const SlideTypographyInteractive = () => {
+      const [fontKey, setFontKey] = useState("roboto"); // "roboto" | "mono" | "null"
+      const [stage, setStage] = useState(2); // 0: .ttf, 1: HarfBuzz, 2: FreeType + Skia
+
+      const fonts = {
+        roboto: { label: "Roboto.ttf", req: "require('./Roboto.ttf')", cls: "font-sans" },
+        mono: { label: "JetBrainsMono.ttf", req: "require('./JetBrainsMono.ttf')", cls: "font-mono" },
+        null: { label: "null (vazio)", req: "null", cls: "" },
+      };
+
+      const stages = [
+        { label: "1. /system/fonts", sub: "Arquivo .ttf", color: "#cbd5e1", note: `Lendo /system/fonts/${fonts[fontKey].label}` },
+        { label: "2. Minikin / HarfBuzz", sub: "Medidas & acentos", color: "#c4b5fd", note: "Minikin/HarfBuzz mede kerning, acento e (x:28, y:62)" },
+        { label: "3. FreeType + Skia", sub: "Vetores na GPU", color: "#7dd3fc", note: "FreeType + Skia desenha os vetores na GPU" },
+      ];
+
+      const fontLoaded = fontKey !== "null";
+      const activeFont = fonts[fontKey];
+      const activeStage = stages[stage];
+
+      const codeText = `const font = useFont(${activeFont.req}, 28);
+if (!font) return null; // Skia não possui fonte embutida
+// Etapa ${stage + 1}: ${activeStage.note}
+
+<Canvas style={{ width: 320, height: 100 }}>
+  <Text x={28} y={62} text="Olá, Skia!" font={font} color="${activeStage.color}" />
+</Canvas>`;
+
+      return (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+          <div className="lg:col-span-6 glass-pastel-cyan rounded-2xl p-5 flex flex-col gap-3 border-t-4 border-t-sky-400">
+            <h3 className="text-lg md:text-xl font-extrabold text-slate-900">
+              Como as Fontes funcionam (Tipografia)
+            </h3>
+            <ul className="space-y-2.5 text-sm text-slate-700 leading-relaxed">
+              <li className="p-3 rounded-xl bg-white/85 border border-rose-200">
+                <strong className="text-rose-700">O problema do Skia:</strong> O Skia é um motor de desenho vetorial; ele não vem com arquivos de fontes (como Roboto) embutidos nele.
+              </li>
+              <li className="p-3.5 rounded-xl bg-white/85 border border-sky-200 space-y-2">
+                <div>
+                  <strong className="text-sky-700">A solução do Android:</strong> O sistema operacional Android fornece as fontes e os motores de texto, e entrega tudo mastigado para o Skia desenhar:
+                </div>
+                <ol className="list-decimal list-inside space-y-1.5 text-xs md:text-sm text-slate-700 pl-1">
+                  <li>
+                    <strong>Arquivos de Fonte do Sistema:</strong> O Android guarda suas fontes padrão (como Roboto e Noto) na pasta do sistema (<code className="text-sky-700 bg-sky-100 px-1 rounded font-mono">/system/fonts</code>).
+                  </li>
+                  <li>
+                    <strong>Motor de Layout de Texto (Minikin / HarfBuzz):</strong> Antes de desenhar, o Android usa bibliotecas como Minikin e HarfBuzz para calcular o espaçamento entre letras, acentos, quebras de linha e direção do texto (esquerda para direita).
+                  </li>
+                  <li>
+                    <strong>FreeType + Skia:</strong> Depois que o texto já está medido e posicionado, o Skia usa o FreeType para ler o contorno vetorial da fonte do sistema e desenhar cada letra na tela.
+                  </li>
+                </ol>
+              </li>
+            </ul>
+          </div>
+
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="lg:col-span-6 flex flex-col gap-3 justify-between"
+          >
+            <div className="glass-pastel rounded-2xl p-4 space-y-3 border-t-4 border-t-violet-400">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-xs font-mono font-bold uppercase tracking-wider text-violet-800">
+                  Pipeline de Tipografia na Prática
+                </span>
+                <div className="flex items-center gap-1.5">
+                  {Object.entries(fonts).map(([key, f]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setFontKey(key)}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold border transition cursor-pointer ${fontKey === key
+                          ? key === "null"
+                            ? "bg-rose-100 border-rose-300 text-rose-700"
+                            : "bg-emerald-100 border-emerald-300 text-emerald-800"
+                          : "bg-white/80 border-slate-200 text-slate-600 hover:border-violet-300"
+                        }`}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                {stages.map((s, idx) => (
+                  <button
+                    key={s.label}
+                    type="button"
+                    onClick={() => setStage(idx)}
+                    className={`p-2 rounded-xl border text-left transition cursor-pointer ${stage === idx
+                        ? "bg-sky-100 border-sky-400 text-slate-900 shadow-sm"
+                        : "bg-white/75 border-slate-200 text-slate-600 hover:border-violet-300"
+                      }`}
+                  >
+                    <div className="text-[11px] font-mono font-bold text-sky-800 truncate">{s.label}</div>
+                    <div className="text-[11px] text-slate-600 truncate">{s.sub}</div>
+                  </button>
+                ))}
+              </div>
+
+              <div className="relative rounded-xl bg-[#131a2b] border border-sky-300/50 h-[126px] flex flex-col items-center justify-center px-4 overflow-hidden">
+                {!fontLoaded ? (
+                  <div className="text-xs font-mono text-rose-300 text-center">
+                    font === null • Sem arquivo .ttf, o &lt;Canvas&gt; não desenha texto
+                  </div>
+                ) : (
+                  <>
+                    <div
+                      className={`text-3xl md:text-4xl font-extrabold tracking-wide transition-all ${activeFont.cls} ${stage === 2
+                          ? "text-sky-300 drop-shadow-[0_0_12px_rgba(125,211,252,0.75)]"
+                          : stage === 1
+                            ? "text-violet-300 border border-dashed border-violet-400/70 px-3 py-1 rounded-lg"
+                            : "text-slate-300"
+                        }`}
+                    >
+                      Olá, Skia!
+                    </div>
+                    <div className="text-[11px] font-mono text-slate-400 mt-2">
+                      {stage === 0 && `1. Lendo glifos de /system/fonts/${activeFont.label}`}
+                      {stage === 1 && "2. Minikin / HarfBuzz: kerning, acento (á) e posição (x:28, y:62)"}
+                      {stage === 2 && "3. FreeType + Skia: contorno vetorial renderizado na GPU"}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <CodeBlock title="TypographySkia.tsx" code={codeText} />
+          </div>
+        </div>
+      );
+    };
+
+    // --- Slide 15 Interactive Limitations Video + 3D/TypeGPU ---
+    const SlideLimitationsVideoInteractive = () => {
+      const [panel, setPanel] = useState(0);
+
+      return (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="lg:col-span-5 flex items-center justify-center"
+          >
+            <div className="glass-pastel rounded-2xl p-2">
+              <video
+                src="./skia1.mp4"
+                controls
+                playsInline
+                className="h-[62vh] min-h-[460px] max-h-[680px] w-auto aspect-[9/16] rounded-xl shadow-md"
+              />
+            </div>
+          </div>
+
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="lg:col-span-7 glass-pastel-cyan rounded-2xl p-6 md:p-7 flex flex-col justify-between gap-5 border-t-4 border-t-sky-400"
+          >
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2.5">
+                <span className="px-2.5 py-1 rounded-lg bg-sky-100 border border-sky-200 font-mono text-xs font-semibold text-sky-800">
+                  {panel === 0 ? "1 / 2 • Vídeo & Mídia" : "2 / 2 • Skia 2D + TypeGPU 3D"}
+                </span>
+                <h3 className="text-xl font-extrabold text-slate-900">
+                  {panel === 0 ? "Reprodução de Vídeos e Câmera" : "Limitação 3D: Skia + TypeGPU"}
+                </h3>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setPanel(0)}
+                  disabled={panel === 0}
+                  aria-label="Conteúdo anterior"
+                  className="p-2 rounded-xl bg-white/85 border border-slate-200 text-slate-700 hover:border-sky-400 hover:text-sky-700 disabled:opacity-35 disabled:pointer-events-none transition cursor-pointer shadow-sm"
+                >
+                  <Icon name="arrowLeft" className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPanel(1)}
+                  disabled={panel === 1}
+                  aria-label="Próximo conteúdo"
+                  className="p-2 rounded-xl bg-white/85 border border-slate-200 text-slate-700 hover:border-sky-400 hover:text-sky-700 disabled:opacity-35 disabled:pointer-events-none transition cursor-pointer shadow-sm"
+                >
+                  <Icon name="arrowRight" className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {panel === 0 ? (
+              <div className="space-y-3.5 text-base text-slate-700 leading-relaxed">
+                <div className="p-4 rounded-xl bg-white/85 border border-rose-200 shadow-sm">
+                  <div className="text-xs font-mono uppercase tracking-wider text-rose-600 font-semibold mb-1">
+                    O limite do Skia
+                  </div>
+                  Não decodifica vídeos (MP4, H.264, AV1), nem gerencia áudio ou sincronização de quadros.
+                </div>
+                <div className="p-4 rounded-xl bg-white/85 border border-sky-200 shadow-sm">
+                  <div className="text-xs font-mono uppercase tracking-wider text-sky-700 font-semibold mb-1">
+                    Quem ajuda
+                  </div>
+                  O framework de mídia do Android (<code className="text-sky-700 bg-sky-100 px-1.5 py-0.5 rounded font-mono text-xs">MediaCodec</code> / <code className="text-sky-700 bg-sky-100 px-1.5 py-0.5 rounded font-mono text-xs">ExoPlayer</code>) decodifica na GPU para <code className="text-sky-700 bg-sky-100 px-1.5 py-0.5 rounded font-mono text-xs">SurfaceTexture</code>, encaixando o quadro direto na tela sem o Skia redesenhar manualmente.
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3.5 text-base text-slate-700 leading-relaxed">
+                <div className="p-4 rounded-xl bg-white/85 border border-sky-200 shadow-sm">
+                  <div className="text-xs font-mono uppercase tracking-wider text-sky-700 font-semibold mb-1">
+                    Skia • Trabalho 2D
+                  </div>
+                  Aqui o <strong className="text-slate-900">Skia</strong> faz o trabalho 2D de pintar a arte, as cores e o brilho de cada face, porém a biblioteca não gira objetos em 3D nem calcula profundidade.
+                </div>
+                <div className="p-4 rounded-xl bg-white/85 border border-violet-200 shadow-sm">
+                  <div className="text-xs font-mono uppercase tracking-wider text-violet-700 font-semibold mb-1">
+                    TypeGPU • Motor 3D
+                  </div>
+                  <strong className="text-violet-800">TypeGPU:</strong> Com as texturas 2D do Skia, monta os cubos 3D, calcula o ângulo da câmera quando gira a árvore e manda para a GPU do celular desenhar.
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pt-3 border-t border-sky-200/80 text-xs font-mono">
+              <div className="flex items-center gap-2 text-slate-600">
+                {panel === 0 ? (
+                  <>
+                    <span className="px-2 py-0.5 rounded bg-white/80 border border-slate-200">MediaCodec</span>
+                    <span>→</span>
+                    <span className="px-2 py-0.5 rounded bg-white/80 border border-slate-200">SurfaceTexture</span>
+                    <span>→</span>
+                    <span className="px-2 py-0.5 rounded bg-sky-100 text-sky-800 border border-sky-200 font-semibold">Tela</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="px-2 py-0.5 rounded bg-sky-100 text-sky-800 border border-sky-200 font-semibold">Skia (Arte 2D)</span>
+                    <span>→</span>
+                    <span className="px-2 py-0.5 rounded bg-violet-100 text-violet-800 border border-violet-200 font-semibold">TypeGPU (Cubos 3D)</span>
+                    <span>→</span>
+                    <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200 font-semibold">GPU</span>
+                  </>
+                )}
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                {[0, 1].map((idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setPanel(idx)}
+                    aria-label={`Ir para painel ${idx + 1}`}
+                    className={`h-2 rounded-full transition-all cursor-pointer ${panel === idx ? "w-6 bg-sky-600" : "w-2 bg-slate-300 hover:bg-slate-400"}`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // --- Slide 16 Interactive Canvas Hit-Test & Manual Coordinates ---
+    const SlideCanvasHitTestInteractive = () => {
+      const [lastTap, setLastTap] = useState({ x: 180, y: 75, hit: true });
+      const [hits, setHits] = useState(0);
+
+      const btn = { x: 90, y: 45, width: 180, height: 54 };
+
+      const handleCanvasTap = (e) => {
+        e.stopPropagation();
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = Math.round(((e.clientX - rect.left) / rect.width) * 360);
+        const y = Math.round(((e.clientY - rect.top) / rect.height) * 144);
+        const hit =
+          x >= btn.x &&
+          x <= btn.x + btn.width &&
+          y >= btn.y &&
+          y <= btn.y + btn.height;
+
+        setLastTap({ x, y, hit });
+        if (hit) setHits((c) => c + 1);
+      };
+
+      const hitTestCode = `const btn = { x: 90, y: 45, width: 180, height: 54 };
+const tap = Gesture.Tap().onEnd((e) => {
+  // Toque: x = ${lastTap.x}, y = ${lastTap.y}
+  const hit = e.x >= btn.x && e.x <= btn.x + btn.width
+           && e.y >= btn.y && e.y <= btn.y + btn.height; // ${lastTap.hit}
+  if (hit) runOnJS(onPress)(); // Cliques: ${hits}
+});
+
+<GestureDetector gesture={tap}>
+  <Canvas style={{ width: 360, height: 144 }}>
+    <RoundedRect x={90} y={45} width={180} height={54} r={12} color="${lastTap.hit ? "#38bdf8" : "#0ea5e9"}" />
+  </Canvas>
+</GestureDetector>`;
+
+      return (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+          <div className="lg:col-span-5 glass-pastel rounded-2xl p-5 flex flex-col justify-start gap-3 border-t-4 border-t-rose-400">
+            <h3 className="text-lg font-extrabold text-slate-900">
+              O Canvas é um bloco único (Sem toques ou Flexbox nativos)
+            </h3>
+
+            <div className="space-y-2.5 text-sm text-slate-700 leading-relaxed">
+              <div className="p-3 rounded-xl bg-white/85 border border-rose-200">
+                <strong className="text-rose-700">O problema:</strong> Tudo o que é desenhado dentro do <code className="text-sky-700 bg-sky-100 px-1 rounded font-mono text-xs">&lt;Canvas&gt;</code> do Skia funciona como uma pintura única. Os elementos desenhados lá dentro não são componentes reais do React Native — ou seja, não aceitam <code className="text-rose-700 bg-rose-100 px-1 rounded font-mono text-xs">onPress</code> nem obedecem ao layout automático de Flexbox (Yoga).
+              </div>
+
+              <div className="p-3 rounded-xl bg-white/85 border border-sky-200 space-y-1.5">
+                <div className="font-bold text-sky-800">Como resolver:</div>
+                <ul className="space-y-1.5 text-xs md:text-sm text-slate-700">
+                  <li>
+                    <strong className="text-violet-700">Para Toques e Gestos:</strong> Envolve-se o <code className="text-sky-700 bg-sky-100 px-1 rounded font-mono">&lt;Canvas&gt;</code> com a biblioteca <code className="text-violet-700 bg-violet-100 px-1 rounded font-mono">react-native-gesture-handler</code> para capturar as coordenadas <code className="font-mono">(x, y)</code> onde o usuário tocou ou arrastou o dedo, verificando matematicamente se o toque caiu dentro da área do desenho.
+                  </li>
+                  <li>
+                    <strong className="text-emerald-700">Para Posicionamento:</strong> Como não há Flexbox dentro do Canvas, define-se a posição exata de cada forma usando coordenadas manuais (<code className="font-mono">x, y, width, height</code>) ou calcula-se o layout previamente antes de desenhar.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="lg:col-span-7 flex flex-col gap-3 justify-between"
+          >
+            <div className="glass-pastel-cyan rounded-2xl p-3 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-mono font-bold uppercase tracking-wider text-sky-800">
+                  Teste ao vivo: clique dentro ou fora do botão
+                </span>
+                <span
+                  className={`text-xs font-mono font-bold px-2.5 py-0.5 rounded-lg border ${lastTap.hit
+                      ? "bg-emerald-100 border-emerald-300 text-emerald-800"
+                      : "bg-rose-100 border-rose-300 text-rose-700"
+                    }`}
+                >
+                  ({lastTap.x}, {lastTap.y}) • {lastTap.hit ? `Botão (${hits})` : "Fora do botão"}
+                </span>
+              </div>
+
+              <div
+                onClick={handleCanvasTap}
+                className="relative w-full h-[132px] rounded-xl bg-[#131a2b] border border-sky-300/60 overflow-hidden cursor-crosshair select-none"
+              >
+                <div
+                  className="absolute border-2 rounded-xl flex items-center justify-center font-bold text-sm text-white transition-transform"
+                  style={{
+                    left: `${(btn.x / 360) * 100}%`,
+                    top: `${(btn.y / 144) * 100}%`,
+                    width: `${(btn.width / 360) * 100}%`,
+                    height: `${(btn.height / 144) * 100}%`,
+                    background: lastTap.hit ? "rgba(56, 189, 248, 0.85)" : "rgba(56, 189, 248, 0.55)",
+                    borderColor: lastTap.hit ? "#86efac" : "#7dd3fc",
+                  }}
+                >
+                  Botão Skia (x:90, y:45)
+                </div>
+
+                <div
+                  className={`absolute w-3.5 h-3.5 -ml-1.5 -mt-1.5 rounded-full border-2 border-white pointer-events-none ${lastTap.hit ? "bg-emerald-400" : "bg-rose-400"
+                    }`}
+                  style={{
+                    left: `${(lastTap.x / 360) * 100}%`,
+                    top: `${(lastTap.y / 144) * 100}%`,
+                  }}
+                />
+              </div>
+            </div>
+
+            <CodeBlock title="CanvasHitTest.tsx" code={hitTestCode} />
+          </div>
+        </div>
+      );
+    };
+
+    // --- Slide 23 Interactive Doomsday App QR Code + Skia Effects ---
+    const SlideDoomsdayQrInteractive = () => {
+      const [leftView, setLeftView] = useState("video"); // "video" | "qr"
+      const [tunnelUrl, setTunnelUrl] = useState("exp://u.expo.dev/efa9f1ec-caf7-4ec6-994a-e936469776de/group/6130a097-1809-441f-aaac-5236b2136e21");
+      const [effectIdx, setEffectIdx] = useState(0);
+
+      const effects = [
+        {
+          tab: "Portal",
+          file: "EnergyPortal.tsx",
+          where: "Tela 1 (Avengers: Doomsday) • O portal verde/azul girando atrás do logo \"A\"",
+          desc: "Anéis concêntricos e partículas orbitais girando em torno do emblema.",
+          how: "O Skia recebe o ângulo da UI Thread (Reanimated) e aplica SweepGradient + BlurMask direto na GPU, sem re-renderizar o React.",
+          code: `<Group transform={portalTransform} origin={vec(cx, cy)}>
+  <Circle cx={cx} cy={cy} r={radius} style="stroke" strokeWidth={4}>
+    <SweepGradient c={vec(cx, cy)} colors={['#22c55e', '#38bdf8', '#22c55e']} />
+    <BlurMask blur={12} style="solid" />
+  </Circle>
+</Group>`,
+        },
+        {
+          tab: "Vidro",
+          file: "SkiaCardBackdrop.tsx",
+          where: "Em todas as 5 telas (lado direito) • O card translúcido com o texto dos heróis",
+          desc: "Card flutuante com vidro fosco real desfocando o fundo cósmico atrás.",
+          how: "O BackdropBlur lê os pixels já desenhados atrás do retângulo na GPU e aplica o desfoque em tempo real a 60 FPS.",
+          code: `<BackdropBlur blur={18} clip={cardRRect}>
+  <Fill color="rgba(10, 15, 28, 0.55)" />
+</BackdropBlur>
+<RoundedRect rect={cardRRect} style="stroke" strokeWidth={1.5}>
+  <LinearGradient start={vec(0, 0)} end={vec(cardWidth, cardHeight)} colors={['#38bdf8', '#a855f7']} />
+</RoundedRect>`,
+        },
+        {
+          tab: "Ondas",
+          file: "ShockwaveSystem.tsx",
+          where: "Ao tocar na tela (em qualquer herói) • Os anéis de energia que saem do dedo",
+          desc: "Cada toque na tela dispara uma onda expansiva de energia e vibração tátil.",
+          how: "O GestureDetector captura (x, y) nativamente e o Skia desenha o Circle com BlurMask expandindo na GPU sem travar o JavaScript.",
+          code: `const tap = Gesture.Tap().onEnd((e) => {
+  runOnJS(spawnShockwave)(e.x, e.y);
+});
+
+<Circle cx={wave.x} cy={wave.y} r={waveRadius} style="stroke" strokeWidth={3}>
+  <BlurMask blur={8} style="normal" />
+</Circle>`,
+        },
+        {
+          tab: "Nebulosa",
+          file: "CosmicBackground.tsx",
+          where: "Fundo de todas as telas (Doom, Quarteto, Capitão, X-Men) • Nuvens e estrelas",
+          desc: "Fundo espacial com estrelas e nebulosas que se movem ao inclinar o celular.",
+          how: "O giroscópio atualiza SharedValues (tiltX/tiltY) e o Skia recalcula o centro do RadialGradient direto na GPU.",
+          code: `const nebula1Center = useDerivedValue(() =>
+  vec(stageCenterX + tiltX.value * 18, stageCenterY + tiltY.value * 18)
+);
+
+<Rect x={0} y={0} width={width} height={height}>
+  <RadialGradient c={nebula1Center} r={width * 0.6} colors={['#00ff8844', 'transparent']} />
+</Rect>`,
+        },
+        {
+          tab: "Emblema",
+          file: "AvengersEmblem.tsx",
+          where: "Tela 1 (Avengers: Doomsday) • O logo \"A\" metálico prateado com anel no centro",
+          desc: "Logo metálico 3D com reflexo prateado e sombra projetada no palco.",
+          how: "O Skia desenha os vetores (<Path>) com LinearGradient metálico e Shadow nativos, alternando para formas simples quando Skia FX está OFF.",
+          code: `<Group transform={emblemTransform}>
+  <Path path={paths.ring} style="fill">
+    <LinearGradient start={shimmerStart} end={shimmerEnd} colors={['#e2e8f0', '#64748b', '#f8fafc']} />
+    <Shadow dx={0} dy={8} blur={16} color="rgba(0, 255, 136, 0.45)" />
+  </Path>
+</Group>`,
+        },
+      ];
+
+      const currentEffect = effects[effectIdx];
+      const cleanUrl = tunnelUrl.trim();
+      const qrSrc = cleanUrl
+        ? `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(cleanUrl)}`
+        : "";
+
+      return (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+          <div
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+            className="lg:col-span-7 glass-pastel rounded-2xl p-4 flex flex-col justify-between gap-3 border-t-4 border-t-emerald-400"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-emerald-700">
+                  {leftView === "video" ? "Gravação Real • Modo Paisagem (Horizontal)" : "Expo Go • Acesso no Celular"}
+                </span>
+                <h3 className="text-lg font-extrabold text-slate-900">
+                  {leftView === "video" ? "App Rodando na GPU" : "QR Code do Projeto"}
+                </h3>
+              </div>
+
+              <div className="flex rounded-xl bg-white/80 p-1 border border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setLeftView("video")}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition cursor-pointer ${leftView === "video" ? "bg-emerald-100 text-emerald-800 shadow-sm" : "text-slate-500 hover:text-slate-900"
+                    }`}
+                >
+                  Vídeo
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLeftView("qr")}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition cursor-pointer ${leftView === "qr" ? "bg-sky-100 text-sky-800 shadow-sm" : "text-slate-500 hover:text-slate-900"
+                    }`}
+                >
+                  QR Code
+                </button>
+              </div>
+            </div>
+
+            {leftView === "video" ? (
+              <div className="flex items-center justify-center bg-[#0b101d] rounded-xl p-1.5">
+                <video
+                  src="./doomsday_demo.mp4"
+                  controls
+                  playsInline
+                  className="w-full max-h-[430px] aspect-[2844/1280] rounded-lg shadow-md"
+                />
+              </div>
+            ) : (
+              <>
+                <div className="flex flex-col items-center justify-center bg-white/85 border border-emerald-200 rounded-2xl p-4 min-h-[260px] gap-2">
+                  <img
+                    src={qrSrc}
+                    alt="QR Code do Projeto Avengers Doomsday Skia"
+                    className="w-48 h-48 rounded-lg shadow-sm bg-white p-1"
+                  />
+                  <span className="text-[11px] font-mono text-slate-600 text-center break-all">
+                    {cleanUrl}
+                  </span>
+                </div>
+
+                <input
+                  type="text"
+                  value={tunnelUrl}
+                  onChange={(e) => setTunnelUrl(e.target.value)}
+                  placeholder="Opcional: cole aqui URL do exp://..."
+                  className="w-full px-3 py-2 rounded-xl bg-white border border-slate-300 text-xs font-mono text-slate-800 focus:outline-none focus:border-emerald-500"
+                />
+              </>
+            )}
+          </div>
+
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="lg:col-span-5 flex flex-col justify-between gap-3"
+          >
+            <div className="glass-pastel-cyan rounded-2xl p-3.5 space-y-2.5 border-t-4 border-t-sky-400">
+              <div className="flex flex-wrap gap-1.5">
+                {effects.map((ef, idx) => (
+                  <button
+                    key={ef.file}
+                    type="button"
+                    onClick={() => setEffectIdx(idx)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold border transition cursor-pointer ${effectIdx === idx
+                        ? "bg-sky-100 border-sky-400 text-sky-900 shadow-sm"
+                        : "bg-white/80 border-slate-200 text-slate-600 hover:border-sky-300"
+                      }`}
+                  >
+                    {ef.tab}
+                  </button>
+                ))}
+              </div>
+              <div className="space-y-1.5 text-xs md:text-sm text-slate-700 leading-relaxed">
+                <p className="p-2 rounded-lg bg-emerald-50/90 border border-emerald-200 text-emerald-950">
+                  <strong className="text-emerald-700">Onde está no app:</strong> {currentEffect.where}
+                </p>
+                <p>
+                  <strong className="text-sky-800">O que faz:</strong> {currentEffect.desc}
+                </p>
+                <p className="p-2 rounded-lg bg-white/80 border border-violet-200">
+                  <strong className="text-violet-700">Como o Skia trabalha:</strong> {currentEffect.how}
+                </p>
+              </div>
+            </div>
+
+            <CodeBlock title={currentEffect.file} code={currentEffect.code} />
+          </div>
+        </div>
+      );
+    };
+
+    // --- 17 Slides Definition ---
+    const SLIDES = [
+      {
+        id: 1,
+        name: "Capa",
+        badge: "Introdução • React Native",
+        render: () => (
+          <div className="relative flex flex-col items-center justify-center text-center h-full max-w-5xl mx-auto px-4">
+            <CoverCanvas />
+            <div className="relative z-10 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/80 border border-violet-200 text-violet-700 font-mono text-sm font-semibold mb-7 shadow-sm">
+              <Icon name="gpu" className="w-4 h-4" />
+              <span>Alta Performance Gráfica • 60 / 120 FPS</span>
+            </div>
+
+            <h1 className="relative z-10 text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 leading-tight mb-6">
+              React Native{" "}
+              <span className="bg-gradient-to-r from-sky-500 via-violet-500 to-emerald-500 bg-clip-text text-transparent">
+                Skia
+              </span>
+              <span className="block text-3xl md:text-5xl font-bold text-slate-700 mt-3">
+                O Poder da GPU no Mobile
+              </span>
+            </h1>
+
+            <p className="relative z-10 text-xl md:text-2xl text-slate-600 max-w-3xl leading-relaxed mb-10">
+              Gráficos 2D de alta performance, shaders e interfaces cinematográficas rodando diretamente na GPU.
+            </p>
+
+            <div className="relative z-10 flex flex-wrap items-center justify-center gap-3 text-sm font-mono font-semibold">
+              <span className="px-4 py-2 rounded-xl glass-pastel-cyan text-sky-800">Canvas Declarativo</span>
+              <span className="px-4 py-2 rounded-xl glass-pastel-mint text-emerald-800">Shaders &amp; BackdropBlur</span>
+              <span className="px-4 py-2 rounded-xl glass-pastel text-violet-800">Metal / Vulkan</span>
+            </div>
+
+            <div className="relative z-10 mt-8 px-5 py-2 rounded-full bg-white/80 border border-slate-200 text-slate-700 text-sm md:text-base font-medium shadow-sm">
+              Apresentado por: <strong className="text-slate-900 font-bold">Nicoli Dos Santos</strong>
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: 2,
+        name: "GPU & Skia",
+        badge: "Slide 02 • Fundamentos",
+        title: "GPU & Skia: Quem Faz o Quê?",
+        subtitle: "Do hardware que acende os pixels ao tradutor de arte 2D",
+        render: () => (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+            <div className="glass-pastel rounded-2xl p-7 flex flex-col justify-between gap-5 border-t-4 border-t-violet-400">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-violet-100 border border-violet-200 flex items-center justify-center text-violet-600 shrink-0">
+                    <Icon name="cpu" className="w-7 h-7" />
+                  </div>
+                  <h3 className="text-2xl font-extrabold text-slate-900">1. A GPU</h3>
+                </div>
+                <div className="p-4 rounded-xl bg-white/80 border border-violet-200 text-base md:text-lg text-slate-700 leading-relaxed">
+                  É o chip eletrônico (hardware) dentro do celular. Só a <strong className="text-violet-700">GPU</strong> consegue acender os pixels coloridos na tela. Mas ela não entende JavaScript nem sabe o que é um <em>"botão"</em>, um <em>"círculo"</em> ou um <em>"cubo"</em>, ela só entende comandos matemáticos.
+                </div>
+              </div>
+              <div className="pt-3 border-t border-slate-200 text-sm font-mono font-semibold text-violet-700">
+                Hardware puro • Comandos matemáticos
+              </div>
+            </div>
+
+            <div className="glass-pastel-cyan rounded-2xl p-7 flex flex-col justify-between gap-5 border-t-4 border-t-sky-400">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-sky-100 border border-sky-200 flex items-center justify-center text-sky-600 shrink-0">
+                    <Icon name="sparkles" className="w-7 h-7" />
+                  </div>
+                  <h3 className="text-2xl font-extrabold text-slate-900">2. O Skia (O Tradutor de Arte 2D)</h3>
+                </div>
+                <ul className="space-y-3 text-base md:text-lg text-slate-700 leading-relaxed">
+                  <li className="p-4 rounded-xl bg-white/80 border border-sky-200">
+                    É uma biblioteca que sabe traduzir formas 2D (<strong className="text-sky-700">círculos, textos, sombras, degradês</strong>) para a língua da GPU.
+                  </li>
+                  <li className="p-4 rounded-xl bg-white/85 border border-sky-200">
+                    Quando dizemos <em>"o Skia desenha"</em>, queremos dizer que o Skia cria a <strong className="text-sky-700">receita da imagem 2D</strong> e manda a GPU pintar.
+                  </li>
+                </ul>
+              </div>
+              <div className="pt-3 border-t border-sky-200 text-sm font-mono font-semibold text-sky-700">
+                Tradutor 2D • Cria a receita e envia para a GPU
+              </div>
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: 3,
+        name: "O que é a biblioteca Skia?",
+        badge: "Slide 03 • Conceito",
+        title: "O que é a biblioteca Skia?",
+        subtitle: "O motor gráfico por trás dos maiores apps do mundo",
+        render: () => <Slide3Interactive />,
+      },
+      {
+        id: 4,
+        name: "CPU, GPU e FPS",
+        badge: "Slide 04 • Arquitetura",
+        title: "CPU, GPU e FPS",
+        subtitle: "Por que o Skia mantém a fluidez mesmo sob carga pesada",
+        render: () => <SlideCpuGpuFpsInteractive />,
+      },
+      {
+        id: 5,
+        name: "Instalação",
+        badge: "Slide 05 • Setup",
+        title: "Instalação e Build",
+        subtitle: "Escolha a abordagem de acordo com a versão do projeto",
+        render: () => <Slide6Interactive />,
+      },
+      {
+        id: 6,
+        name: "O Canvas",
+        badge: "Slide 06 • Fundamentos",
+        title: "O Canvas: A Base de Tudo",
+        subtitle: "Componente raiz obrigatório ligado direto à GPU",
+        render: () => <Slide4Interactive />,
+      },
+      {
+        id: 7,
+        name: "O Problema",
+        badge: "Slide 07 • O Problema",
+        title: "O limite da UI tradicional",
+        subtitle: "<View>, <Text> e <Image>",
+        render: () => <Slide2Interactive />,
+      },
+      {
+        id: 8,
+        name: "Principais Recursos",
+        badge: "Slide 08 • Principais Recursos",
+        title: "Principais Recursos do Skia",
+        subtitle: "Vidro fosco real, sombras internas, brilho neon e orbes líquidas com Shaders",
+        render: () => <SlideEffectsInteractive />,
+      },
+      {
+        id: 9,
+        name: "Integrações",
+        badge: "Slide 09 • Ecossistema",
+        title: "O que integrado ao Skia faz funcionar melhor?",
+        subtitle: "Bibliotecas rodando fora da thread principal de JavaScript",
+        render: () => <SlideIntegrationsInteractive />,
+      },
+      {
+        id: 10,
+        name: "Demo Celular",
+        badge: "Slide 10 • Demonstração ao Vivo",
+        title: "Demonstração Prática no Celular",
+        subtitle: "App nativo na GPU (sem navegador): giroscópio, vibração tátil, BackdropBlur e partículas",
+        render: () => (
+          <div className="flex flex-col gap-4 h-full">
+            <div className="flex flex-wrap gap-2.5">
+              {[
+                { label: "Giroscópio", cls: "text-sky-800 bg-sky-100/80 border-sky-200" },
+                { label: "Vibração Tátil", cls: "text-emerald-800 bg-emerald-100/80 border-emerald-200" },
+                { label: "Vidro Fosco (BackdropBlur)", cls: "text-violet-800 bg-violet-100/80 border-violet-200" },
+                { label: "Partículas na GPU", cls: "text-rose-800 bg-rose-100/80 border-rose-200" },
+              ].map((tag) => (
+                <span key={tag.label} className={`px-3 py-1 rounded-lg border text-sm font-mono font-semibold ${tag.cls}`}>
+                  {tag.label}
+                </span>
+              ))}
+            </div>
+
+            <div className="flex-1 min-h-0">
+              <CpuGpuSimulator />
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: 11,
+        name: "Casos Reais",
+        badge: "Slide 11 • Mercado",
+        title: "Casos Reais no Mercado",
+        subtitle: "Apps em produção usando React Native Skia",
+        render: () => {
+          const cases = [
+            { name: "Shop (Shopify)", desc: "Efeitos visuais cinematográficos, micro-interações e shaders fluidos.", tag: "E-commerce", color: "border-t-sky-400 text-sky-700" },
+            { name: "Rainbow Wallet", desc: "Gráficos cripto interativos, curvas suaves e respostas táteis.", tag: "Web3 / Finanças", color: "border-t-emerald-400 text-emerald-700" },
+            { name: "Notesnook", desc: "Desenho à mão livre, caneta responsiva e assinatura digital.", tag: "Produtividade", color: "border-t-violet-400 text-violet-700" },
+            { name: "Runna", desc: "Métricas de treino, mapas de corrida e visualizações esportivas.", tag: "Esportes", color: "border-t-rose-400 text-rose-700" },
+            { name: "Rippling", desc: "Dashboards e gráficos de dados corporativos com alta densidade.", tag: "Corporativo", color: "border-t-amber-400 text-amber-700" },
+          ];
+          return (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {cases.map((item) => (
+                <div key={item.name} className={`glass-pastel rounded-2xl p-6 flex flex-col justify-between gap-2 border-t-4 ${item.color}`}>
+                  <div>
+                    <span className="text-xs font-mono uppercase tracking-wider font-semibold">{item.tag}</span>
+                    <h3 className="text-2xl font-bold text-slate-900 mt-1 mb-2">{item.name}</h3>
+                    <p className="text-base text-slate-700 leading-relaxed">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        },
+      },
+      {
+        id: 12,
+        name: "Skia vs Similares",
+        badge: "Slide 12 • Comparativo",
+        title: "Diferenças entre Recursos Similares",
+        subtitle: "Quando escolher Skia em vez de Lottie, react-native-svg ou engines 3D",
+        render: () => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              {
+                name: "React Native Skia",
+                tag: "Gráficos 2D & Shaders na GPU",
+                desc: "Desenha formas, gráficos dinâmicos, filtros (BackdropBlur, Shadow) e shaders interativos em tempo real direto na GPU a 60/120 FPS.",
+                border: "border-t-sky-400",
+                highlight: true,
+              },
+              {
+                name: "vs. Lottie (lottie-react-native)",
+                tag: "Animações Prontas (After Effects)",
+                desc: "Reproduz animações pré-exportadas em JSON. É ótimo para ícones e ilustrações fixas, mas não cria gráficos dinâmicos nem reage com shaders/toques pixel a pixel.",
+                border: "border-t-violet-400",
+              },
+              {
+                name: "vs. react-native-svg",
+                tag: "Vetores na Árvore Nativa",
+                desc: "Cria cada forma como um elemento nativo separado. Funciona bem para ícones estáticos, mas gargala na CPU com dezenas/centenas de itens animados.",
+                border: "border-t-emerald-400",
+              },
+              {
+                name: "vs. Three.js / Filament / TypeGPU",
+                tag: "Engines 3D",
+                desc: "São focadas em cenas 3D com câmera e profundidade. O Skia é especialista em 2D de alta performance (e pode fornecer texturas 2D para o TypeGPU).",
+                border: "border-t-rose-400",
+              },
+            ].map((item) => (
+              <div
+                key={item.name}
+                className={`glass-pastel rounded-2xl p-5 flex flex-col justify-between gap-2 border-t-4 ${item.border} ${item.highlight ? "ring-2 ring-sky-300 bg-sky-50/50" : ""}`}
+              >
+                <div>
+                  <span className="inline-block text-[11px] font-mono font-bold uppercase tracking-wider text-violet-700 mb-1">
+                    {item.tag}
+                  </span>
+                  <h3 className="text-xl font-extrabold text-slate-900">{item.name}</h3>
+                  <p className="text-sm md:text-base text-slate-700 leading-relaxed mt-2">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ),
+      },
+      {
+        id: 13,
+        name: "Quando NÃO Usar",
+        badge: "Slide 13 • Boas Práticas",
+        title: "Quando NÃO Usar Skia",
+        subtitle: "Exemplo clássico: Portfólio ou telas de conteúdo tradicional",
+        render: () => (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+            <div className="lg:col-span-7 space-y-4">
+              {[
+                { title: "Sem Flexbox automático", desc: "Tudo exige coordenadas X e Y calculadas manualmente." },
+                { title: "Perda de acessibilidade e seleção", desc: "Texto desenhado no Canvas vira pixel (leitores de tela e copiar/colar não funcionam)." },
+                { title: "SEO ruim na Web", desc: "Motores de busca não indexam pixels de um <canvas>." },
+              ].map((item) => (
+                <div key={item.title} className="glass-pastel rounded-2xl p-5 flex items-start gap-4 border-l-4 border-l-rose-400">
+                  <div className="w-8 h-8 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 mt-0.5">
+                    <Icon name="x" className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-900">{item.title}</h3>
+                    <p className="text-base text-slate-700 mt-1 leading-relaxed">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="lg:col-span-5 glass-pastel-mint rounded-2xl p-8 text-center flex flex-col items-center justify-center gap-4">
+              <span className="text-xs font-mono uppercase tracking-widest text-emerald-700 font-semibold">Regra de Ouro</span>
+              <div className="text-4xl md:text-5xl font-extrabold text-slate-900 leading-tight">
+                <span className="text-sky-600">90%</span> StyleSheet
+                <span className="block text-slate-400 text-2xl my-1">+</span>
+                <span className="text-emerald-600">10%</span> Skia
+              </div>
+              <p className="text-base text-slate-700 leading-relaxed mt-2">
+                Use UI padrão para estrutura, texto e acessibilidade; reserve o Skia para o que exige GPU.
+              </p>
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: 14,
+        name: "Acessibilidade",
+        badge: "Slide 14 • Acessibilidade",
+        title: "O Skia realmente não possui acessibilidade?",
+        subtitle: "Como o TalkBack (Android) e o VoiceOver (iOS) enxergam o <Canvas>",
+        render: () => <SlideAccessibilityInteractive />,
+      },
+      {
+        id: 15,
+        name: "Limitações",
+        badge: "Slide 15 • Limitações",
+        title: "Limitações",
+        subtitle: "Como as Fontes funcionam (Tipografia)",
+        render: () => <SlideTypographyInteractive />,
+      },
+      {
+        id: 16,
+        name: "Limitações: Vídeo",
+        badge: "Slide 16 • Limitações",
+        title: "Limitações",
+        subtitle: "Reprodução de Vídeos, Câmera e 3D com TypeGPU",
+        render: () => <SlideLimitationsVideoInteractive />,
+      },
+      {
+        id: 17,
+        name: "Limitações: Canvas",
+        badge: "Slide 17 • Limitações",
+        title: "Limitações",
+        subtitle: "O Canvas é um bloco único (Sem toques ou Flexbox nativos)",
+        render: () => <SlideCanvasHitTestInteractive />,
+      },
+      {
+        id: 18,
+        name: "Passo 1: Base",
+        badge: "Construindo na Prática • Passo 1 de 4",
+        title: "Construindo na Prática: Passo a Passo",
+        subtitle: "Etapa 1 — A Base Tradicional (<View> + StyleSheet)",
+        render: () => <ProgressiveWalletStep step={1} />,
+      },
+      {
+        id: 19,
+        name: "Passo 2: Gráfico",
+        badge: "Construindo na Prática • Passo 2 de 4",
+        title: "Construindo na Prática: Passo a Passo",
+        subtitle: "Etapa 2 — O Gráfico na GPU (victory-native + Skia)",
+        render: () => <ProgressiveWalletStep step={2} />,
+      },
+      {
+        id: 20,
+        name: "Passo 3: 60 FPS",
+        badge: "Construindo na Prática • Passo 3 de 4",
+        title: "Construindo na Prática: Passo a Passo",
+        subtitle: "Etapa 3 — Interatividade a 60 FPS (Gesture Handler + Reanimated)",
+        render: () => <ProgressiveWalletStep step={3} />,
+      },
+      {
+        id: 21,
+        name: "Passo 4: Vidro",
+        badge: "Construindo na Prática • Passo 4 de 4",
+        title: "Construindo na Prática: Passo a Passo",
+        subtitle: "Etapa 4 — Efeito Vidro Fosco e Sensores (BackdropBlur + Gyroscope)",
+        render: () => <ProgressiveWalletStep step={4} />,
+      },
+      {
+        id: 22,
+        name: "Dúvidas",
+        badge: "Slide 22 • Dúvidas",
+        title: "Dúvidas",
+        subtitle: "Clique em um card para destacar a resposta",
+        render: () => <Slide10Interactive />,
+      },
+      {
+        id: 23,
+        name: "App + QR Code",
+        badge: "Slide 23 • App Prático",
+        title: "App Prático: Avengers Doomsday",
+        subtitle: "Escaneie o QR Code do Tunnel ou explore os efeitos em Skia",
+        render: () => <SlideDoomsdayQrInteractive />,
+      },
+      {
+        id: 24,
+        name: "Libs no Doomsday",
+        badge: "Slide 24 • App Prático",
+        title: "Bibliotecas Usadas com o Skia",
+        subtitle: "Como cada biblioteca ajudou o Skia no app Avengers: Doomsday",
+        render: () => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[
+              {
+                name: "react-native-reanimated + worklets",
+                role: "Animações a 60/120 FPS",
+                desc: "Faz as animações rodarem lisas sem travar o aplicativo, atualizando o portal e as ondas direto para o Skia desenhar na GPU.",
+                border: "border-t-sky-400",
+              },
+              {
+                name: "react-native-gesture-handler",
+                role: "Toques e Arrastos",
+                desc: "Captura os toques e arrastos do dedo (ondas de choque, troca de heróis, chamas e garras) e avisa o Skia onde desenhar.",
+                border: "border-t-violet-400",
+              },
+              {
+                name: "expo-sensors (Gyroscope)",
+                role: "Movimento do Celular",
+                desc: "Lê a inclinação física do aparelho para o Skia mover o brilho metálico dos emblemas e o fundo espacial em tempo real.",
+                border: "border-t-emerald-400",
+              },
+              {
+                name: "expo-haptics",
+                role: "Vibração Tátil",
+                desc: "Dispara vibrações no celular sincronizadas com os toques, ondas de energia e efeitos visuais desenhados pelo Skia.",
+                border: "border-t-rose-400",
+              },
+              {
+                name: "expo-screen-orientation",
+                role: "Tela Horizontal",
+                desc: "Trava o app automaticamente em modo paisagem (deitado) para aproveitar toda a tela no palco do Skia.",
+                border: "border-t-amber-400",
+              },
+              {
+                name: "expo-linear-gradient",
+                role: "Gradientes de UI",
+                desc: "Ajuda nos degradês da interface tradicional (<View>) ao redor do palco principal onde o Skia atua.",
+                border: "border-t-indigo-400",
+              },
+            ].map((lib) => (
+              <div key={lib.name} className={`glass-pastel rounded-2xl p-5 flex flex-col justify-between gap-2.5 border-t-4 ${lib.border}`}>
+                <div>
+                  <span className="inline-block text-[11px] font-mono font-bold uppercase tracking-wider text-violet-700 mb-1">
+                    {lib.role}
+                  </span>
+                  <h3 className="text-base md:text-lg font-extrabold text-slate-900 font-mono break-words">{lib.name}</h3>
+                  <p className="text-sm text-slate-700 leading-relaxed mt-2">{lib.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ),
+      },
+      {
+        id: 25,
+        name: "Obrigada!",
+        badge: "Encerramento",
+        render: () => (
+          <div className="flex flex-col items-center justify-center text-center h-full max-w-3xl mx-auto gap-5">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/80 border border-emerald-200 text-emerald-700 font-mono text-sm font-semibold shadow-sm">
+              <Icon name="sparkles" className="w-4 h-4" />
+              <span>@shopify/react-native-skia</span>
+            </div>
+            <h2 className="text-6xl md:text-8xl font-extrabold tracking-tight bg-gradient-to-r from-sky-500 via-violet-500 to-emerald-500 bg-clip-text text-transparent leading-tight">
+              Obrigada!
+            </h2>
+            <p className="text-xl md:text-2xl text-slate-600 font-medium">
+              Espaço aberto para dúvidas
+            </p>
+            <div className="mt-2 px-5 py-2 rounded-full bg-white/80 border border-slate-200 text-slate-700 text-sm md:text-base font-medium shadow-sm">
+              Apresentado por: <strong className="text-slate-900 font-bold">Nicoli Dos Santos</strong>
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: 26,
+        name: "Fontes",
+        badge: "Slide 26 • Referências",
+        title: "Fontes e Referências",
+        subtitle: "Documentação oficial e materiais utilizados nesta apresentação",
+        render: () => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              {
+                title: "React Native Skia (Shopify)",
+                links: [{ label: "shopify.github.io/react-native-skia", href: "https://shopify.github.io/react-native-skia/" }],
+                desc: "Documentação oficial do <Canvas>, instalação, useFont(), BackdropBlur, Shaders e manipulação de gestos.",
+                border: "border-t-sky-400",
+                tag: "Documentação Oficial",
+              },
+              {
+                title: "Skia Graphics Engine (Google)",
+                links: [{ label: "skia.org", href: "https://skia.org/" }],
+                desc: "Arquitetura da engine gráfica 2D de código aberto usada no Chrome, Android e Flutter.",
+                border: "border-t-violet-400",
+                tag: "Engine 2D",
+              },
+              {
+                title: "Android Graphics, Mídia & Acessibilidade",
+                links: [{ label: "source.android.com/docs/core/graphics", href: "https://source.android.com/docs/core/graphics" }],
+                desc: "OpenGL ES, Vulkan, Minikin, HarfBuzz, FreeType, MediaCodec, ExoPlayer, SurfaceTexture e AccessibilityNodeInfo (TalkBack).",
+                border: "border-t-emerald-400",
+                tag: "Android Developers",
+              },
+              {
+                title: "Ecossistema: Software Mansion & Nearform",
+                links: [
+                  { label: "docs.swmansion.com", href: "https://docs.swmansion.com/" },
+                  { label: "commerce.nearform.com/open-source/victory-native", href: "https://commerce.nearform.com/open-source/victory-native/" },
+                ],
+                desc: "React Native Gesture Handler, Reanimated (UI Thread), TypeGPU (3D/WebGPU) e Victory Native XL.",
+                border: "border-t-rose-400",
+                tag: "Bibliotecas Integradas",
+              },
+            ].map((src) => (
+              <div key={src.title} className={`glass-pastel rounded-2xl p-5 flex flex-col justify-between gap-2.5 border-t-4 ${src.border}`}>
+                <div>
+                  <span className="inline-block text-[11px] font-mono font-bold uppercase tracking-wider text-violet-700 mb-1">
+                    {src.tag}
+                  </span>
+                  <h3 className="text-lg font-extrabold text-slate-900">{src.title}</h3>
+                  <p className="text-sm text-slate-700 leading-relaxed mt-1.5">{src.desc}</p>
+                </div>
+                <div onClick={(e) => e.stopPropagation()} className="pt-2 border-t border-slate-200 flex flex-wrap gap-x-3 gap-y-1 font-mono text-xs font-semibold">
+                  {src.links.map((link) => (
+                    <a
+                      key={link.href}
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sky-700 hover:text-violet-700 underline decoration-sky-300 hover:decoration-violet-400 transition"
+                    >
+                      {link.label}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ),
+      },
+    ];
+
+    // --- Main App ---
+    function App() {
+      const [current, setCurrent] = useState(0);
+      const [showMap, setShowMap] = useState(false);
+      const total = SLIDES.length;
+
+      const nextSlide = useCallback(() => setCurrent((p) => Math.min(p + 1, total - 1)), [total]);
+      const prevSlide = useCallback(() => setCurrent((p) => Math.max(p - 1, 0)), []);
+
+      const toggleFullscreen = useCallback((e) => {
+        if (e) e.stopPropagation();
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+        else document.exitFullscreen?.();
+      }, []);
+
+      useEffect(() => {
+        const onKey = (e) => {
+          if (e.key === "ArrowRight") {
+            e.preventDefault();
+            nextSlide();
+          } else if (e.key === "ArrowLeft") {
+            e.preventDefault();
+            prevSlide();
+          } else if (e.key.toLowerCase() === "f") {
+            toggleFullscreen();
+          } else if (e.key.toLowerCase() === "g") {
+            setShowMap((v) => !v);
+          } else if (e.key === "Escape") {
+            setShowMap(false);
+          }
+        };
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
+      }, [nextSlide, prevSlide, toggleFullscreen]);
+
+      const slide = SLIDES[current];
+      const progress = ((current + 1) / total) * 100;
+
+      return (
+        <div
+          className="relative w-screen h-screen bg-pastel-tech flex flex-col justify-between overflow-hidden cursor-default"
+        >
+          {/* Subtle Pastel Tech Dot Overlay */}
+          <div className="pointer-events-none absolute inset-0 bg-pastel-dots" />
+
+          {/* Floating Pastel Aurora Blobs */}
+          <div className="pointer-events-none aurora-blob absolute -top-28 -left-28 w-[420px] h-[420px] rounded-full bg-sky-200/50 blur-[100px]" />
+          <div className="pointer-events-none aurora-blob absolute top-1/3 -right-28 w-[380px] h-[380px] rounded-full bg-violet-200/50 blur-[100px]" style={{ animationDelay: "-4s" }} />
+          <div className="pointer-events-none aurora-blob absolute -bottom-28 left-1/3 w-[400px] h-[400px] rounded-full bg-emerald-200/45 blur-[100px]" style={{ animationDelay: "-8s" }} />
+
+          {/* Top Progress Bar */}
+          <div className="w-full h-1.5 bg-white/60 z-30 shrink-0">
+            <div
+              className="h-full bg-gradient-to-r from-sky-400 via-violet-400 to-emerald-400 transition-all duration-300 ease-out"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+
+          {/* Slide Content */}
+          <main key={slide.id} className="slide-enter relative z-10 flex-1 w-full max-w-[1400px] mx-auto px-6 md:px-10 py-6 md:py-8 flex flex-col justify-center min-h-0">
+            {slide.title ? (
+              <div className="flex flex-col h-full justify-center gap-6">
+                <header className="shrink-0">
+                  <span className="inline-block font-mono text-xs md:text-sm uppercase tracking-widest text-violet-700 font-semibold mb-1.5">
+                    {slide.badge}
+                  </span>
+                  <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
+                    {slide.title}
+                  </h2>
+                  {slide.subtitle && (
+                    <p className="text-lg md:text-xl text-slate-600 mt-1.5">{slide.subtitle}</p>
+                  )}
+                </header>
+                <div className="flex-1 flex flex-col justify-center min-h-0">
+                  {slide.render()}
+                </div>
+              </div>
+            ) : (
+              slide.render()
+            )}
+          </main>
+
+          {/* Slide Quick-Jump Overlay */}
+          {showMap && (
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="absolute inset-0 z-40 bg-indigo-950/35 backdrop-blur-md flex items-center justify-center p-6"
+            >
+              <div className="glass-pastel rounded-3xl p-6 max-w-3xl w-full space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold text-slate-900">Ir para o Slide</h3>
+                  <button
+                    type="button"
+                    onClick={() => setShowMap(false)}
+                    className="p-2 rounded-lg text-slate-500 hover:text-slate-900 cursor-pointer"
+                  >
+                    <Icon name="x" className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {SLIDES.map((s, idx) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => {
+                        setCurrent(idx);
+                        setShowMap(false);
+                      }}
+                      className={`p-3 rounded-xl text-left border transition cursor-pointer ${idx === current
+                        ? "bg-sky-100 border-sky-400 text-slate-900 shadow-sm"
+                        : "bg-white/75 border-slate-200 text-slate-700 hover:border-violet-300"
+                        }`}
+                    >
+                      <div className="text-xs font-mono text-violet-700 font-semibold">Slide {s.id}</div>
+                      <div className="text-sm font-semibold truncate mt-0.5">{s.name}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Discrete Bottom Bar */}
+          <footer
+            onClick={(e) => e.stopPropagation()}
+            className="relative z-30 w-full max-w-7xl mx-auto px-6 md:px-12 pb-5 pt-2 flex items-center justify-between text-slate-600 shrink-0"
+          >
+            <div className="flex items-center gap-3 font-mono text-xs md:text-sm">
+              <span className="text-sky-700 font-bold">React Native Skia</span>
+              <span className="hidden sm:inline text-slate-400">•</span>
+              <span className="hidden sm:inline text-slate-500">Setas ← → (Teclado ou Botões) • G (Mapa) • F (Tela cheia)</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowMap((v) => !v)}
+                title="Mapa de slides (G)"
+                className="p-2 rounded-lg bg-white/80 border border-slate-200 hover:border-violet-400 hover:text-violet-700 transition cursor-pointer shadow-sm"
+              >
+                <Icon name="grid" className="w-4 h-4" />
+              </button>
+
+              <button
+                type="button"
+                onClick={prevSlide}
+                disabled={current === 0}
+                aria-label="Slide anterior"
+                className="p-2 rounded-lg bg-white/80 border border-slate-200 hover:border-sky-400 hover:text-slate-900 disabled:opacity-35 disabled:pointer-events-none transition cursor-pointer shadow-sm"
+              >
+                <Icon name="arrowLeft" className="w-4 h-4" />
+              </button>
+
+              <span className="px-3 py-1.5 rounded-lg bg-white/80 border border-slate-200 font-mono text-xs md:text-sm text-slate-700 shadow-sm">
+                Slide <strong className="text-sky-700">{current + 1}</strong> / {total}
+              </span>
+
+              <button
+                type="button"
+                onClick={nextSlide}
+                disabled={current === total - 1}
+                aria-label="Próximo slide"
+                className="p-2 rounded-lg bg-white/80 border border-slate-200 hover:border-sky-400 hover:text-slate-900 disabled:opacity-35 disabled:pointer-events-none transition cursor-pointer shadow-sm"
+              >
+                <Icon name="arrowRight" className="w-4 h-4" />
+              </button>
+
+              <button
+                type="button"
+                onClick={toggleFullscreen}
+                title="Tela cheia (F)"
+                aria-label="Alternar tela cheia"
+                className="ml-1 p-2 rounded-lg bg-white/80 border border-slate-200 hover:border-emerald-400 hover:text-emerald-700 transition cursor-pointer shadow-sm"
+              >
+                <Icon name="maximize" className="w-4 h-4" />
+              </button>
+            </div>
+          </footer>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
+</body>
+
+</html>

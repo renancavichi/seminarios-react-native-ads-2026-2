@@ -32,6 +32,7 @@ Exemplo:
 - Expo Background Task ([João Alves Passos](https://github.com/joaoapassos), [Apresentação](expo-background-tasks/README.md))
 - React Native Unity (@azesmway/react-native-unity) (Raissa Patricio [@raissapatricio](https://github.com/raissapatricio), [Apresentação](react-native-unity/))
 - Expo Video ([Ana Julia Andrade](https://github.com/ana-andrades))
+- Skia ([Nicoli dos Santos](https://github.com/niickcodes))
 
 ##### Orientações
 
