@@ -34,6 +34,7 @@ Exemplo:
 - Expo Video ([Ana Julia Andrade](https://github.com/ana-andrades))
 - Skia ([Nicoli dos Santos](https://github.com/niickcodes))
 - React Native Paper ([Murillo Diogo dos Santos Moreira](https://github.com/MrllMoreira), [Apresentação](react-native-paper/))
+- Barcode Scanner (Expo Camera) (Vinícius Garcia [@vinikyo](https://github.com/vinikyo), [Apresentação](barcode-scanner-expo/))
 
 ##### Orientações
 

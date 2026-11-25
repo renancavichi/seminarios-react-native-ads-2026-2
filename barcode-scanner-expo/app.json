@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "Barcode Scanner",
+    "slug": "barcode-scanner-expo",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "barcodescanner",
+    "userInterfaceStyle": "automatic",
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Permitir que o Barcode Scanner acesse a câmera para ler códigos de barras."
+        }
+      ],
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}
