@@ -1,0 +1,51 @@
+diff --git a/node_modules/@azesmway/react-native-unity/android/build.gradle b/node_modules/@azesmway/react-native-unity/android/build.gradle
+index a10543a..e0f1645 100644
+--- a/node_modules/@azesmway/react-native-unity/android/build.gradle
++++ b/node_modules/@azesmway/react-native-unity/android/build.gradle
+@@ -98,7 +98,6 @@ repositories {
+   }
+   google()
+   mavenCentral()
+-  jcenter()
+ }
+ 
+ 
+diff --git a/node_modules/@azesmway/react-native-unity/lib/commonjs/UnityView.js b/node_modules/@azesmway/react-native-unity/lib/commonjs/UnityView.js
+index 39cf3e1..94b397e 100644
+--- a/node_modules/@azesmway/react-native-unity/lib/commonjs/UnityView.js
++++ b/node_modules/@azesmway/react-native-unity/lib/commonjs/UnityView.js
+@@ -50,7 +50,7 @@ class UnityView extends _react.default.Component {
+     // (RNUnityView.prepareForRecycle), which only pauses the shared instance so
+     // it can be reused on the next mount. See issue #180.
+     if (this.ref.current) {
+-      _UnityViewNativeComponent.Commands.unloadUnity(this.ref.current);
++      _UnityViewNativeComponent.Commands.pauseUnity(this.ref.current, true); // patch: pausa em vez de descarregar (Unity 6 nao reinicia)
+     }
+   }
+   render() {
+diff --git a/node_modules/@azesmway/react-native-unity/lib/module/UnityView.js b/node_modules/@azesmway/react-native-unity/lib/module/UnityView.js
+index 7c05697..a0ecdd0 100644
+--- a/node_modules/@azesmway/react-native-unity/lib/module/UnityView.js
++++ b/node_modules/@azesmway/react-native-unity/lib/module/UnityView.js
+@@ -41,7 +41,7 @@ export default class UnityView extends React.Component {
+     // (RNUnityView.prepareForRecycle), which only pauses the shared instance so
+     // it can be reused on the next mount. See issue #180.
+     if (this.ref.current) {
+-      Commands.unloadUnity(this.ref.current);
++      Commands.pauseUnity(this.ref.current, true); // patch: pausa em vez de descarregar (Unity 6 nao reinicia)
+     }
+   }
+   render() {
+diff --git a/node_modules/@azesmway/react-native-unity/src/UnityView.tsx b/node_modules/@azesmway/react-native-unity/src/UnityView.tsx
+index 87e6df6..228a7be 100644
+--- a/node_modules/@azesmway/react-native-unity/src/UnityView.tsx
++++ b/node_modules/@azesmway/react-native-unity/src/UnityView.tsx
+@@ -70,7 +70,7 @@ export default class UnityView extends React.Component<RNUnityViewProps> {
+     // (RNUnityView.prepareForRecycle), which only pauses the shared instance so
+     // it can be reused on the next mount. See issue #180.
+     if (this.ref.current) {
+-      Commands.unloadUnity(this.ref.current);
++      Commands.pauseUnity(this.ref.current, true); // patch: pausa em vez de descarregar (Unity 6 nao reinicia)
+     }
+   }
+ 
