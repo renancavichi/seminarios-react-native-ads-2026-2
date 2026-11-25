@@ -1,0 +1,32 @@
+{
+  "name": "rn-paper-presentation",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Apresentação interativa sobre a biblioteca React Native Paper (rodando no navegador via React Native Web).",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -b"
+  },
+  "dependencies": {
+    "@mdi/js": "7.4.47",
+    "lucide-react": "0.511.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-native-paper": "5.15.3",
+    "react-native-safe-area-context": "5.10.1",
+    "react-native-web": "0.21.4",
+    "react-syntax-highlighter": "15.6.1"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.23",
+    "@types/react-dom": "18.3.7",
+    "@types/react-native": "0.72.8",
+    "@types/react-syntax-highlighter": "15.5.13",
+    "@vitejs/plugin-react": "4.5.2",
+    "typescript": "5.8.3",
+    "vite": "6.3.5"
+  }
+}

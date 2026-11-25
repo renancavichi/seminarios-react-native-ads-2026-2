@@ -33,6 +33,7 @@ Exemplo:
 - React Native Unity (@azesmway/react-native-unity) (Raissa Patricio [@raissapatricio](https://github.com/raissapatricio), [Apresentação](react-native-unity/))
 - Expo Video ([Ana Julia Andrade](https://github.com/ana-andrades))
 - Skia ([Nicoli dos Santos](https://github.com/niickcodes))
+- React Native Paper ([Murillo Diogo dos Santos Moreira](https://github.com/MrllMoreira), [Apresentação](react-native-paper/))
 
 ##### Orientações
 
