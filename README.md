@@ -29,6 +29,7 @@ Exemplo:
 - Expo UI (Thiago Cruz Carvalho [@carvalhoTG](https://github.com/carvalhoTG))
 - Assinatura Digital (react-native-signature-canvas) (Matheus Manfredini [@matheusmanfredinii](https://github.com/matheusmanfredinii), [Apresentação](assinatura-digital/))
 - Expo ImagePicker (Maíra Kobayashi [@mairakobay](https://github.com/mairakobay), [Apresentação](app-expo-image-picker/))
+- Expo Background Task ([João Alves Passos](https://github.com/joaoapassos), [Apresentação](expo-background-tasks/README.md))
 
 ##### Orientações
 
