@@ -1,0 +1,1048 @@
+﻿<!doctype html>
+<html lang="pt-BR" data-theme="2010">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expo AI Agent Toolkit — Seminário React Native &amp; Expo</title>
+  <meta name="description" content="Apresentação de seminário de 20 minutos sobre Expo AI Agent Toolkit, agent-device, Argent, MCP e verificação de aplicativos em execução.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <!-- Barra de progresso superior -->
+  <div class="top-progress" aria-hidden="true">
+    <div class="top-progress-bar" id="progressBar"></div>
+  </div>
+
+  <!-- Cabeçalho estilo Internet 2010 -->
+  <header class="deck-header">
+    <div class="deck-brand">
+      <span class="yt-badge" aria-hidden="true">Expo</span>
+      <span class="brand-name">AI Agent Toolkit</span>
+      <span class="brand-search-box">Seminário React Native · IFSP Caraguatatuba</span>
+    </div>
+    <div class="header-meta">
+      <span class="slide-time-pill" id="slideTimePill">Slide 1 · Abertura</span>
+    </div>
+  </header>
+
+  <!-- Palco principal dos 13 slides -->
+  <main id="deck" class="deck" aria-live="polite">
+
+    <!-- =====================================================
+         SLIDE 1 — Capa / Abertura do Seminário
+         ===================================================== -->
+    <section class="slide active" data-slide="1" data-title="Capa: Expo AI Agent Toolkit" data-duration="Abertura">
+      <div class="slide-inner cover-layout">
+        <div class="cover-kicker">
+          <span>Seminário · Desenvolvimento para Dispositivos Móveis · ADS IFSP Caraguatatuba</span>
+        </div>
+
+        <h1 class="cover-title">
+          Expo AI <span class="text-gradient">Agent Toolkit</span>
+        </h1>
+
+        <p class="cover-subtitle">
+          Da geração de código à verificação real de aplicativos React Native: estudo de caso do app <strong>Restaurante Caraguá</strong>.
+        </p>
+
+        <div class="cover-topics">
+          <span class="cover-pill accent">agent-device (Callstack)</span>
+          <span class="cover-pill">Argent (Software Mansion)</span>
+          <span class="cover-pill">MCP · Model Context Protocol</span>
+          <span class="cover-pill">Expo Skills</span>
+        </div>
+
+        <div class="cover-meta-grid">
+          <div class="cover-meta-card">
+            <span>Parte 1 · Slides 2–5</span>
+            <strong>O problema</strong>
+            <small>A IA gera o app, mas não percebe falhas que só aparecem em execução.</small>
+          </div>
+          <div class="cover-meta-card">
+            <span>Parte 2 · Slides 6–10</span>
+            <strong>A solução e a tecnologia</strong>
+            <small>Expo AI Agent Toolkit, onde rodar, agent-device e detecção/correção.</small>
+          </div>
+          <div class="cover-meta-card">
+            <span>Parte 3 · Slides 11–13</span>
+            <strong>Alternativas e conclusão</strong>
+            <small>Breve visão do Argent, retomada do resultado e mensagem central.</small>
+          </div>
+        </div>
+
+        <div class="cover-hint">
+          Prof. Renan Cavichi · Use <strong>→</strong> ou <strong>Espaço</strong> para avançar · <strong>O</strong> panorama · <strong>T</strong> tema
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================
+         SLIDE 2 — O desafio: criar um aplicativo de reservas
+         ===================================================== -->
+    <section class="slide" data-slide="2" data-title="O desafio: criar um aplicativo de reservas" data-duration="1 min">
+      <div class="slide-inner split-hero">
+        <div class="col-text">
+          <div class="eyebrow">
+            <span class="pill-index">02 / 13</span>
+            <span>Parte 1 · O problema</span>
+          </div>
+          <h1 class="hero-title">
+            O desafio:<br>
+            <span class="text-gradient">criar um app de reservas</span>
+          </h1>
+          <p class="lead">
+            Imagine ser proprietário do restaurante <strong>Restaurante Caraguá</strong>: todos os dias chegam pedidos de reserva por telefone e WhatsApp.
+          </p>
+
+          <div class="pain-list">
+            <div class="pain-item">
+              <span class="pain-icon" aria-hidden="true">!</span>
+              <div>
+                <strong>Atendimento manual e fragmentado</strong>
+                <span>Horários espalhados em mensagens geram conflitos e esquecimentos.</span>
+              </div>
+            </div>
+            <div class="pain-item accent">
+              <span class="pain-icon" aria-hidden="true">→</span>
+              <div>
+                <strong>Objetivo: aplicativo próprio com ajuda de IA</strong>
+                <span>Cliente escolhe data, horário, informa dados e confirma em segundos.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="callout-thesis">
+            <span class="callout-label">Pergunta-guia do seminário</span>
+            <p>O que muda quando um agente de IA apenas <strong>gera o código</strong> vs. quando ele consegue <strong>observar e testar o app rodando</strong>?</p>
+          </div>
+        </div>
+
+        <div class="col-visual">
+          <div class="chaos-to-app">
+            <div class="msg-stack" aria-label="Exemplo de mensagens desorganizadas no WhatsApp">
+              <div class="msg-card msg-1">
+                <div class="msg-head"><span>WhatsApp · 18:12</span><span class="tag-warn">Sem confirmação</span></div>
+                <p>“Oi! Tem mesa pra 4 hoje às 20h? Ou 20h30?”</p>
+              </div>
+              <div class="msg-card msg-2">
+                <div class="msg-head"><span>Ligação perdida · 18:19</span><span class="tag-err">Conflito</span></div>
+                <p>“Anotaram meu nome errado ontem, era Ana Paula!”</p>
+              </div>
+              <div class="msg-card msg-3">
+                <div class="msg-head"><span>WhatsApp · 18:24</span><span class="tag-warn">Aguardando</span></div>
+                <p>“Ainda tem vaga pra sexta? Responde aqui pfv”</p>
+              </div>
+            </div>
+
+            <div class="arrow-bridge" aria-hidden="true">
+              <span>Transformar em app</span>
+              <div class="bridge-line"></div>
+            </div>
+
+            <div class="phone-frame mini-preview">
+              <div class="phone-notch"></div>
+              <div class="phone-screen app-preview-card">
+                <div class="app-brand-bar">
+                  <span class="app-logo-dot"></span>
+                  <span>Restaurante Caraguá</span>
+                </div>
+                <div class="preview-hero-box">
+                  <span class="preview-badge">Reservas Online</span>
+                  <h3>Sua mesa em 3 passos</h3>
+                  <p>Escolha data, horário e confirme na hora.</p>
+                </div>
+                <div class="preview-btn">Reservar mesa</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================
+         SLIDE 3 — O que precisamos construir?
+         ===================================================== -->
+    <section class="slide" data-slide="3" data-title="O que precisamos construir?" data-duration="2 min">
+      <div class="slide-inner split-balanced">
+        <div class="col-text">
+          <div class="eyebrow">
+            <span class="pill-index">03 / 13</span>
+            <span>Parte 1 · O problema</span>
+          </div>
+          <h2>O que precisamos construir?</h2>
+          <p class="lead">
+            Definimos <strong>5 requisitos fixos</strong> que serão mantidos idênticos nas duas abordagens para uma comparação justa.
+          </p>
+
+          <div class="req-list" id="slide2ReqList" role="tablist" aria-label="Requisitos do aplicativo">
+            <button type="button" class="req-item active" data-step="0">
+              <span class="req-num">1</span>
+              <div class="req-body">
+                <strong>Tela inicial com informações do restaurante</strong>
+                <span>Apresentação, endereço, horário de funcionamento e botão de reserva.</span>
+              </div>
+            </button>
+            <button type="button" class="req-item" data-step="1">
+              <span class="req-num">2</span>
+              <div class="req-body">
+                <strong>Escolha da data</strong>
+                <span>Seleção do dia desejado com visualização clara de disponibilidade.</span>
+              </div>
+            </button>
+            <button type="button" class="req-item" data-step="2">
+              <span class="req-num">3</span>
+              <div class="req-body">
+                <strong>Seleção de horário disponível</strong>
+                <span>Faixas de horário livres para evitar conflitos de mesa.</span>
+              </div>
+            </button>
+            <button type="button" class="req-item" data-step="3">
+              <span class="req-num">4</span>
+              <div class="req-body">
+                <strong>Formulário com nome e telefone do cliente</strong>
+                <span>Campos obrigatórios para identificação e contato da reserva.</span>
+              </div>
+            </button>
+            <button type="button" class="req-item" data-step="4">
+              <span class="req-num">5</span>
+              <div class="req-body">
+                <strong>Confirmação da reserva</strong>
+                <span>Resumo final confirmando que a solicitação foi concluída.</span>
+              </div>
+            </button>
+          </div>
+          <p class="hint-inline">Clique em qualquer requisito acima para visualizar o wireframe correspondente →</p>
+        </div>
+
+        <div class="col-visual center-visual">
+          <div class="phone-frame wireframe-phone" id="slide2Phone">
+            <div class="phone-notch"></div>
+            <div class="phone-statusbar">
+              <span>19:40</span>
+              <span class="status-tag">Wireframe · Expo</span>
+            </div>
+            <div class="phone-screen" id="slide2Screen">
+              <!-- Preenchido dinamicamente via app.js -->
+            </div>
+            <div class="phone-home-bar"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================
+         SLIDE 4 — Primeira abordagem: somente o agente de IA
+         ===================================================== -->
+    <section class="slide" data-slide="4" data-title="Primeira abordagem: somente o agente de IA" data-duration="2 min">
+      <div class="slide-inner stack-layout">
+        <div class="slide-top-header">
+          <div>
+            <div class="eyebrow">
+              <span class="pill-index">04 / 13</span>
+              <span>Parte 1 · O problema</span>
+            </div>
+            <h2>Primeira abordagem: somente o agente de IA</h2>
+          </div>
+          <div class="prompt-banner">
+            <span class="prompt-chip">Prompt enviado</span>
+            <p>“Crie um aplicativo de reservas para um restaurante. Ele deve apresentar informações do restaurante, permitir selecionar uma data e um horário, preencher nome e telefone e confirmar a reserva.”</p>
+          </div>
+        </div>
+
+        <div class="demo-grid">
+          <!-- Terminal Simulado -->
+          <div class="terminal-window">
+            <div class="terminal-bar">
+              <div class="win-dots"><span></span><span></span><span></span></div>
+              <span class="win-title">agente-ia · ~/restaurante-caragua-app</span>
+              <button type="button" class="mini-action-btn" id="s3RunBtn">▶ Simular geração</button>
+            </div>
+            <div class="terminal-body" id="s3Terminal">
+              <div class="term-line cmd">$ agente "Criar app de reservas Restaurante Caraguá (Expo Router)"</div>
+              <div class="term-line muted" data-s3-step="1">▸ Analisando requisitos: 5 telas e fluxo de reserva...</div>
+              <div class="term-line muted" data-s3-step="2">▸ Planejando estrutura em <code>app/</code> (index, reserva, confirmacao)</div>
+              <div class="term-line ok" data-s3-step="3">✓ Criado <code>app/index.tsx</code> — Tela inicial do restaurante</div>
+              <div class="term-line ok" data-s3-step="4">✓ Criado <code>app/reserva.tsx</code> — Data, horário e formulário</div>
+              <div class="term-line ok" data-s3-step="5">✓ Criado <code>app/confirmacao.tsx</code> — Tela de confirmação</div>
+              <div class="term-line info" data-s3-step="6">● Código gerado com sucesso. O agente já acelera muito o desenvolvimento inicial!</div>
+            </div>
+            <div class="terminal-footer-note">
+              <strong>Sem o Toolkit:</strong> a IA gera e modifica o código; o <strong>Expo</strong> executa o app (Expo Go, Android Studio ou navegador). O desenvolvedor testa manualmente e envia prints ou erros para a IA corrigir.
+            </div>
+          </div>
+
+          <!-- Emulador v1 -->
+          <div class="emulator-col">
+            <div class="phone-frame app-phone" id="s3Phone">
+              <div class="phone-notch"></div>
+              <div class="phone-statusbar">
+                <span>19:42</span>
+                <span class="status-tag">Versão 1.0 (Gerada)</span>
+              </div>
+              <div class="phone-screen app-ui" id="s3Screen">
+                <div class="app-header-card">
+                  <span class="app-kicker">Restaurante Caraguá · Centro</span>
+                  <h4>Massas artesanais &amp; forno a lenha</h4>
+                  <p>Terça a Domingo · 18h às 23h30</p>
+                </div>
+                <div class="app-card-section">
+                  <div class="section-mini-title">1. Escolha a data</div>
+                  <div class="pill-row">
+                    <span class="ui-pill active">Sex, 27</span>
+                    <span class="ui-pill">Sáb, 28</span>
+                    <span class="ui-pill">Dom, 29</span>
+                  </div>
+                </div>
+                <div class="app-card-section">
+                  <div class="section-mini-title">2. Horário</div>
+                  <div class="pill-row">
+                    <span class="ui-pill">19:00</span>
+                    <span class="ui-pill active">20:00</span>
+                    <span class="ui-pill">21:30</span>
+                  </div>
+                </div>
+                <div class="app-card-section">
+                  <div class="section-mini-title">3. Seus dados</div>
+                  <div class="fake-input">Nome completo</div>
+                  <div class="fake-input">Telefone / WhatsApp</div>
+                </div>
+                <div class="app-primary-btn">Confirmar reserva</div>
+              </div>
+              <div class="phone-home-bar"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================
+         SLIDE 5 — O problema: gerar código não é verificar
+         ===================================================== -->
+    <section class="slide" data-slide="5" data-title="Gerar código não é o mesmo que verificar o aplicativo" data-duration="2 min">
+      <div class="slide-inner split-balanced">
+        <div class="col-text">
+          <div class="eyebrow">
+            <span class="pill-index">05 / 13</span>
+            <span>Parte 1 · O problema</span>
+          </div>
+          <h2>Gerar código não é o mesmo que verificar o app</h2>
+          <p class="lead">
+            A tela compila sem erros. Mas quando o cliente toca em <strong>Telefone</strong> para digitar, o teclado sobe e <strong>tampa o próprio campo onde ele está escrevendo</strong> — fechá-lo com “Pronto” não resolve, porque o teclado precisa ficar aberto para digitar!
+          </p>
+
+          <div class="code-panel">
+            <div class="code-panel-head">
+              <span>app/reserva.tsx</span>
+              <span class="code-badge warn">0 erros de TypeScript / Lint</span>
+            </div>
+            <pre><code><span class="tok-cmt">// ⚠ View fixa sem KeyboardAvoidingView nem ScrollView</span>
+<span class="tok-kw">&lt;View</span> <span class="tok-var">style</span>={styles.container}<span class="tok-kw">&gt;</span>
+  <span class="tok-kw">&lt;TextInput</span> <span class="tok-var">placeholder</span>=<span class="tok-str">"Nome do cliente"</span> <span class="tok-kw">/&gt;</span>
+  <span class="tok-kw">&lt;TextInput</span> <span class="tok-var">placeholder</span>=<span class="tok-str">"E-mail"</span> <span class="tok-kw">/&gt;</span>
+  <span class="tok-kw">&lt;TextInput</span> <span class="tok-var">placeholder</span>=<span class="tok-str">"Telefone"</span> <span class="tok-kw">/&gt;</span> <span class="tok-cmt">// &lt;- fica atrás do teclado!</span>
+  <span class="tok-kw">&lt;Pressable</span> <span class="tok-var">onPress</span>={<span class="tok-fn">handleConfirmar</span>}<span class="tok-kw">&gt;</span>Confirmar reserva<span class="tok-kw">&lt;/Pressable&gt;</span>
+<span class="tok-kw">&lt;/View&gt;</span></code></pre>
+          </div>
+
+          <div class="insight-box">
+            <strong>Por que esse erro acontece e passa despercebido?</strong>
+            <ul class="why-list">
+              <li><strong>No código não existe teclado virtual:</strong> no desktop ou no JSX estático, todos os campos aparecem inteiros; no celular, o teclado ocupa ~45% da tela e não há rolagem automática.</li>
+              <li><strong>Testes unitários também passam:</strong> ferramentas como <code>fireEvent.changeText</code> escrevem direto no componente JS, sem verificar se o usuário enxerga o que digita.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="col-visual center-visual">
+          <div class="interactive-callout">
+            <span>Clique no campo “Telefone” abaixo: o teclado tampa o campo!</span>
+          </div>
+          <div class="phone-frame app-phone" id="s4Phone">
+            <div class="phone-notch"></div>
+            <div class="phone-statusbar">
+              <span>19:45</span>
+              <span class="status-tag" id="s4Status">Em execução · v1</span>
+            </div>
+            <div class="phone-screen app-ui s4-screen-rel" id="s4Screen">
+              <div id="s4FormView" class="s4-form-wrap">
+                <div class="app-mini-nav">
+                  <span>← Voltar</span>
+                  <strong>Finalizar Reserva</strong>
+                </div>
+                <div class="summary-chip">Sex, 27 Nov · 20:00 · 2 pessoas</div>
+                <label class="field-label">Nome do cliente</label>
+                <input type="text" class="sim-input" id="s4Name" value="Marina Silva">
+                <label class="field-label">E-mail (comprovante)</label>
+                <input type="text" class="sim-input" id="s4Email" value="marina@email.com">
+                <label class="field-label">Telefone</label>
+                <input type="text" class="sim-input" id="s4PhoneInput" value="(12) 99123-" placeholder="(12) 99123-4567">
+                <div class="s4-btn-zone">
+                  <button type="button" class="app-primary-btn interactive-btn" id="s4SubmitBtn">
+                    Confirmar reserva
+                  </button>
+                </div>
+              </div>
+              <div id="s4ConfirmView" class="hidden">
+                <div class="bug-confirm-card">
+                  <div class="bug-icon">✓</div>
+                  <h4>Reserva Confirmada!</h4>
+                  <p><strong>Cliente:</strong> <span class="s4-res-val">Marina Silva</span></p>
+                  <p><strong>Telefone:</strong> <span class="s4-res-val">(12) 99123-4567</span></p>
+                </div>
+                <button type="button" class="app-secondary-btn" id="s4ResetBtn">↺ Voltar ao formulário</button>
+              </div>
+
+              <!-- Teclado virtual simulado cobrindo o botão -->
+              <div class="virtual-kbd" id="s4Keyboard" aria-hidden="true">
+                <div class="kbd-toolbar">
+                  <span>Teclado do sistema (Android/iOS)</span>
+                  <button type="button" class="kbd-close-btn" id="s4CloseKbdBtn">Ocultar ⌄</button>
+                </div>
+                <div class="kbd-grid">
+                  <span>1</span><span>2</span><span>3</span>
+                  <span>4</span><span>5</span><span>6</span>
+                  <span>7</span><span>8</span><span>9</span>
+                  <span>*</span><span>0</span><span>⌫</span>
+                </div>
+              </div>
+            </div>
+            <div class="phone-home-bar"></div>
+          </div>
+          <div class="s4-debug-bar">
+            <button type="button" class="ctrl-btn" id="s4ToggleKbdBtn">⌨️ Abrir teclado no campo Telefone</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================
+         SLIDE 6 — Conhecendo o Expo AI Agent Toolkit
+         ===================================================== -->
+    <section class="slide" data-slide="6" data-title="Conhecendo o Expo AI Agent Toolkit" data-duration="2 min">
+      <div class="slide-inner stack-layout">
+        <div class="slide-top-header compact">
+          <div>
+            <div class="eyebrow">
+              <span class="pill-index">06 / 13</span>
+              <span>Parte 2 · A solução e a tecnologia</span>
+            </div>
+            <h2>Conhecendo o Expo AI Agent Toolkit</h2>
+          </div>
+          <p class="lead-compact">O <strong>Expo</strong> executa e exibe o app; o <strong>Toolkit não é necessário para rodar o projeto</strong> — ele dá à IA ferramentas para interagir, inspecionar a interface e automatizar parte dos testes.</p>
+        </div>
+
+        <!-- Diagrama de fluxo principal -->
+        <div class="arch-diagram" aria-label="Arquitetura entre Agente, MCP/Toolkit e App em execução">
+          <div class="arch-node node-agent">
+            <span class="node-tag">Cérebro</span>
+            <h3>Agente de IA</h3>
+            <p>Claude Code, Codex, Cursor. Interpreta instruções, planeja e edita código.</p>
+          </div>
+          <div class="arch-arrow" aria-hidden="true">
+            <span>MCP / CLI</span>
+            <div class="arrow-track">⇄</div>
+          </div>
+          <div class="arch-node node-toolkit">
+            <span class="node-tag">Olhos &amp; Mãos</span>
+            <h3>Toolkit Especializado</h3>
+            <p>Inspeciona árvore de UI, toca botões, preenche campos, tira screenshots e lê logs.</p>
+          </div>
+          <div class="arch-arrow" aria-hidden="true">
+            <span>Ações reais</span>
+            <div class="arrow-track">⇄</div>
+          </div>
+          <div class="arch-node node-device">
+            <span class="node-tag">Execução</span>
+            <h3>App no Emulador</h3>
+            <p>Android Emulator, iOS Simulator ou dispositivo em execução (local ou EAS).</p>
+          </div>
+        </div>
+
+        <!-- Distinção precisa de conceitos -->
+        <div class="concepts-grid">
+          <div class="concept-card highlight-card">
+            <div class="concept-head">
+              <strong>agent-device</strong>
+              <span class="badge-provider">Callstack · Principal na demo</span>
+            </div>
+            <p>CLI focada em agentes para controlar apps iOS/Android (local ou EAS Simulators): árvore de acessibilidade (<code>snapshot -i</code>), toque (<code>press</code>), texto (<code>fill</code>), screenshots e logs.</p>
+          </div>
+
+          <div class="concept-card">
+            <div class="concept-head">
+              <strong>Argent</strong>
+              <span class="badge-provider neutral">Software Mansion · Alternativa</span>
+            </div>
+            <p>Toolkit open-source conectado via MCP para Android Emulator e iOS Simulator, com controle de fluxo, inspeção da árvore React, logs e profiling.</p>
+            <span class="clarify-note">Obs.: agent-device e Argent são <strong>opções alternativas</strong>, não etapas obrigatórias.</span>
+          </div>
+
+          <div class="concept-card">
+            <div class="concept-head">
+              <strong>MCP (Model Context Protocol)</strong>
+              <span class="badge-provider neutral">Protocolo</span>
+            </div>
+            <p>Padrão que conecta o modelo/agente a ferramentas e contexto externos (ex.: servidor MCP do Expo ou do Argent).</p>
+          </div>
+
+          <div class="concept-card">
+            <div class="concept-head">
+              <strong>Expo Skills</strong>
+              <span class="badge-provider neutral">Conhecimento (SKILL.md)</span>
+            </div>
+            <p>Instruções declarativas que ensinam boas práticas do Expo ao agente. <strong>Não é MCP</strong> e não controla o dispositivo sozinho.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================
+         SLIDE 7 — Como usar na prática: onde o agente atua?
+         ===================================================== -->
+    <section class="slide" data-slide="7" data-title="Como usar na prática: onde o app roda?" data-duration="1,5 min">
+      <div class="slide-inner stack-layout">
+        <div class="slide-top-header compact">
+          <div>
+            <div class="eyebrow">
+              <span class="pill-index">07 / 13</span>
+              <span>Parte 2 · A solução e a tecnologia</span>
+            </div>
+            <h2>Como usar na prática: onde o app roda?</h2>
+          </div>
+          <p class="lead-compact">O agente de IA (Codex, Claude Code, Cursor) envia comandos pelo <strong>agent-device</strong> para controlar o app rodando em <strong>3 ambientes</strong>:</p>
+        </div>
+
+        <div class="env-grid">
+          <div class="env-card">
+            <div class="env-icon-box" aria-hidden="true">🖥</div>
+            <div class="env-head">
+              <span class="env-tag">Opção 1 · Local</span>
+              <h3>Emulador ou Simulador</h3>
+            </div>
+            <p>Roda direto no seu PC com <strong>Android Studio Emulator</strong> ou <strong>iOS Simulator</strong> (Xcode no macOS).</p>
+            <code class="env-cmd">npx agent-device open com.app --platform android</code>
+            <span class="env-best">Melhor para: iterar rápido enquanto desenvolve na máquina.</span>
+          </div>
+
+          <div class="env-card featured">
+            <div class="env-icon-box" aria-hidden="true">☁</div>
+            <div class="env-head">
+              <span class="env-tag">Opção 2 · Nuvem (EAS)</span>
+              <h3>Expo Simulators</h3>
+            </div>
+            <p>Simuladores Android e iOS rodando na <strong>nuvem da Expo</strong> — sem precisar de emulador pesado ou de Mac para testar iOS.</p>
+            <code class="env-cmd">eas simulator:exec agent-device snapshot -i</code>
+            <span class="env-best">Melhor para: Windows testando iOS e testes automáticos em CI/CD.</span>
+          </div>
+
+          <div class="env-card">
+            <div class="env-icon-box" aria-hidden="true">📱</div>
+            <div class="env-head">
+              <span class="env-tag">Opção 3 · Aparelho Real</span>
+              <h3>Celular Físico (USB)</h3>
+            </div>
+            <p>Aparelho Android (ADB) ou iPhone conectado ao computador — suportado pelo <strong>agent-device</strong> (além de web/TV).</p>
+            <code class="env-cmd">npx agent-device logs start --platform ios</code>
+            <span class="env-best">Melhor para: validar gestos reais, sensores e performance real.</span>
+          </div>
+        </div>
+
+        <div class="where-run-bar">
+          <span class="where-run-label">Importante</span>
+          <span class="where-pill"><strong>Expo Go:</strong> ótimo para o dev visualizar manualmente, mas toolkits como <code>agent-device</code> / <code>Argent</code> controlam <strong>builds nativos / simuladores</strong> em execução.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================
+         SLIDE 7-2 — Na prática: instalando o agent-device
+         ===================================================== -->
+    <section class="slide" data-slide="7-2" data-title="Na prática: instalando o agent-device" data-duration="1,5 min">
+      <div class="slide-inner stack-layout">
+        <div class="slide-top-header compact">
+          <div>
+            <div class="eyebrow">
+              <span class="pill-index">07-2</span>
+              <span>Parte 2 · A solução e a tecnologia</span>
+            </div>
+            <h2>Na prática: instalando o agent-device</h2>
+          </div>
+          <p class="lead-compact">Passo a passo para deixar o <strong>agent-device</strong> pronto no projeto e conectado ao seu agente de IA.</p>
+        </div>
+
+        <div class="argent-grid">
+          <div class="argent-card">
+            <div class="concept-head">
+              <strong>1. Instalação &amp; Skill do Agente</strong>
+              <span class="badge-provider neutral">Terminal</span>
+            </div>
+            <ul class="why-list">
+              <li><strong>Instale a CLI (ou use via <code>npx</code>):</strong> disponível globalmente ou como dependência dev no projeto.</li>
+              <li><strong>Adicione a Skill oficial:</strong> ensina Claude Code, Cursor ou Codex a usar os comandos certos.</li>
+              <li><strong>Confira o dispositivo:</strong> garanta um emulador aberto (<code>adb devices</code> no Android ou Simulator no macOS).</li>
+            </ul>
+            <div class="code-panel argent-cli">
+              <div class="code-panel-head">
+                <span>Setup inicial</span>
+                <span class="code-badge ok">CLI + Skill</span>
+              </div>
+              <pre><code><span class="tok-cmt"># 1. Instalar a CLI (ou rodar direto com npx)</span>
+npm install -g agent-device
+
+<span class="tok-cmt"># 2. Adicionar a skill oficial ao seu agente</span>
+npx skills add callstackincubator/agent-device</code></pre>
+            </div>
+          </div>
+
+          <div class="argent-card">
+            <div class="concept-head">
+              <strong>2. Build nativo &amp; primeiro teste</strong>
+              <span class="badge-provider">Emulador / USB</span>
+            </div>
+            <ul class="why-list">
+              <li><strong>Suba um build nativo:</strong> o <code>agent-device</code> controla builds nativos de desenvolvimento (não o Expo Go).</li>
+              <li><strong>Abra e inspecione:</strong> o agente usa <code>open</code> e <code>snapshot -i</code> para mapear botões e campos (<code>@e1</code>, <code>@e2</code>...).</li>
+            </ul>
+            <div class="code-panel argent-cli">
+              <div class="code-panel-head">
+                <span>Execução prática</span>
+                <span class="code-badge ok">Android / iOS</span>
+              </div>
+              <pre><code><span class="tok-cmt"># 3. Subir o app no emulador local</span>
+npx expo run:android
+
+<span class="tok-cmt"># 4. Abrir no agent-device e listar elementos</span>
+npx agent-device open com.app --platform android
+npx agent-device snapshot -i</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="where-run-bar">
+          <span class="where-run-label">Dica</span>
+          <span class="where-pill">Sem emulador local? Rode na nuvem da Expo com <code>eas simulator:exec agent-device snapshot -i</code> (ideal para testar iOS no Windows ou em CI/CD).</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================
+         SLIDE 8 — Segunda abordagem: agente + toolkit
+         ===================================================== -->
+    <section class="slide" data-slide="8" data-title="Segunda abordagem: agente + toolkit" data-duration="2 min">
+      <div class="slide-inner stack-layout">
+        <div class="slide-top-header">
+          <div>
+            <div class="eyebrow">
+              <span class="pill-index">08 / 13</span>
+              <span>Parte 2 · A solução e a tecnologia</span>
+            </div>
+            <h2>Segunda abordagem: agente + agent-device</h2>
+          </div>
+          <div class="prompt-banner">
+            <span class="prompt-chip">Prompt enviado</span>
+            <p>“Open app and inspect reservations screen.” — Mantendo exatamente os mesmos 5 requisitos.</p>
+          </div>
+        </div>
+
+        <div class="demo-grid">
+          <div class="terminal-window">
+            <div class="terminal-bar">
+              <div class="win-dots"><span></span><span></span><span></span></div>
+              <span class="win-title">agente-ia + agent-device</span>
+              <button type="button" class="mini-action-btn" id="s6InspectBtn">🔍 Alternar inspeção UI</button>
+            </div>
+            <div class="terminal-body">
+              <div class="term-line cmd">$ npx agent-device open com.restaurantecaragua.app --platform android</div>
+              <div class="term-line ok">✓ App aberto no Android Emulator (sessão ativa)</div>
+              <div class="term-line cmd">$ npx agent-device snapshot -i</div>
+              <div class="term-block">
+<pre>[Screen] ReservaScreen
+  @e1  Text     "Finalizar Reserva"
+  @e2  Badge    "Sex, 27 Nov · 20:00"
+  @e3  TextInput "Nome do cliente"     value=""
+  @e4  TextInput "Telefone"            value=""
+  @e5  Button   "Confirmar reserva"    enabled=true</pre>
+              </div>
+              <div class="term-line info">● O agente agora enxerga os elementos interativos reais (@e3, @e4, @e5) em vez de apenas adivinhar pelo código.</div>
+            </div>
+            <div class="terminal-footer-note">
+              Com <code>snapshot -i</code>, o agente recebe referências semânticas econômicas em tokens para agir sobre a tela real.
+            </div>
+          </div>
+
+          <div class="emulator-col">
+            <div class="phone-frame app-phone inspect-active" id="s6Phone">
+              <div class="phone-notch"></div>
+              <div class="phone-statusbar">
+                <span>19:47</span>
+                <span class="status-tag cyan" id="s6InspectBadge">Inspeção @refs ON</span>
+              </div>
+              <div class="phone-screen app-ui">
+                <div class="inspect-box" data-ref="@e1">
+                  <span class="ref-tag">@e1</span>
+                  <div class="app-mini-nav"><span>← Voltar</span><strong>Finalizar Reserva</strong></div>
+                </div>
+                <div class="inspect-box" data-ref="@e2">
+                  <span class="ref-tag">@e2</span>
+                  <div class="summary-chip">Sex, 27 Nov · 20:00 · 2 pessoas</div>
+                </div>
+                <div class="inspect-box" data-ref="@e3">
+                  <span class="ref-tag">@e3</span>
+                  <label class="field-label">Nome do cliente</label>
+                  <div class="fake-input">"" (vazio)</div>
+                </div>
+                <div class="inspect-box" data-ref="@e4">
+                  <span class="ref-tag">@e4</span>
+                  <label class="field-label">Telefone</label>
+                  <div class="fake-input">"" (vazio)</div>
+                </div>
+                <div class="inspect-box" data-ref="@e5">
+                  <span class="ref-tag">@e5</span>
+                  <div class="app-primary-btn">Confirmar reserva</div>
+                </div>
+              </div>
+              <div class="phone-home-bar"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================
+         SLIDE 9 — Testando o fluxo de reservas
+         ===================================================== -->
+    <section class="slide" data-slide="9" data-title="Testando o fluxo de reservas" data-duration="2,5 min">
+      <div class="slide-inner stack-layout">
+        <div class="slide-top-header compact">
+          <div>
+            <div class="eyebrow">
+              <span class="pill-index">09 / 13</span>
+              <span>Parte 2 · A solução e a tecnologia</span>
+            </div>
+            <h2>Testando o fluxo de reservas (caminho feliz e falha)</h2>
+          </div>
+          <div class="test-controls">
+            <button type="button" class="ctrl-pill active" id="s7HappyBtn">▶ 1. Preencher dados</button>
+            <button type="button" class="ctrl-pill danger" id="s7NegativeBtn">▶ 2. Verificar campo Telefone</button>
+            <button type="button" class="ctrl-pill ghost" id="s7ResetBtn">↺ Resetar</button>
+          </div>
+        </div>
+
+        <div class="demo-grid triple-balance">
+          <!-- Checklist + Terminal -->
+          <div class="left-stack">
+            <div class="mini-checklist" id="s7Checklist">
+              <div class="chk-item" data-chk="open"><span class="chk-box">○</span> Abrir aplicativo</div>
+              <div class="chk-item" data-chk="date"><span class="chk-box">○</span> Selecionar data</div>
+              <div class="chk-item" data-chk="time"><span class="chk-box">○</span> Selecionar horário</div>
+              <div class="chk-item" data-chk="fill"><span class="chk-box">○</span> Focar campo Telefone</div>
+              <div class="chk-item" data-chk="confirm"><span class="chk-box">○</span> Campo visível ao digitar</div>
+              <div class="chk-item" data-chk="empty"><span class="chk-box">○</span> Concluir reserva</div>
+            </div>
+
+            <div class="terminal-window compact-term">
+              <div class="terminal-bar">
+                <div class="win-dots"><span></span><span></span><span></span></div>
+                <span class="win-title">agent-device · execução de testes</span>
+              </div>
+              <div class="terminal-body" id="s7Terminal">
+                <div class="term-line muted">Clique em <strong>“1. Preencher dados”</strong> e depois em <strong>“2. Verificar campo Telefone”</strong> para ver o toolkit detectar o campo escondido pelo teclado.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Emulador animado -->
+          <div class="emulator-col">
+            <div class="phone-frame app-phone" id="s7Phone">
+              <div class="phone-notch"></div>
+              <div class="phone-statusbar">
+                <span>19:49</span>
+                <span class="status-tag" id="s7PhoneTag">Aguardando teste</span>
+              </div>
+              <div class="phone-screen app-ui" id="s7Screen">
+                <!-- Atualizado dinamicamente pelo controlador do Slide 7 -->
+              </div>
+              <div class="phone-home-bar"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================
+         SLIDE 10 — Encontrando e corrigindo problemas
+         ===================================================== -->
+    <section class="slide" data-slide="10" data-title="Encontrando e corrigindo problemas" data-duration="2 min">
+      <div class="slide-inner stack-layout">
+        <div class="slide-top-header compact">
+          <div>
+            <div class="eyebrow">
+              <span class="pill-index">10 / 13</span>
+              <span>Parte 2 · A solução e a tecnologia</span>
+            </div>
+            <h2>Encontrando e corrigindo problemas</h2>
+          </div>
+          <div class="cycle-bar" id="s8CycleBar" role="tablist" aria-label="Ciclo de correção">
+            <button type="button" class="cycle-step active" data-phase="0">1. Detectar</button>
+            <span class="cycle-sep">→</span>
+            <button type="button" class="cycle-step" data-phase="1">2. Investigar</button>
+            <span class="cycle-sep">→</span>
+            <button type="button" class="cycle-step" data-phase="2">3. Corrigir</button>
+            <span class="cycle-sep">→</span>
+            <button type="button" class="cycle-step" data-phase="3">4. Retestar</button>
+            <span class="cycle-sep">→</span>
+            <button type="button" class="cycle-step" data-phase="4">5. Validar</button>
+          </div>
+        </div>
+
+        <div class="demo-grid">
+          <div class="left-stack">
+            <div class="prompt-banner inline-prompt">
+              <span class="prompt-chip">Prompt de correção</span>
+              <p>“O teste mostrou que o teclado virtual tampa o campo Telefone enquanto o usuário digita. Ajuste reserva.tsx com KeyboardAvoidingView e ScrollView e reteste o fluxo.”</p>
+            </div>
+
+            <div class="code-panel diff-panel" id="s8DiffBox">
+              <div class="code-panel-head">
+                <span id="s8PanelTitle">app/reserva.tsx · Diagnóstico e Correção</span>
+                <span class="code-badge ok" id="s8PanelBadge">Ciclo completo</span>
+              </div>
+              <pre id="s8CodeContent"></pre>
+            </div>
+          </div>
+
+          <div class="emulator-col">
+            <div class="compare-toggle-pill">
+              <button type="button" class="tgl-btn" id="s8BeforeBtn">Antes (Bug)</button>
+              <button type="button" class="tgl-btn active" id="s8AfterBtn">Depois (Corrigido)</button>
+            </div>
+            <div class="phone-frame app-phone" id="s8Phone">
+              <div class="phone-notch"></div>
+              <div class="phone-statusbar">
+                <span>19:52</span>
+                <span class="status-tag" id="s8PhoneStatus">Validado pelo reteste</span>
+              </div>
+              <div class="phone-screen app-ui s4-screen-rel" id="s8Screen">
+                <!-- Preenchido via JS -->
+              </div>
+              <div class="phone-home-bar"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================
+         SLIDE 11 — Outras alternativas: Argent
+         ===================================================== -->
+    <section class="slide" data-slide="11" data-title="Outras alternativas: conhecendo o Argent" data-duration="1,5 min">
+      <div class="slide-inner stack-layout">
+        <div class="slide-top-header compact">
+          <div>
+            <div class="eyebrow">
+              <span class="pill-index">11 / 13</span>
+              <span>Parte 3 · Outras alternativas</span>
+            </div>
+            <h2>Outras alternativas: conhecendo o Argent</h2>
+          </div>
+          <p class="lead-compact">O <code>agent-device</code> não é a única opção: a Software Mansion mantém o <strong>Argent</strong>, outra alternativa open-source do ecossistema Expo/React Native.</p>
+        </div>
+
+        <div class="argent-grid">
+          <div class="argent-card">
+            <div class="concept-head">
+              <strong>O que é o Argent?</strong>
+              <span class="badge-provider neutral">Software Mansion · MCP</span>
+            </div>
+            <ul class="why-list">
+              <li><strong>Conexão direta via MCP:</strong> integra com Claude Code, Cursor e Codex através de servidor MCP dedicado.</li>
+              <li><strong>Foco em emuladores:</strong> projetado para <strong>Android Emulator</strong> e <strong>iOS Simulator</strong> (locais ou via <code>eas simulator:exec --type argent</code>).</li>
+              <li><strong>Além de cliques e texto:</strong> permite inspecionar a <strong>árvore de componentes React</strong>, ler logs e fazer <strong>profiling de performance</strong> (renders lentos).</li>
+            </ul>
+            <div class="code-panel argent-cli">
+              <div class="code-panel-head">
+                <span>Inicialização via CLI</span>
+                <span class="code-badge ok">Open-source</span>
+              </div>
+              <pre><code><span class="tok-cmt"># Instala e registra o servidor MCP no editor</span>
+npx @swmansion/argent init</code></pre>
+            </div>
+          </div>
+
+          <div class="comparison-table-wrap">
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th>Aspecto</th>
+                  <th class="col-hl">agent-device (Callstack)</th>
+                  <th>Argent (Software Mansion)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Integração</strong></td>
+                  <td class="col-hl">CLI enxuta para agentes + EAS Simulators</td>
+                  <td>Servidor MCP + wizard <code>argent init</code></td>
+                </tr>
+                <tr>
+                  <td><strong>Alvos</strong></td>
+                  <td class="col-hl">iOS, Android, dispositivos físicos, web/TV</td>
+                  <td>Android Emulator e iOS Simulator</td>
+                </tr>
+                <tr>
+                  <td><strong>Destaque</strong></td>
+                  <td class="col-hl"><code>snapshot -i</code> leve e econômico em tokens</td>
+                  <td>Inspeção da árvore React e profiling</td>
+                </tr>
+                <tr>
+                  <td><strong>Relação</strong></td>
+                  <td class="col-hl" colspan="2"><strong>Alternativas independentes</strong> — você escolhe uma conforme o fluxo do projeto (não são etapas obrigatórias).</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================
+         SLIDE 12 — Quando usar o Argent?
+         ===================================================== -->
+    <section class="slide" data-slide="12" data-title="Quando usar o Argent?" data-duration="2 min">
+      <div class="slide-inner stack-layout">
+        <div class="slide-top-header compact">
+          <div>
+            <div class="eyebrow">
+              <span class="pill-index">12 / 13</span>
+              <span>Parte 3 · Quando usar</span>
+            </div>
+            <h2>Quando usar o Argent?</h2>
+          </div>
+          <p class="lead-compact">Escolha o <strong>Argent</strong> quando o agente precisar de diagnóstico profundo em React Native e integração direta via MCP em emuladores.</p>
+        </div>
+
+        <div class="argent-grid">
+          <div class="argent-card">
+            <div class="concept-head">
+              <strong>Cenários ideais para o Argent</strong>
+              <span class="badge-provider neutral">Quando escolher</span>
+            </div>
+            <ul class="why-list">
+              <li><strong>Debug de performance e renders:</strong> quando há lentidão na interface e o agente precisa inspecionar a <strong>árvore de componentes React</strong> e fazer <strong>profiling</strong>.</li>
+              <li><strong>Fluxo nativo via MCP:</strong> quando você já usa Claude Code, Cursor ou Codex com servidores MCP e quer configurar rápido com <code>npx @swmansion/argent init</code>.</li>
+              <li><strong>Foco em emuladores:</strong> ideal para testes no <strong>Android Emulator</strong> e <strong>iOS Simulator</strong> (locais ou na nuvem com <code>eas simulator:exec --type argent</code>).</li>
+              <li><strong>UI + logs do aplicativo:</strong> quando não basta tocar na tela e o agente precisa cruzar o que vê com logs internos.</li>
+            </ul>
+          </div>
+
+          <div class="argent-card">
+            <div class="concept-head">
+              <strong>Quando preferir o agent-device?</strong>
+              <span class="badge-provider">Critério prático</span>
+            </div>
+            <ul class="why-list">
+              <li><strong>Celular físico por USB:</strong> quando é necessário validar gestos, teclado e comportamento em aparelhos reais (além de web e TV).</li>
+              <li><strong>Menor consumo de tokens:</strong> o <code>snapshot -i</code> gera uma lista enxuta de elementos interativos para fluxos E2E longos.</li>
+              <li><strong>Automação via CLI:</strong> quando você prefere comandos diretos de terminal em scripts e CI/CD.</li>
+            </ul>
+            <p class="fairness-note">
+              <strong>Regra rápida:</strong> use <code>agent-device</code> para navegação E2E leve e aparelhos reais; escolha o <strong>Argent</strong> para investigar componentes React, logs e performance via MCP.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================
+         SLIDE 13 — Conclusão: o que realmente mudou?
+         ===================================================== -->
+    <section class="slide" data-slide="13" data-title="Conclusão: o que realmente mudou?" data-duration="1 min">
+      <div class="slide-inner closing-layout">
+        <div class="eyebrow centered">
+          <span class="pill-index">13 / 13</span>
+          <span>Parte 3 · Conclusão</span>
+        </div>
+        <h2 class="closing-title">Afinal, o que realmente mudou?</h2>
+
+        <div class="closing-compare">
+          <div class="closing-card">
+            <span class="closing-tag">Sem Toolkit</span>
+            <h3>Código + Verificação Manual</h3>
+            <ul>
+              <li>IA escreve e modifica o código</li>
+              <li>Expo executa (Expo Go, emulador ou web)</li>
+              <li>Dev testa manualmente e envia prints/erros</li>
+            </ul>
+          </div>
+
+          <div class="closing-vs" aria-hidden="true">+</div>
+
+          <div class="closing-card featured">
+            <span class="closing-tag accent">Com Toolkit</span>
+            <h3>Código + Interação e Verificação</h3>
+            <ul>
+              <li>IA escreve código e Expo executa o app</li>
+              <li>Agente inspeciona e interage com a interface</li>
+              <li>Automatiza parte dos testes de fluxo</li>
+              <li>Reduz a intervenção manual para validar e corrigir</li>
+            </ul>
+          </div>
+        </div>
+
+        <blockquote class="hero-quote">
+          “Gerar o aplicativo é apenas uma parte do processo. Também precisamos <span>observar, testar e verificar</span> seu comportamento.”
+        </blockquote>
+
+        <div class="closing-footer">
+          <div class="ref-links">
+            <a href="https://docs.expo.dev/agents/" target="_blank" rel="noopener">docs.expo.dev/agents/</a>
+            <a href="https://docs.expo.dev/agents/agent-device/" target="_blank" rel="noopener">docs.expo.dev/agents/agent-device/</a>
+            <a href="https://docs.expo.dev/agents/argent/" target="_blank" rel="noopener">docs.expo.dev/agents/argent/</a>
+          </div>
+          <div class="thanks-pill">Obrigado! Perguntas?</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal de Visão Geral (Panorama dos 13 slides) -->
+  <div id="overviewModal" class="overview-modal" aria-hidden="true" role="dialog" aria-label="Visão geral dos slides">
+    <div class="overview-top">
+      <div>
+        <h2>Panorama da Apresentação (13 slides · ~20 min)</h2>
+        <p>Clique em qualquer slide para ir direto até ele.</p>
+      </div>
+      <button type="button" class="ctrl-btn" id="closeOverviewBtn">Fechar (Esc)</button>
+    </div>
+    <div class="overview-grid" id="overviewGrid"></div>
+  </div>
+
+  <!-- Barra de controles inferior -->
+  <footer class="deck-controls" aria-label="Controles da apresentação">
+    <div class="ctrl-group">
+      <button type="button" class="ctrl-btn" id="prevBtn" title="Slide anterior (←)">← Anterior</button>
+      <span class="slide-counter" id="slideCounter">01 / 13</span>
+      <button type="button" class="ctrl-btn primary" id="nextBtn" title="Próximo slide (→ ou Espaço)">Próximo →</button>
+    </div>
+
+    <div class="dots-nav" id="dotsNav" aria-label="Navegação rápida por slide"></div>
+
+    <div class="ctrl-group right-controls">
+      <div class="timer-widget" title="Cronômetro do seminário (meta: 20 min)">
+        <span id="timerDisplay" class="timer-val">00:00</span>
+        <span class="timer-target">/ 20:00</span>
+        <button type="button" class="icon-btn" id="timerToggleBtn" title="Iniciar / Pausar cronômetro">▶</button>
+        <button type="button" class="icon-btn" id="timerResetBtn" title="Zerar cronômetro">↺</button>
+      </div>
+      <button type="button" class="ctrl-btn" id="overviewBtn" title="Todos os slides (O)">Panorama (O)</button>
+      <button type="button" class="ctrl-btn" id="themeBtn" title="Alternar tema Escuro / Projetor Claro (T)">Tema (T)</button>
+      <button type="button" class="ctrl-btn" id="fsBtn" title="Tela cheia (F)">Tela cheia</button>
+    </div>
+  </footer>
+
+  <script src="./app.js"></script>
+</body>
+</html>
