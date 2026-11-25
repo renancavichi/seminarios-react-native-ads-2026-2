@@ -30,6 +30,7 @@ Exemplo:
 - Assinatura Digital (react-native-signature-canvas) (Matheus Manfredini [@matheusmanfredinii](https://github.com/matheusmanfredinii), [Apresentação](assinatura-digital/))
 - Expo ImagePicker (Maíra Kobayashi [@mairakobay](https://github.com/mairakobay), [Apresentação](app-expo-image-picker/))
 - Expo Background Task ([João Alves Passos](https://github.com/joaoapassos), [Apresentação](expo-background-tasks/README.md))
+- React Native Unity (@azesmway/react-native-unity) (Raissa Patricio [@raissapatricio](https://github.com/raissapatricio), [Apresentação](react-native-unity/))
 
 ##### Orientações
 

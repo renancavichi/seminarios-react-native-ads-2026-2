@@ -1,0 +1,58 @@
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# --- Projeto Space Hunters ---
+# pastas nativas GERADAS pelo `npx expo prebuild` (Continuous Native Generation)
+/android/
+/ios/
+/android-antigo-manual/
+# jogo exportado da Unity (vários GB): gere com scripts/exportar-unity.ps1
+/unity/
+# APKs e arquivos de entrega (APK > 100 MB não cabe no GitHub: use Releases)
+/entrega/
+*.apk
+# logs e prints de teste
+*.log
+/shot*.png
+# configuração local de ferramentas
+
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# local env files
+.env*.local
+
+# typescript
+*.tsbuildinfo
+
+example
+
+# generated native folders
+/ios
+/android
