@@ -1,0 +1,671 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Expo UI: interface nativa escrita em React</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Figtree:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#f6f5ff;--mut:#cfcbf3;--glass:rgba(255,255,255,.12);--edge:rgba(255,255,255,.3);--co:#ff8a78;--ic:#a8ecff;--vi:#9b7bff;--deep:#0d1054;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%;margin:0;background:var(--deep);color:var(--ink);font:400 20px/1.4 Figtree,system-ui,sans-serif;overflow:hidden}
+#stage{position:absolute;left:50%;top:50%;width:1280px;height:720px;overflow:hidden;background:radial-gradient(55% 80% at 12% 8%,#3a3dff 0,transparent 62%),radial-gradient(50% 70% at 92% 18%,#a24bff 0,transparent 60%),radial-gradient(65% 70% at 72% 105%,#ff6f6a 0,transparent 65%),var(--deep)}
+section{position:absolute;inset:0;padding:52px 72px;display:flex;flex-direction:column;opacity:0;visibility:hidden;transition:opacity .35s}
+section.on{opacity:1;visibility:visible}
+h1{font:800 150px/.9 'Bricolage Grotesque',sans-serif;letter-spacing:-.045em;margin:0}
+h2{font:700 52px/1.05 'Bricolage Grotesque',sans-serif;letter-spacing:-.03em;margin:0 0 26px}
+h3{font:600 25px/1.15 'Bricolage Grotesque',sans-serif;margin:0 0 8px}
+p{margin:0}.m{color:var(--mut)}
+.g{background:var(--glass);border:1px solid var(--edge);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-radius:28px;padding:24px}
+.g p{font-size:18px;color:var(--mut)}
+.grid{display:grid;gap:18px}.c3{grid-template-columns:repeat(3,1fr)}.c2{grid-template-columns:1fr 1fr}
+.row{display:flex;gap:18px;align-items:center}
+code,pre{font-family:'JetBrains Mono',monospace}
+code{background:rgba(7,9,60,.45);padding:2px 8px;border-radius:8px;font-size:.82em;color:var(--ic)}
+pre{margin:0;background:rgba(7,9,60,.62);border:1px solid var(--edge);border-radius:18px;padding:16px 18px;font-size:14.5px;line-height:1.5;overflow:auto;color:#ece9ff}
+.cw{position:relative}.cp{position:absolute;right:10px;top:10px;border:1px solid var(--edge);background:var(--glass);color:var(--ink);border-radius:12px;padding:6px 14px;font:600 14px Figtree,sans-serif;cursor:pointer}
+.big{font:700 34px/1.2 'Bricolage Grotesque',sans-serif}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:16.5px}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--edge);vertical-align:top}
+th{font:600 20px 'Bricolage Grotesque',sans-serif}
+td:first-child{color:var(--ic);font-weight:600;width:150px}
+th.hl,td.hl{background:rgba(255,255,255,.14)}
+.pill{display:inline-block;border:1px solid var(--edge);border-radius:99px;padding:4px 16px;font-size:17px;background:var(--glass)}
+.step{border-left:3px solid var(--co);padding-left:16px;margin-bottom:12px}
+.ar{font-size:40px;color:var(--ic)}
+/* controles */
+button.t{border:1px solid var(--edge);background:var(--glass);color:var(--ink);border-radius:99px;padding:8px 18px;font:600 16px Figtree,sans-serif;cursor:pointer}
+button.t.on{background:var(--ink);color:var(--deep)}
+#nav{position:fixed;left:0;right:0;bottom:0;height:5px;background:rgba(255,255,255,.12);z-index:5}#bar{height:100%;background:linear-gradient(90deg,var(--ic),var(--vi),var(--co));width:0}
+#hud{position:fixed;right:16px;top:calc(10px + env(safe-area-inset-top,0px));z-index:5;font:600 15px Figtree,sans-serif;background:rgba(7,9,60,.55);border:1px solid var(--edge);border-radius:99px;padding:6px 16px;color:var(--mut)}
+.arr{position:fixed;bottom:16px;width:44px;height:44px;z-index:4;border:1px solid var(--edge);border-radius:50%;background:rgba(7,9,60,.5);color:var(--ink);cursor:pointer;font-size:26px;line-height:1;opacity:.35}.arr:hover{opacity:1}
+#nt{display:none;position:fixed;left:0;right:0;bottom:5px;z-index:6;background:rgba(7,9,60,.93);border-top:1px solid var(--edge);padding:12px 24px;font-size:16px;color:var(--mut)}
+body.notes #nt{display:block}
+/* telefone */
+.ph{width:292px;height:588px;border-radius:44px;background:#0a0a14;padding:10px;box-shadow:0 30px 80px rgba(5,5,60,.55);flex:none}
+.sc{height:100%;border-radius:34px;overflow:hidden;position:relative;font:400 15px/1.3 system-ui,-apple-system,Roboto,sans-serif;color:#111}
+.ios .sc{background:#f2f2f7;--ac:#0a84ff;--on:#34c759}
+.and .sc{background:#fef7ff;--ac:#6750a4;--on:#6750a4;font-family:Roboto,system-ui,sans-serif}
+.nb{height:32px;display:flex;justify-content:center;align-items:center}
+.ios .nb::before{content:"";width:88px;height:24px;border-radius:14px;background:#000}
+.and .nb::before{content:"";width:12px;height:12px;border-radius:50%;background:#000}
+.ttl{font-weight:700;font-size:30px;padding:8px 18px}.and .ttl{font-weight:400;font-size:26px}
+.gl{margin:12px 22px 0;font-size:12px;color:#6c6c70}
+.grp{margin:6px 14px;background:#fff;border-radius:12px;overflow:hidden}.and .grp{background:#f3edf7;border-radius:24px}
+.rw{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;min-height:48px}.rw+.rw{border-top:1px solid rgba(0,0,0,.08)}
+.sw{width:51px;height:31px;border-radius:16px;background:#e5e5ea;position:relative;cursor:pointer;transition:.2s;flex:none}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.3);transition:.2s}
+.sw.on{background:var(--on)}.sw.on::after{left:22px}
+.and .sw{width:52px;height:32px;background:#e6e0e9;border:2px solid #79747e}
+.and .sw::after{top:6px;left:4px;width:16px;height:16px;background:#79747e;box-shadow:none}
+.and .sw.on{background:#6750a4;border-color:#6750a4}.and .sw.on::after{left:22px;top:2px;width:24px;height:24px;background:#fff}
+.bt{border:0;margin:14px;width:calc(100% - 28px);padding:12px;border-radius:12px;font:600 15px inherit;font-family:inherit;background:var(--ac);color:#fff;cursor:pointer}.and .bt{border-radius:99px}
+.sg{display:flex;margin:10px 14px;background:rgba(118,118,128,.18);border-radius:9px;padding:2px}
+.sg b{flex:1;text-align:center;padding:7px;border-radius:7px;font-weight:500;cursor:pointer}.sg b.on{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.and .sg{background:none;border:1px solid #79747e;border-radius:99px;padding:0;overflow:hidden}.and .sg b{border-radius:0;padding:9px}.and .sg b.on{background:#e8def8;box-shadow:none}
+.in{width:100%;font:inherit;padding:10px;border-radius:10px;border:1px solid #c7c7cc;background:#fff;color:#111}.and .in{border-radius:6px;border-color:#79747e;background:transparent}
+.sh{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:24px 24px 0 0;padding:14px 18px 26px;transform:translateY(105%);transition:transform .3s;box-shadow:0 -10px 40px rgba(0,0,0,.3)}.sh.open{transform:none}.and .sh{background:#f3edf7}
+.sh i{display:block;width:36px;height:5px;border-radius:3px;background:#c7c7cc;margin:0 auto 12px}
+table.w td:first-child{width:auto}
+.cal{margin:6px 14px;background:#fff;border-radius:12px;padding:10px}.and .cal{background:#f3edf7;border-radius:24px}
+.ch{display:flex;justify-content:space-between;align-items:center;font-weight:600;padding:2px 6px 8px}.ch i{font-style:normal;font-size:22px;padding:0 10px;cursor:pointer;color:var(--ac)}
+.cg{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}.cg u{text-decoration:none;font-size:11px;color:#8e8e93;padding:4px 0}
+.cg b{font-weight:400;padding:8px 0;border-radius:50%;cursor:pointer}.cg b.on{background:var(--ac);color:#fff}
+.ch span{text-transform:capitalize;padding:2px 10px;border-radius:99px}.ch span:hover{background:rgba(0,0,0,.07)}
+.mg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:6px 0}.mg b{font-weight:500;padding:14px 0;border-radius:12px;text-align:center;cursor:pointer;background:rgba(0,0,0,.05)}.mg b.on{background:var(--ac);color:#fff}
+.pop{position:absolute;left:14px;top:146px;width:240px;background:#fff;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.3);overflow:hidden;z-index:2}.and .pop{background:#f3edf7;border-radius:12px}
+.pg{margin:10px 14px;height:200px;border-radius:20px;background:var(--ac);color:#fff;display:flex;flex-direction:column;justify-content:center;padding:22px}
+.dots{display:flex;justify-content:center;gap:8px;margin:10px}.dots i{width:8px;height:8px;border-radius:99px;background:#c7c7cc;cursor:pointer}.dots i.on{background:var(--ac);width:22px}
+@media (prefers-reduced-motion:reduce){section,.sw,.sw::after,.sh{transition:none}}
+</style>
+</head>
+<body>
+<div id="stage">
+
+<!-- 1 capa -->
+<section>
+  <div class="row" style="flex:1;justify-content:space-between">
+    <div>
+      <h1>Expo UI</h1>
+      <p class="big" style="margin-top:26px;max-width:640px">Interface nativa de verdade, escrita em React.</p>
+      <p style="margin-top:34px;font:600 28px 'Bricolage Grotesque',sans-serif">Thiago Cruz Carvalho</p>
+    </div>
+    <div style="position:relative;width:360px;height:440px">
+      <div class="g" style="position:absolute;left:0;top:10px;width:260px;height:300px;transform:rotate(-7deg)"><h3>SwiftUI</h3><p>iOS e tvOS</p></div>
+      <div class="g" style="position:absolute;right:0;top:120px;width:260px;height:300px;transform:rotate(6deg);background:rgba(255,255,255,.2)"><h3>Jetpack Compose</h3><p>Android e Android TV</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 2 roteiro -->
+<section>
+  <h2>O que vamos ver nesta apresentação</h2>
+  <div class="grid c2" style="gap:14px 40px;flex:1;align-content:start">
+    <div class="step"><div><h3>Que problema resolve?</h3><p class="m">Por que apps RN ainda “parecem” diferentes do sistema</p></div></div>
+    <div class="step"><div><h3>Como funciona</h3><p class="m">Host, camadas e imports</p></div></div>
+    <div class="step"><div><h3>Principais recursos</h3><p class="m">Universal, nativo, drop-ins, extensível</p></div></div>
+    <div class="step"><div><h3>Demo ao vivo</h3><p class="m">Teste os componentes em iOS e Android</p></div></div>
+    <div class="step"><div><h3>Limitações</h3><p class="m">O que ainda não faz bem</p></div></div>
+    <div class="step"><div><h3>Comparativo e quando usar</h3><p class="m">Expo UI, RN core, pacotes, Skia, DOM</p></div></div>
+    <div class="step"><div><h3>Roteiro de código</h3><p class="m">App.js completo para rodar no Expo Go</p></div></div>
+  </div>
+</section>
+
+<!-- 3 problema -->
+<section>
+  <h2>Que problema o Expo UI resolve?</h2>
+  <div class="grid c3" style="flex:1">
+    <div class="g"><h3>Visual “quase” nativo</h3><p>View e Text são primitivas neutras. Seletores, menus e sheets que o usuário reconhece do sistema precisam vir de outro lugar, ou ser recriados.</p></div>
+    <div class="g"><h3>Dependências demais</h3><p>Picker, slider, pager, bottom sheet, menu: cada controle costuma ser um pacote nativo com release próprio, que pode quebrar a cada atualização de SDK.</p></div>
+    <div class="g"><h3>Novidades do SO demoram</h3><p>Um recurso novo, como o <code>glassEffect()</code> do SwiftUI, só chegava ao React Native depois que alguém escrevia o wrapper.</p></div>
+  </div>
+  <p class="big" style="margin-top:22px">Solução: usar as primitivas que iOS e Android já entregam, como componentes React.</p>
+</section>
+
+<!-- timeline -->
+<section>
+  <h2>Como chegamos até aqui</h2>
+  <div class="grid c2" style="flex:1;gap:16px">
+    <div class="g"><h3>SDK 53</h3><p>Primeiro protótipo: alguns componentes soltos para SwiftUI e Jetpack Compose.</p></div>
+    <div class="g"><h3>SDK 54</h3><p>Chegam o Host, os modifiers do SwiftUI e containers como Form e List.</p></div>
+    <div class="g"><h3>SDK 55</h3><p>Jetpack Compose entra em beta e a API do SwiftUI é auditada para bater com a documentação da Apple.</p></div>
+    <div class="g"><h3>SDK 56</h3><p>Versão estável: camada universal, auditoria do Compose, drop-ins e Material 3.</p></div>
+  </div>
+  <p class="m" style="margin-top:14px">Hoje o Expo UI já vem no template padrão do create-expo-app e no Expo Go.</p>
+</section>
+
+<!-- 4 como funciona -->
+<section>
+  <h2>Como funciona</h2>
+  <div class="row" style="flex:1;justify-content:center;gap:26px">
+    <div class="g" style="width:290px"><h3>Seu código React</h3><p>JavaScript, hooks, estado. Você escreve <code>&lt;Switch /&gt;</code>.</p></div>
+    <span class="ar">→</span>
+    <div class="g" style="width:250px"><h3>&lt;Host&gt;</h3><p>A ponte entre a árvore React Native e as views nativas.</p></div>
+    <span class="ar">→</span>
+    <div style="display:flex;flex-direction:column;gap:16px;width:320px">
+      <div class="g" style="padding:20px"><h3>iOS: SwiftUI</h3><p>Switch vira o Toggle do sistema.</p></div>
+      <div class="g" style="padding:20px;background:rgba(255,255,255,.2)"><h3>Android: Compose</h3><p>Switch vira o Material 3.</p></div>
+    </div>
+  </div>
+  <p class="m">Não há reimplementação em JavaScript no meio: o componente que aparece é o do sistema. Dentro do Host, o layout é SwiftUI ou Compose, não flexbox do Yoga.</p>
+</section>
+
+<!-- host -->
+<section>
+  <h2>Host: a fronteira entre React Native e o nativo</h2>
+  <div class="grid c2" style="flex:1;gap:18px">
+    <div class="g"><h3>Fora do Host</h3><p>Valem View, Text, flexbox do Yoga, estilos e bibliotecas como NativeWind.</p></div>
+    <div class="g"><h3>Dentro do Host</h3><p>O layout é SwiftUI ou Compose: Row e Column no universal, HStack e VStack no SwiftUI.</p></div>
+    <div class="g"><h3>RNHostView</h3><p>Coloca views do React Native dentro de uma view do Expo UI, quando você precisa voltar ao mundo RN.</p></div>
+    <div class="g"><h3>Como pensar</h3><p>Trate o Host como uma ilha nativa na tela, por exemplo uma lista de ajustes, e mantenha o resto em View e Text.</p></div>
+  </div>
+</section>
+
+<!-- 5 camadas -->
+<section>
+  <h2>Quatro camadas, quatro imports</h2>
+  <div class="grid" style="gap:14px;flex:1;align-content:start">
+    <div class="g row"><span class="pill"><code>@expo/ui</code></span><div><h3 style="margin:0">Universal</h3><p>Um código para iOS e Android. Web é experimental.</p></div></div>
+    <div class="g row"><span class="pill"><code>@expo/ui/swift-ui</code></span><div><h3 style="margin:0">SwiftUI</h3><p>Nomes iguais aos da Apple: Toggle, Form, glassEffect().</p></div></div>
+    <div class="g row"><span class="pill"><code>@expo/ui/jetpack-compose</code></span><div><h3 style="margin:0">Jetpack Compose</h3><p>Nomes iguais aos do Google: LazyColumn, DockedSearchBar.</p></div></div>
+    <div class="g row"><span class="pill"><code>@expo/ui/community</code></span><div><h3 style="margin:0">Substitutos</h3><p>Troque pacotes populares da comunidade mudando só o import.</p></div></div>
+  </div>
+  <p class="m">As camadas se misturam: pode usar universal e SwiftUI ou Compose dentro do mesmo Host.</p>
+</section>
+
+<!-- universal nomes -->
+<section>
+  <h2>Universal: nomes que você já digita</h2>
+  <table class="w">
+    <tr><th>Universal (@expo/ui)</th><th>SwiftUI</th><th>Jetpack Compose</th></tr>
+    <tr><td>Row</td><td>HStack</td><td>Row</td></tr>
+    <tr><td>Column</td><td>VStack</td><td>Column</td></tr>
+    <tr><td>Switch</td><td>Toggle</td><td>Switch</td></tr>
+    <tr><td>FieldGroup</td><td>Form</td><td>Lista agrupada Material 3</td></tr>
+    <tr><td>Host, Text, Slider</td><td>Host, Text, Slider</td><td>Host, Text, Slider</td></tr>
+  </table>
+  <p class="m" style="margin-top:18px">O universal prefere os nomes de quem já usa React Native. Os nomes da Apple continuam em @expo/ui/swift-ui.</p>
+</section>
+
+<!-- 6 recursos -->
+<section>
+  <h2>Principais recursos</h2>
+  <div class="grid c3" style="flex:1;gap:16px">
+    <div class="g"><h3>Componentes universais</h3><p>Host, Row, Column, FieldGroup, Switch, Slider, TextInput, Button.</p></div>
+    <div class="g"><h3>Nomes iguais aos nativos</h3><p>Exemplos da Apple e do Google ficam a um buscar e substituir de funcionar.</p></div>
+    <div class="g"><h3>Drop-ins da comunidade</h3><p>Datetime picker, slider, picker, pager view, segmented control, menu, masked view e bottom sheet.</p></div>
+    <div class="g"><h3>Extensível</h3><p>Crie suas próprias views e modifiers em Swift ou Kotlin; o Expo UI cuida de props e eventos.</p></div>
+    <div class="g"><h3>useNativeState</h3><p>Controles guiados pela thread de UI, sem flicker.</p></div>
+    <div class="g"><h3>Material 3, TV e Expo Go</h3><p>Cores dinâmicas, Material Symbols, Apple TV, Android TV. Já vem no Expo Go.</p></div>
+  </div>
+</section>
+
+<!-- mais funcionalidades -->
+<section>
+  <h2>Mais funcionalidades</h2>
+  <div class="grid c3" style="flex:1;gap:16px">
+    <div class="g"><h3>Layout</h3><p>Host, Row, Column, ScrollView e Spacer para montar a tela dentro da ilha nativa.</p></div>
+    <div class="g"><h3>Texto e entrada</h3><p>Text e TextInput, com uma API compatível com a do React Native.</p></div>
+    <div class="g"><h3>Controles</h3><p>Switch, Slider, Button e Picker, desenhados pelo próprio sistema.</p></div>
+    <div class="g"><h3>Containers</h3><p>FieldGroup, Form e List no iOS, LazyColumn no Android, com seções e rodapés.</p></div>
+    <div class="g"><h3>Sheets e menus</h3><p>Bottom sheet, menu, datetime picker e pager view, via drop-ins da comunidade.</p></div>
+    <div class="g"><h3>Modifiers e estado</h3><p>Modifiers de layout e estilo, e useNativeState para gestos contínuos.</p></div>
+  </div>
+</section>
+
+<!-- fieldgroup -->
+<section style="padding-top:44px">
+  <h2 style="font-size:44px;margin-bottom:14px">FieldGroup: telas de ajustes sem esforço</h2>
+  <div class="grid c2" style="flex:1;gap:20px;min-height:0">
+    <div class="g"><h3>O Form do universal</h3><p style="margin-bottom:10px">Seções, títulos e rodapés com o estilo de cada plataforma.</p><p style="margin-bottom:10px">No iOS vira um Form do SwiftUI com seções agrupadas. No Android vira uma lista agrupada Material 3.</p><p>Sem separar arquivos .ios.js e .android.js.</p></div>
+    <div class="cw"><pre data-c="fg" style="height:100%"></pre><button class="cp" data-copy="fg">Copiar</button></div>
+  </div>
+</section>
+
+<!-- drop-ins -->
+<section>
+  <h2 style="margin-bottom:16px">Drop-ins: troque o pacote, mantenha o código</h2>
+  <table class="w" style="font-size:16px">
+    <tr><th>Pacote da comunidade</th><th>Substituto em @expo/ui/community</th></tr>
+    <tr><td>@react-native-community/datetimepicker</td><td>datetime-picker</td></tr>
+    <tr><td>@react-native-community/slider</td><td>slider</td></tr>
+    <tr><td>react-native-pager-view</td><td>pager-view</td></tr>
+    <tr><td>@react-native-picker/picker</td><td>picker</td></tr>
+    <tr><td>@react-native-segmented-control/segmented-control</td><td>segmented-control</td></tr>
+    <tr><td>@react-native-masked-view/masked-view</td><td>masked-view</td></tr>
+    <tr><td>@react-native-menu/menu</td><td>menu</td></tr>
+    <tr><td>@gorhom/bottom-sheet</td><td>bottom-sheet</td></tr>
+  </table>
+  <p class="m" style="margin-top:12px;font-size:17px">Quase compatíveis: a maioria das migrações é uma troca de import, mas algumas props mudam.</p>
+</section>
+
+<!-- plataformas -->
+<section>
+  <h2>O que cada plataforma oferece</h2>
+  <div class="grid c2" style="flex:1;gap:18px">
+    <div class="g"><h3>iOS com SwiftUI</h3><p style="margin-bottom:10px">Nomes iguais aos da Apple: Toggle, Form, List.</p><p>Modifiers como glassEffect() para o visual de vidro.</p></div>
+    <div class="g"><h3>Android com Compose</h3><p style="margin-bottom:10px">Nomes iguais aos do Google: LazyColumn, DockedSearchBar.</p><p style="margin-bottom:10px">useMaterialColors entrega as cores dinâmicas do Material 3, que seguem o tema do sistema.</p><p>Icon com @expo/material-symbols dá acesso ao catálogo de Material Symbols.</p></div>
+  </div>
+</section>
+
+<!-- extensível -->
+<section>
+  <h2>Extensível: crie suas próprias views</h2>
+  <div class="grid c3" style="flex:1">
+    <div class="g"><h3>O limite</h3><p>SwiftUI e Compose têm centenas de views e modifiers. O Expo UI nunca vai embrulhar todos.</p></div>
+    <div class="g"><h3>A saída</h3><p>Você escreve suas views e modifiers nativos, e o Expo UI cuida do layout, das props e dos eventos.</p></div>
+    <div class="g"><h3>O custo</h3><p>É preciso conhecer um pouco de Swift ou Kotlin. Há guias de extensão na documentação para SwiftUI e Compose.</p></div>
+  </div>
+</section>
+
+<!-- native state -->
+<section>
+  <h2>useNativeState: controles sem flicker</h2>
+  <div class="grid c2" style="flex:1;gap:18px">
+    <div class="g"><h3>O que é</h3><p>Um hook que cria estado observável compartilhado entre o JavaScript e as views nativas.</p></div>
+    <div class="g"><h3>Para que serve</h3><p>Controles dirigidos pela thread de UI, sem atraso entre o gesto e a tela.</p></div>
+    <div class="g"><h3>Onde existe</h3><p>Em @expo/ui/swift-ui e em @expo/ui/jetpack-compose.</p></div>
+    <div class="g"><h3>Como pensar</h3><p>Use o estado do React para a lógica da tela e o estado nativo para gestos contínuos, como arrastar um slider.</p></div>
+  </div>
+</section>
+
+<!-- tv -->
+<section>
+  <h2>Apple TV e Android TV</h2>
+  <div class="grid c2" style="flex:1;gap:18px">
+    <div class="g"><h3>Funciona na TV</h3><p>Expo UI roda em Apple TV e Android TV, e a maioria dos componentes e APIs é suportada.</p></div>
+    <div class="g"><h3>Com exceções</h3><p>Algumas APIs nativas do SwiftUI e do Compose simplesmente não existem na TV.</p></div>
+  </div>
+  <p class="m" style="margin-top:16px">O app ExpoUITV mostra quase todas as APIs suportadas e roda na TV e no celular.</p>
+</section>
+
+<!-- 7 playground -->
+<section style="padding-top:44px">
+  <div class="row" style="align-items:flex-start;gap:36px;flex:1">
+    <div id="phone"></div>
+    <div style="flex:1;min-width:0">
+      <h2 style="font-size:44px;margin-bottom:14px">Teste ao vivo</h2>
+      <div class="row" style="gap:8px;margin-bottom:10px;flex-wrap:wrap" id="pl"></div>
+      <div class="row" style="gap:8px;margin-bottom:14px;flex-wrap:wrap" id="tb"></div>
+      <div class="cw"><pre id="pc" style="height:300px"></pre><button class="cp" data-copy="pc">Copiar</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- teste ao vivo 2 -->
+<section style="padding-top:44px">
+  <div class="row" style="align-items:flex-start;gap:36px;flex:1">
+    <div id="phone2"></div>
+    <div style="flex:1;min-width:0">
+      <h2 style="font-size:44px;margin-bottom:14px">Mais recursos ao vivo</h2>
+      <div class="row" style="gap:8px;margin-bottom:10px;flex-wrap:wrap" id="pl2"></div>
+      <div class="row" style="gap:8px;margin-bottom:14px;flex-wrap:wrap" id="tb2"></div>
+      <div class="cw"><pre id="pc2" style="height:300px"></pre><button class="cp" data-copy="pc2">Copiar</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 limitações -->
+<section>
+  <h2>Tem alguma limitação?</h2>
+  <div class="grid c2" style="flex:1;gap:16px">
+    <div class="g"><h3>Camada universal é a 1ª iteração</h3><p>Alguns componentes funcionam bem nas três plataformas; outros não, porque SwiftUI, Compose e web não têm sempre a mesma primitiva.</p></div>
+    <div class="g"><h3>Web ainda é experimental</h3><p>Existem implementações web, mas sem o mesmo nível de qualidade do nativo.</p></div>
+    <div class="g"><h3>Cobertura parcial</h3><p>SwiftUI e Compose têm centenas de views. Só parte está embrulhada; o resto exige estender com Swift ou Kotlin.</p></div>
+    <div class="g"><h3>Layout e estilo diferentes</h3><p>Dentro do Host não vale flexbox do Yoga nem estilos no padrão CSS (como NativeWind). Visual segue cada sistema, não é pixel igual.</p></div>
+    <div class="g"><h3>Drop-ins não são 100% idênticos</h3><p>Muitas migrações são só trocar o import, mas algumas props mudam porque a base é SwiftUI e Compose, não UIKit e Android Views.</p></div>
+    <div class="g"><h3>Algumas APIs não existem na TV</h3><p>Em Apple TV e Android TV, certas APIs nativas simplesmente não estão disponíveis.</p></div>
+  </div>
+</section>
+
+<!-- 9 comparativo -->
+<section>
+  <h2 style="margin-bottom:14px">Diferenças entre recursos similares</h2>
+  <table>
+    <tr><th></th><th class="hl">Expo UI</th><th>RN core</th><th>Pacotes community</th><th>Skia</th><th>DOM components</th></tr>
+    <tr><td>Renderiza</td><td class="hl">SwiftUI e Compose reais</td><td>View e Text com flexbox</td><td>UIKit e Android Views, um módulo por controle</td><td>Canvas desenhado por você</td><td>Código web numa webview</td></tr>
+    <tr><td>Visual</td><td class="hl">Igual ao do sistema</td><td>Seu design</td><td>Nativo, por controle</td><td>Totalmente livre</td><td>O da web, como shadcn</td></tr>
+    <tr><td>Melhor para</td><td class="hl">Ajustes, formulários, sheets, pickers</td><td>Design system próprio</td><td>Apps que já usam esses pacotes</td><td>Gráficos, shaders, animações</td><td>Reaproveitar o ecossistema web</td></tr>
+    <tr><td>Troca</td><td class="hl">Cobertura parcial e layout fora do Yoga</td><td>Controles de sistema pedem libs</td><td>Muitas dependências e releases</td><td>Não é UI nativa</td><td>Webview, não nativo</td></tr>
+  </table>
+  <p class="m" style="margin-top:14px;font-size:17px">Não competem: podem conviver na mesma tela e na mesma árvore de views.</p>
+</section>
+
+<!-- misturar -->
+<section>
+  <h2>Misture ferramentas na mesma tela</h2>
+  <div class="grid c3" style="flex:1;gap:16px">
+    <div class="g"><h3>View e Text</h3><p>Design próprio, flexbox, NativeWind.</p></div>
+    <div class="g"><h3>Expo UI</h3><p>Ajustes, modais, pickers, sheets, tudo com cara de sistema.</p></div>
+    <div class="g"><h3>react-native-skia</h3><p>Gráficos, shaders e animações desenhadas.</p></div>
+    <div class="g"><h3>WebGPU e TypeGPU</h3><p>3D e computação na GPU.</p></div>
+    <div class="g"><h3>DOM components</h3><p>Código web numa webview, como shadcn.</p></div>
+    <div class="g"><h3>Juntos</h3><p>Combinam no nível do componente, na mesma árvore de views.</p></div>
+  </div>
+</section>
+
+<!-- 10 quando usar -->
+<section>
+  <h2>Quando usar</h2>
+  <div class="grid c2" style="flex:1;gap:20px">
+    <div class="g"><h3>Escolha Expo UI quando</h3><p style="margin-bottom:8px">A tela deve parecer do sistema: ajustes, formulários, modais, sheets, menus, pickers.</p><p style="margin-bottom:8px">Você quer reduzir pacotes nativos e ter uma só história de atualização.</p><p>Quer usar recursos novos do SwiftUI e do Compose assim que existirem.</p></div>
+    <div class="g"><h3>Prefira outra ferramenta quando</h3><p style="margin-bottom:8px">O visual é totalmente seu: View e Text.</p><p style="margin-bottom:8px">É gráfico, shader ou animação desenhada: Skia.</p><p>Já existe solução web pronta: DOM components.</p></div>
+  </div>
+</section>
+
+<!-- 12 roteiro: código -->
+<section style="padding-top:44px">
+  <h2 style="font-size:44px;margin-bottom:14px">Roteiro de código: App.js completo</h2>
+  <div class="cw" style="flex:1;min-height:0"><pre data-c="app" style="height:100%;font-size:13.5px"></pre><button class="cp" data-copy="app">Copiar</button></div>
+</section>
+
+
+<!-- conclusão -->
+<section>
+  <h2>Conclusão</h2>
+  <div class="grid c2" style="flex:1;gap:16px">
+    <div class="g"><h3>Nativo de verdade</h3><p>Expo UI traz SwiftUI no iOS e Jetpack Compose no Android para dentro do React, com um único import.</p></div>
+    <div class="g"><h3>Pronto para produção</h3><p>Estável desde o SDK 56 e já incluído no Expo Go, com drop-ins que reduzem pacotes nativos.</p></div>
+    <div class="g"><h3>Use onde o sistema deve aparecer</h3><p>Ajustes, formulários, pickers e sheets. Para o resto, View, Skia ou DOM components na mesma tela.</p></div>
+    <div class="g"><h3>Com os pés no chão</h3><p>Universal é a primeira iteração, web é experimental e a cobertura de componentes é parcial.</p></div>
+  </div>
+</section>
+
+</div>
+<button class="arr" id="pv" style="left:16px" aria-label="Anterior">‹</button>
+<button class="arr" id="nx" style="right:16px" aria-label="Próximo">›</button>
+<div id="hud"><span id="tm">00:00</span></div>
+<div id="nt"></div>
+<div id="nav"><div id="bar"></div></div>
+
+<script>
+const CODE={
+setup:`# 1) Pré-requisitos: Node.js LTS (nodejs.org)
+#    e o app Expo Go no celular
+node -v
+
+# 2) Criar a pasta do projeto (JavaScript)
+npx create-expo-app@latest expo-ui-demo --template blank
+cd expo-ui-demo
+
+# 3) Instalar o Expo UI
+npx expo install @expo/ui
+
+# 4) Trocar o conteúdo do App.js
+#    (código no próximo slide)
+
+# 5) Rodar
+npx expo start
+# Escaneie o QR code com o Expo Go
+# (celular e PC na mesma rede Wi-Fi)`,
+other:`git clone <seu-repo> && cd expo-ui-demo
+npm install
+npx expo start
+# ou copie a pasta SEM node_modules`,
+app:`import { useState } from 'react';
+import { Button, FieldGroup, Host, Row, Slider, Spacer, Switch, Text } from '@expo/ui';
+
+function LabeledRow({ label, children }) {
+  return (
+    <Row alignment="center" spacing={16}>
+      <Text>{label}</Text>
+      <Spacer flexible />
+      {children}
+    </Row>
+  );
+}
+
+export default function App() {
+  const [notifications, setNotifications] = useState(true);
+  const [sounds, setSounds] = useState(false);
+  const [brightness, setBrightness] = useState(0.6);
+
+  return (
+    <Host style={{ flex: 1 }}>
+      <FieldGroup>
+        <FieldGroup.Section title="Notificações">
+          <LabeledRow label="Push">
+            <Switch value={notifications} onValueChange={setNotifications} />
+          </LabeledRow>
+          <LabeledRow label="Sons">
+            <Switch value={sounds} onValueChange={setSounds} />
+          </LabeledRow>
+        </FieldGroup.Section>
+
+        <FieldGroup.Section title="Tela">
+          <LabeledRow label="Brilho">
+            <Slider value={brightness} onValueChange={setBrightness} />
+          </LabeledRow>
+        </FieldGroup.Section>
+
+        <FieldGroup.Section>
+          <Row alignment="center" style={{ padding: 12 }}>
+            <Spacer flexible />
+            <Button variant="outlined" label="Sair" onPress={() => alert('Saiu')} />
+            <Spacer flexible />
+          </Row>
+        </FieldGroup.Section>
+      </FieldGroup>
+    </Host>
+  );
+}`,
+c_txt:`// Universal: campo de texto nativo
+import { Host, TextInput } from '@expo/ui';
+
+<Host matchContents={{ vertical: true }}
+      style={{ width: '100%' }}>
+  <TextInput
+    defaultValue=""
+    placeholder="Seu nome"
+    maxLength={20}
+    onChangeText={setNome}
+  />
+</Host>
+
+// Props parecidas com as do TextInput do RN.
+// iOS: TextField do SwiftUI. Android: Compose.`,
+c_menu:`// Antes
+import { MenuView } from '@react-native-menu/menu';
+// Depois
+import { MenuView } from '@expo/ui/community/menu';
+
+<MenuView
+  title="Ordenar por"
+  actions={[
+    { id: 'g1', title: 'Nome', displayInline: true,
+      subactions: [
+        { id: 'az', title: 'Ordem alfabética (A–Z)' } ] },
+    { id: 'g2', title: 'Data', displayInline: true,
+      subactions: [
+        { id: 'recente', title: 'Mais recente' },
+        { id: 'antigo', title: 'Mais tempo no sistema' } ] },
+    { id: 'g3', title: 'Preço', displayInline: true,
+      subactions: [
+        { id: 'barato', title: 'Mais barato' },
+        { id: 'caro', title: 'Mais caro' } ] },
+  ]}
+  onPressAction={({ nativeEvent }) =>
+    setOrdem(nativeEvent.event)}
+>
+  <Text>Ordenar por</Text>
+</MenuView>`,
+c_pager:`// Antes
+import PagerView from 'react-native-pager-view';
+// Depois
+import PagerView from '@expo/ui/community/pager-view';
+
+<PagerView style={{ flex: 1 }} initialPage={0}>
+  <View key="1"><Text>Bem-vindo</Text></View>
+  <View key="2"><Text>Nativo</Text></View>
+  <View key="3"><Text>Pronto</Text></View>
+</PagerView>`,
+fg:`<FieldGroup>
+  <FieldGroup.Section title="Notificações">
+    <Row alignment="center">
+      <Text>Push</Text><Spacer flexible />
+      <Switch value={on} onValueChange={setOn} />
+    </Row>
+    <FieldGroup.SectionFooter>
+      <Text textStyle={{ fontSize: 13, color: '#6c6c70' }}>
+        Prévias podem expor conteúdo
+        na tela bloqueada.
+      </Text>
+    </FieldGroup.SectionFooter>
+  </FieldGroup.Section>
+</FieldGroup>`,
+set:`import { Host, FieldGroup, Row, Text, Spacer,
+         Switch, Slider } from '@expo/ui';
+
+<Host style={{ flex: 1 }}>
+  <FieldGroup>
+    <FieldGroup.Section title="Notificações">
+      <Row alignment="center">
+        <Text>Push</Text><Spacer flexible />
+        <Switch value={on} onValueChange={setOn} />
+      </Row>
+    </FieldGroup.Section>
+    <FieldGroup.Section title="Tela">
+      <Slider value={brightness}
+              onValueChange={setBrightness} />
+    </FieldGroup.Section>
+  </FieldGroup>
+</Host>
+
+// Mesmo código: iOS = SwiftUI, Android = Compose`,
+pick:`import { Host, Picker } from '@expo/ui';
+
+<Host matchContents={{ vertical: true }}>
+  <Picker selectedValue={fruta}
+          onValueChange={setFruta}>
+    <Picker.Item label="Maçã" value="maca" />
+    <Picker.Item label="Uva" value="uva" />
+  </Picker>
+</Host>
+
+// Para migrar de @react-native-picker/picker,
+// use @expo/ui/community/picker.
+// Segmented control: .../community/segmented-control`,
+date:`// Antes
+import DateTimePicker from
+  '@react-native-community/datetimepicker';
+
+// Depois
+import DateTimePicker from
+  '@expo/ui/community/datetime-picker';
+
+<DateTimePicker
+  value={date}
+  mode="date"
+  presentation="inline"
+  onValueChange={(e, d) => setDate(d)}
+/>`,
+sheet:`import { Host, Button, BottomSheet, Column,
+         Text } from '@expo/ui';
+
+<Host matchContents>
+  <Button label="Abrir"
+          onPress={() => setAberto(true)} />
+</Host>
+<BottomSheet isPresented={aberto}
+             onDismiss={() => setAberto(false)}>
+  <Column spacing={12}>
+    <Text>Compartilhar</Text>
+    <Button label="Fechar"
+            onPress={() => setAberto(false)} />
+  </Column>
+</BottomSheet>`
+};
+const NOTES=[
+"1 min. Abra dizendo: hoje é sobre fazer telas que o usuário reconhece como do sistema, escrevendo só React. Estável desde o SDK 56.",
+"1 min. Mostre o mapa da fala. Avise que há demo ao vivo e roteiro de código para reproduzirem em casa.",
+"3 min. Três dores: visual quase nativo, muitos pacotes nativos, novidades do SO atrasadas. Pergunte à plateia quantos pacotes de picker e slider usam.",
+"2 min. Quatro SDKs de amadurecimento. Mostre que não é um experimento novo: já vem no template e no Expo Go.",
+"3 min. Explique o Host como ponte. Ponto-chave: não é reimplementação em JS.",
+"2 min. Fora do Host vale RN normal; dentro, o layout é SwiftUI ou Compose. RNHostView volta ao RN.",
+"2 min. Mostre as quatro camadas. Universal para começar; swift-ui e jetpack-compose quando precisar de algo específico.",
+"2 min. Compare os nomes. Row e Column em vez de HStack e VStack, Switch em vez de Toggle.",
+"3 min. Passe pelos seis cards. Destaque os drop-ins e a extensibilidade.",
+"2 min. Catálogo rápido do que existe: layout, texto, controles, containers, sheets e modifiers.",
+"2 min. Mostre o código do FieldGroup e o que ele vira em cada plataforma.",
+"2 min. Leia a tabela. Mensagem: migração quase sempre é trocar o import, mas confira as props.",
+"2 min. Recursos exclusivos de cada plataforma: glassEffect no iOS, Material 3 dinâmico no Android.",
+"2 min. Quando o Expo UI não cobre uma view, você escreve a sua. Cite o custo: Swift ou Kotlin.",
+"2 min. Estado nativo para gestos contínuos, sem flicker. Mencione que há post dedicado do time do Expo.",
+"1 min. TV é suportada, com algumas APIs indisponíveis.",
+"5 min. Alterne iOS e Android. Mexa no brilho, nos switches, escolha uma data e abra o bottom sheet. Depois rode o App.js real no Expo Go.",
+"3 min. Segunda rodada: digite no campo de texto, abra o menu e navegue no pager. Compare iOS e Android.",
+"3 min. Seja honesto: universal é primeira iteração, web experimental, cobertura parcial. Isso gera confiança.",
+"3 min. Leia a tabela por colunas. Mensagem: não são concorrentes, compõem na mesma tela.",
+"2 min. Expo UI convive com Skia, WebGPU e DOM components.",
+"1 min. Resuma: use onde o sistema deve aparecer; outras ferramentas para o resto.",
+"2 min. Cole o App.js e salve. Altere um texto ao vivo para mostrar o Fast Refresh.",
+"2 min. Retome os pontos principais e encerre."
+];
+const $=s=>document.querySelector(s),sl=[...document.querySelectorAll('section')];
+let i=0,t0=null;
+document.querySelectorAll('pre[data-c]').forEach(p=>p.textContent=CODE[p.dataset.c]);
+function go(n){i=Math.max(0,Math.min(sl.length-1,n));sl.forEach((s,k)=>s.classList.toggle('on',k===i));
+ $('#bar').style.width=(i+1)/sl.length*100+'%';$('#nt').textContent=NOTES[i];
+ if(sl[i].querySelector('#phone'))render();try{history.replaceState(null,'','#'+(i+1))}catch(e){}}
+function fit(){const s=Math.min(innerWidth/1280,innerHeight/720);$('#stage').style.transform='translate(-50%,-50%) scale('+s+')'}
+addEventListener('resize',fit);fit();
+$('#nx').onclick=()=>go(i+1);$('#pv').onclick=()=>go(i-1);
+addEventListener('keydown',e=>{if(e.target.matches('input,select'))return;
+ if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();go(i+1)}
+ else if(['ArrowLeft','PageUp'].includes(e.key))go(i-1);
+ else if(e.key==='Home')go(0);else if(e.key==='End')go(sl.length-1);
+ else if(e.key==='n'||e.key==='N')document.body.classList.toggle('notes');
+ else if(e.key==='t'||e.key==='T')t0=Date.now();
+ else if(e.key==='f'||e.key==='F'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()}});
+setInterval(()=>{if(t0===null)return;const s=Math.floor((Date.now()-t0)/1000);$('#tm').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')},500);
+addEventListener('click',()=>{if(t0===null)t0=Date.now()},{once:true});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-copy]');if(!b)return;
+ const k=b.dataset.copy,txt=document.getElementById(k)?document.getElementById(k).textContent:CODE[k];
+ const ok=()=>{b.textContent='Copiado';setTimeout(()=>b.textContent='Copiar',1200)};
+ try{navigator.clipboard.writeText(txt).then(ok,fb)}catch(x){fb()}
+ function fb(){const a=document.createElement('textarea');a.value=txt;document.body.appendChild(a);a.select();try{document.execCommand('copy');ok()}catch(x){}a.remove()}});
+/* playground */
+const S={p:'ios',tab:'set',a:true,b:false,br:60,sg:1,fr:'Maçã',dt:'2026-11-05',cy:2026,cm:10,sheet:false};
+const Q=['250 g','500 g','1 kg'];
+const MES=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const TABS=[['set','Switch e Slider'],['pick','Picker'],['date','Data'],['sheet','Bottom sheet']];
+const sw=k=>`<div class="sw ${S[k]?'on':''}" data-t="${k}"></div>`;
+const V={
+set:()=>`<div class="ttl">Ajustes</div><div class="gl">Notificações</div><div class="grp"><div class="rw">Push ${sw('a')}</div><div class="rw">Sons ${sw('b')}</div></div><div class="gl">Tela</div><div class="grp"><div class="rw" style="gap:10px">Brilho<input id="rg" type="range" min="0" max="100" value="${S.br}" style="flex:1;accent-color:var(--ac)"><span id="rv" style="width:34px">${S.br}%</span></div></div><button class="bt">Sair</button>`,
+pick:()=>`<div class="ttl">Pedido</div><div class="gl">Quantidade</div><div class="sg">${Q.map((x,n)=>`<b data-s="${n}" class="${S.sg===n?'on':''}">${x}</b>`).join('')}</div><div class="gl">Fruta</div><div class="grp">${['Maçã','Uva','Manga'].map(x=>`<div class="rw" data-f="${x}" style="cursor:pointer">${x}<span style="color:var(--ac)">${S.fr===x?'✓':''}</span></div>`).join('')}</div><p style="margin:14px 22px;color:#6c6c70">Pedido: ${Q[S.sg]} de ${S.fr}</p>`,
+date:()=>{if(S.cv===2){const b=S.yb;return `<div class="ttl">Data</div><div class="cal"><div class="ch"><i data-yb="-12">‹</i><span data-v="1" style="cursor:pointer">${b} – ${b+11}</span><i data-yb="12">›</i></div><div class="mg">${Array.from({length:12},(_,k)=>`<b data-yr="${b+k}" class="${b+k===S.cy?'on':''}">${b+k}</b>`).join('')}</div></div>`}if(S.cv===1)return `<div class="ttl">Data</div><div class="cal"><div class="ch"><i data-y="-1">‹</i><span data-v="2" style="cursor:pointer">${S.cy} ▾</span><i data-y="1">›</i></div><div class="mg">${MES.map((x,n)=>`<b data-mo="${n}" class="${n===S.cm?'on':''}">${x.slice(0,3)}</b>`).join('')}</div></div>`;const y=S.cy,m=S.cm,f=new Date(y,m,1).getDay(),n=new Date(y,m+1,0).getDate(),s=S.dt.split('-').map(Number);let c='';for(let k=0;k<f;k++)c+='<span></span>';for(let d=1;d<=n;d++)c+=`<b data-d="${d}" class="${s[0]===y&&s[1]===m+1&&s[2]===d?'on':''}">${d}</b>`;return `<div class="ttl">Data</div><div class="cal"><div class="ch"><i data-m="-1">‹</i><span data-v="1" style="cursor:pointer">${MES[m]} ${y} ▾</span><i data-m="1">›</i></div><div class="cg">${'DSTQQSS'.split('').map(x=>`<u>${x}</u>`).join('')}${c}</div></div><p style="margin:14px 22px;color:#6c6c70">Selecionada: ${S.dt.split('-').reverse().join('/')}</p>`},
+sheet:()=>`<div class="ttl">Sheet</div><button class="bt" data-sh="1">Abrir bottom sheet</button><p style="margin:4px 22px;color:var(--ac);font-weight:600">${S.msg?'✓ '+S.msg:''}</p><div class="sh ${S.sheet?'open':''}"><i></i><h3 style="margin:0 0 6px;font-size:18px">Compartilhar</h3><div class="rw" data-a="Link copiado" style="cursor:pointer">Copiar link</div><div class="rw" data-a="E-mail aberto" style="cursor:pointer">Enviar por e-mail</div><button class="bt" data-sh="0" style="margin:10px 0 0;width:100%">Fechar</button></div>`};
+function render(){
+ $('#phone').innerHTML=`<div class="ph ${S.p}"><div class="sc"><div class="nb"></div>${V[S.tab]()}<div id="dim" style="position:absolute;inset:0;pointer-events:none;background:#000;opacity:${(100-S.br)*.0065}"></div></div></div>`;
+ $('#pl').innerHTML=[['ios','iOS: SwiftUI'],['and','Android: Compose']].map(x=>`<button class="t ${S.p===x[0]?'on':''}" data-p="${x[0]}">${x[1]}</button>`).join('');
+ $('#tb').innerHTML=TABS.map(x=>`<button class="t ${S.tab===x[0]?'on':''}" data-tab="${x[0]}">${x[1]}</button>`).join('');
+ $('#pc').textContent=CODE[S.tab];render2();
+}
+document.addEventListener('click',e=>{const d=e.target.closest('[data-p],[data-tab],[data-t],[data-s],[data-sh],[data-d],[data-m],[data-f],[data-a],[data-v],[data-y],[data-mo],[data-yr],[data-yb]');if(!d)return;
+ const D=d.dataset;if(D.p)S.p=D.p;else if(D.tab){S.tab=D.tab;S.sheet=false;S.cv=0}else if(D.t)S[D.t]=!S[D.t];else if(D.s)S.sg=+D.s;else if(D.sh)S.sheet=D.sh==='1';else if(D.a){S.msg=D.a;S.sheet=false;if(D.a==='Link copiado'){try{navigator.clipboard.writeText('https://exemplo.com/produto').catch(()=>{})}catch(x){}}}else if(D.f)S.fr=D.f;else if(D.d)S.dt=S.cy+'-'+String(S.cm+1).padStart(2,'0')+'-'+String(D.d).padStart(2,'0');else if(D.m){S.cm+=+D.m;if(S.cm>11){S.cm=0;S.cy++}if(S.cm<0){S.cm=11;S.cy--}}else if(D.v){S.cv=+D.v;if(S.cv===2)S.yb=S.cy-4}else if(D.y)S.cy+=+D.y;else if(D.mo){S.cm=+D.mo;S.cv=0}else if(D.yr){S.cy=+D.yr;S.cv=1}else if(D.yb)S.yb+=+D.yb;render()});
+document.addEventListener('input',e=>{if(e.target.id==='rg'){S.br=+e.target.value;$('#rv').textContent=S.br+'%';$('#dim').style.opacity=(100-S.br)*.0065}});
+document.addEventListener('change',e=>{if(e.target.id==='rg')e.target.blur()});
+const S2={tx:'',mn:false,ord:'az',pg:0,tab:'txt'};
+const PROD=[['Maçã','2026-11-02',6.9],['Uva','2026-09-14',12.5],['Manga','2026-10-20',8.4],['Banana','2026-08-05',5.2],['Morango','2026-11-07',15.9],['Abacaxi','2026-07-18',9.9]];
+const ORD={az:['Nome','Ordem alfabética (A–Z)'],new:['Data','Mais recente'],old:['Data','Mais tempo no sistema'],low:['Preço','Mais barato'],high:['Preço','Mais caro']};
+const SORT={az:(a,b)=>a[0].localeCompare(b[0],'pt-BR'),new:(a,b)=>b[1].localeCompare(a[1]),old:(a,b)=>a[1].localeCompare(b[1]),low:(a,b)=>a[2]-b[2],high:(a,b)=>b[2]-a[2]};
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const PG=[['Bem-vindo','Deslize entre as páginas.'],['Nativo','Componentes reais do sistema.'],['Pronto','Troque o import e siga em frente.']];
+const TABS2=[['txt','Campo de texto'],['menu','Menu'],['pager','Pager view']];
+const V2={
+txt:()=>`<div class="ttl">Perfil</div><div class="gl">Nome</div><div style="margin:6px 14px"><input class="in" id="tx" maxlength="20" placeholder="Seu nome" value="${esc(S2.tx)}"></div><p style="margin:14px 22px;font-weight:600" id="tg">${S2.tx?'Olá, '+esc(S2.tx)+'!':'Digite seu nome'}</p><p style="margin:0 22px;color:#6c6c70" id="tc">${S2.tx.length}/20 caracteres</p>`,
+menu:()=>`<div class="ttl">Produtos</div><button class="bt" data-mn="1" style="width:auto;padding:10px 20px;margin-bottom:4px">Ordenar por ▾</button><p style="margin:2px 22px 4px;color:var(--ac);font-weight:600;font-size:13px">${ORD[S2.ord][0]}: ${ORD[S2.ord][1]}</p><div class="grp">${PROD.slice().sort(SORT[S2.ord]).map(p=>`<div class="rw" style="padding:7px 14px;min-height:44px"><div>${p[0]}<div style="font-size:11px;color:#6c6c70">No sistema desde ${p[1].split('-').reverse().join('/')}</div></div><b style="font-weight:600">R$ ${p[2].toFixed(2).replace('.',',')}</b></div>`).join('')}</div>${S2.mn?`<div class="pop">${['Nome','Data','Preço'].map(g=>`<div class="gl" style="margin:8px 14px 2px">${g}</div>`+Object.entries(ORD).filter(([k,v])=>v[0]===g).map(([k,v])=>`<div class="rw" data-o="${k}" style="cursor:pointer;min-height:40px">${v[1]}<span style="color:var(--ac)">${S2.ord===k?'✓':''}</span></div>`).join('')).join('')}</div>`:''}`,
+pager:()=>`<div class="ttl">Pager</div><div class="pg"><h3 style="font-size:28px">${PG[S2.pg][0]}</h3><p style="font-size:16px">${PG[S2.pg][1]}</p></div><div class="dots">${PG.map((x,n)=>`<i data-pg="${n}" class="${S2.pg===n?'on':''}"></i>`).join('')}</div><div style="display:flex;justify-content:center"><button class="bt" data-pn="-1" style="width:110px;margin:6px">Anterior</button><button class="bt" data-pn="1" style="width:110px;margin:6px">Próxima</button></div>`};
+function render2(){const el=$('#phone2');if(!el)return;
+ el.innerHTML=`<div class="ph ${S.p}"><div class="sc"><div class="nb"></div>${V2[S2.tab]()}</div></div>`;
+ $('#pl2').innerHTML=[['ios','iOS: SwiftUI'],['and','Android: Compose']].map(x=>`<button class="t ${S.p===x[0]?'on':''}" data-p="${x[0]}">${x[1]}</button>`).join('');
+ $('#tb2').innerHTML=TABS2.map(x=>`<button class="t ${S2.tab===x[0]?'on':''}" data-tab2="${x[0]}">${x[1]}</button>`).join('');
+ $('#pc2').textContent=CODE['c_'+S2.tab]}
+document.addEventListener('click',e=>{const d=e.target.closest('[data-tab2],[data-mn],[data-o],[data-pg],[data-pn]');if(!d)return;const D=d.dataset;
+ if(D.tab2){S2.tab=D.tab2;S2.mn=false}else if(D.mn)S2.mn=!S2.mn;else if(D.o){S2.ord=D.o;S2.mn=false}else if(D.pg)S2.pg=+D.pg;else if(D.pn)S2.pg=(S2.pg+ +D.pn+3)%3;render2()});
+document.addEventListener('input',e=>{if(e.target.id==='tx'){S2.tx=e.target.value;$('#tg').textContent=S2.tx?'Olá, '+S2.tx+'!':'Digite seu nome';$('#tc').textContent=S2.tx.length+'/20 caracteres'}});
+const h=parseInt(location.hash.slice(1));go(h>0?h-1:0);render();
+</script>
+</body>
+</html>

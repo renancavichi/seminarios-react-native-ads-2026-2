@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Geometrias GeoJSON</title>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+<script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b1226; --panel: #131a2e; --panel-2: #182139; --line: #24304d;
+    --ink: #e6ecff; --muted: #93a3c4; --accent: #3b82f6; --code-bg: #0e1528;
+    --point: #e11d48; --line-c: #2563eb; --poly: #16a34a; --coll: #a855f7;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); color: var(--ink); font: 15px/1.5 "Inter", system-ui, sans-serif; }
+  .app { display: grid; grid-template-columns: 380px minmax(0, 1fr); height: 100vh; }
+  aside { border-right: 1px solid var(--line); overflow: auto; padding: 1.2rem 1rem 1.5rem; }
+  h1 { font-size: 1.35rem; font-weight: 800; margin: 0 0 .25rem; letter-spacing: -.01em; }
+  .sub { color: var(--muted); font-size: .88rem; margin: 0 0 1rem; }
+  .types { display: grid; gap: .45rem; }
+  .type { text-align: left; width: 100%; font: inherit; color: inherit; background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--c); border-radius: .6rem; padding: .55rem .75rem; cursor: pointer; }
+  .type:hover { background: var(--panel-2); }
+  .type.on { background: var(--panel-2); border-color: var(--c); box-shadow: 0 0 0 1px var(--c) inset; }
+  .type b { font-family: "JetBrains Mono", monospace; font-size: .92rem; }
+  .type .shape { display: block; font: .78rem "JetBrains Mono", monospace; color: var(--muted); margin-top: .1rem; }
+  .type .layer { float: right; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--c); }
+  .legend { margin-top: 1rem; padding: .7rem .8rem; background: var(--panel); border: 1px solid var(--line); border-radius: .6rem; font-size: .82rem; color: var(--muted); }
+  .legend b { color: var(--ink); }
+  .legend i { display: inline-block; width: .7rem; height: .7rem; border-radius: 50%; vertical-align: middle; margin-right: .3rem; }
+  main { display: grid; grid-template-rows: minmax(0, 1fr) minmax(0, 42%); min-width: 0; }
+  #map { min-height: 0; }
+  .info { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border-top: 1px solid var(--line); min-height: 0; }
+  .explain { padding: 1rem 1.2rem; overflow: auto; }
+  .explain h2 { margin: 0 0 .4rem; font-size: 1.15rem; }
+  .explain h2 code { color: var(--c); }
+  .explain p { margin: 0 0 .6rem; }
+  .explain ul { margin: 0; padding-left: 1.1rem; }
+  .explain li { margin-bottom: .3rem; }
+  code { font-family: "JetBrains Mono", monospace; font-size: .88em; }
+  p code, li code { background: var(--panel-2); padding: .05em .35em; border-radius: .3em; }
+  .code { display: flex; flex-direction: column; min-height: 0; background: var(--code-bg); border-left: 1px solid var(--line); }
+  .tabs { display: flex; gap: .3rem; padding: .45rem .6rem; border-bottom: 1px solid var(--line); background: #111a30; }
+  .tabs button { font: 600 .82rem "Inter", sans-serif; color: var(--muted); background: transparent; border: 0; padding: .35rem .75rem; border-radius: .45rem; cursor: pointer; }
+  .tabs button.on { background: #1f2c4b; color: #fff; }
+  pre { margin: 0; padding: .9rem 1.1rem; overflow: auto; flex: 1; font: .82rem/1.55 "JetBrains Mono", monospace; color: #dbe4ff; }
+  pre .k { color: #7fb0ff; } pre .s { color: #a5d6a7; } pre .n { color: #ffcc80; }
+  .maplibregl-popup-content { color: #0f172a; font-size: .85rem; }
+  @media (max-width: 860px) {
+    .app { grid-template-columns: 1fr; height: auto; }
+    aside { border-right: 0; border-bottom: 1px solid var(--line); padding: 1rem 16px; }
+    main { grid-template-rows: 60vh auto; }
+    .info { grid-template-columns: 1fr; }
+    .code { border-left: 0; border-top: 1px solid var(--line); max-height: 60vh; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <h1>Geometrias do GeoJSON</h1>
+    <p class="sub">Os 7 tipos de <code>geometry</code> que um <code>GeoJSONSource</code> aceita, desenhados em Caraguatatuba. Clique em um tipo.</p>
+    <div class="types" id="types"></div>
+    <div class="legend">
+      <b>Qual layer desenha cada um?</b><br>
+      <i style="background:var(--point)"></i><code>circle</code> / <code>symbol</code> → pontos<br>
+      <i style="background:var(--line-c)"></i><code>line</code> → linhas (e contornos)<br>
+      <i style="background:var(--poly)"></i><code>fill</code> → polígonos<br>
+      Os pontinhos brancos são cada coordenada do <code>coordinates</code>.
+    </div>
+  </aside>
+  <main>
+    <div id="map"></div>
+    <div class="info">
+      <div class="explain" id="explain"></div>
+      <div class="code">
+        <div class="tabs">
+          <button data-tab="json" class="on">geometry (JSON)</button>
+          <button data-tab="app">App (React Native)</button>
+          <button data-tab="web">Web (GL JS)</button>
+        </div>
+        <pre id="code"></pre>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+/* ---------- Os 7 tipos de geometria (coordenadas sempre [lng, lat]) ---------- */
+const PRACA = [-45.4110, -23.6187];
+const PRAIAS = [[-45.4114, -23.6270], [-45.3904, -23.6311], [-45.3834, -23.6285], [-45.4238, -23.6441]];
+const ROTA_A = [[-45.4238, -23.6441], [-45.4185, -23.6372], [-45.4114, -23.6270], [-45.4040, -23.6262], [-45.3904, -23.6311]];
+const ROTA_B = [[-45.4110, -23.6187], [-45.4112, -23.6230], [-45.4114, -23.6270]];
+const QUADRA = [[-45.4160, -23.6150], [-45.4060, -23.6150], [-45.4060, -23.6225], [-45.4160, -23.6225], [-45.4160, -23.6150]];
+const BURACO = [[-45.4125, -23.6172], [-45.4095, -23.6172], [-45.4095, -23.6200], [-45.4125, -23.6200], [-45.4125, -23.6172]];
+const AREA_2 = [[-45.3960, -23.6250], [-45.3880, -23.6250], [-45.3880, -23.6300], [-45.3960, -23.6300], [-45.3960, -23.6250]];
+
+const TYPES = [
+  {
+    type: "Point", color: "var(--point)", layer: "circle", shape: "[lng, lat]",
+    geometry: { type: "Point", coordinates: PRACA },
+    text: "<p>Um único lugar: <b>um</b> par <code>[lng, lat]</code>.</p><ul><li>Ex.: a Praça Cândido Mota, um ponto de ônibus, um restaurante.</li><li>Desenhado com <code>circle</code> ou <code>symbol</code> (ícone/texto).</li></ul>",
+  },
+  {
+    type: "MultiPoint", color: "var(--point)", layer: "circle", shape: "[[lng, lat], …]",
+    geometry: { type: "MultiPoint", coordinates: PRAIAS },
+    text: "<p>Vários pontos que formam <b>uma só feature</b> (mesmas <code>properties</code>).</p><ul><li>Ex.: as praias de um mesmo roteiro.</li><li>Clicar em qualquer um devolve a mesma feature. Se cada ponto precisa de nome próprio, use várias features <code>Point</code>.</li></ul>",
+  },
+  {
+    type: "LineString", color: "var(--line-c)", layer: "line", shape: "[[lng, lat], [lng, lat], …]",
+    geometry: { type: "LineString", coordinates: ROTA_A },
+    text: "<p>Uma linha ligando <b>2 ou mais</b> pontos, na ordem.</p><ul><li>Ex.: uma rota, uma trilha, uma linha de ônibus.</li><li>Desenhada com <code>line</code> (<code>line-width</code>, <code>line-dasharray</code>…).</li></ul>",
+  },
+  {
+    type: "MultiLineString", color: "var(--line-c)", layer: "line", shape: "[[[lng, lat], …], [[lng, lat], …]]",
+    geometry: { type: "MultiLineString", coordinates: [ROTA_A, ROTA_B] },
+    text: "<p>Várias linhas <b>separadas</b> numa só feature — um nível a mais de colchetes.</p><ul><li>Ex.: uma linha de ônibus com dois ramais.</li><li>As linhas não precisam se tocar.</li></ul>",
+  },
+  {
+    type: "Polygon", color: "var(--poly)", layer: "fill", shape: "[[[lng, lat], …, primeiro]]",
+    geometry: { type: "Polygon", coordinates: [QUADRA, BURACO] },
+    text: "<p>Uma área. É uma lista de <b>anéis</b>: o 1º é o contorno, os demais são <b>buracos</b>.</p><ul><li>Cada anel é <b>fechado</b>: o último ponto repete o primeiro.</li><li>Aqui: uma quadra com um buraco no meio.</li><li>Desenhado com <code>fill</code> (e <code>line</code> para a borda).</li></ul>",
+  },
+  {
+    type: "MultiPolygon", color: "var(--poly)", layer: "fill", shape: "[[[[lng, lat], …]], [[[lng, lat], …]]]",
+    geometry: { type: "MultiPolygon", coordinates: [[QUADRA, BURACO], [AREA_2]] },
+    text: "<p>Várias áreas separadas numa só feature — cada item é um <code>Polygon</code> inteiro.</p><ul><li>Ex.: um município com ilhas (Ilhabela!), um parque dividido.</li><li>É o tipo com mais colchetes: 4 níveis.</li></ul>",
+  },
+  {
+    type: "GeometryCollection", color: "var(--coll)", layer: "vários", shape: "geometries: [ … ]",
+    geometry: { type: "GeometryCollection", geometries: [
+      { type: "Point", coordinates: PRACA },
+      { type: "LineString", coordinates: ROTA_B },
+      { type: "Polygon", coordinates: [AREA_2] },
+    ] },
+    text: "<p>Mistura tipos diferentes numa só feature. Não tem <code>coordinates</code>: tem <code>geometries</code>.</p><ul><li>Cada parte é desenhada pela layer do seu tipo.</li><li>Pouco usado: costuma ser mais simples ter várias features.</li></ul>",
+  },
+];
+
+/* ---------- Formatação do JSON: pares [lng, lat] em uma linha ---------- */
+function pretty(obj) {
+  return JSON.stringify(obj, null, 2)
+    .replace(/\[\s+(-?[\d.]+),\s+(-?[\d.]+)\s+\]/g, "[$1, $2]");
+}
+const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+function highlight(code) {
+  return esc(code)
+    .replace(/("[^"\n]*")(\s*:)/g, '<span class="k">$1</span>$2')
+    .replace(/:\s*("[^"\n]*")/g, (m, s) => m.replace(s, `<span class="s">${s}</span>`))
+    .replace(/(-?\b\d+\.\d+)/g, '<span class="n">$1</span>');
+}
+
+const featureOf = (t) => ({ type: "Feature", properties: { tipo: t.type }, geometry: t.geometry });
+
+function appCode(t) {
+  const isPoint = t.type.includes("Point") && t.type !== "GeometryCollection";
+  const isLine = t.type.includes("LineString");
+  const isPoly = t.type.includes("Polygon");
+  const all = t.type === "GeometryCollection";
+  const L = [
+    `import { GeoJSONSource, Layer } from "@maplibre/maplibre-react-native";`,
+    ``,
+    `const dados: GeoJSON.Feature = {`,
+    `  type: "Feature",`,
+    `  properties: { tipo: "${t.type}" },`,
+    `  geometry: { type: "${t.type}", ${all ? "geometries" : "coordinates"}: [ … ] },`,
+    `};`,
+    ``,
+    `// dentro do <Map>:`,
+    `<GeoJSONSource id="geo" data={dados}>`,
+  ];
+  if (isPoly || all) L.push(`  <Layer id="area" type="fill"`, `    paint={{ "fill-color": "#16a34a", "fill-opacity": 0.35 }} />`);
+  if (isPoly || isLine || all) L.push(`  <Layer id="linha" type="line"`, `    paint={{ "line-color": "${isPoly ? "#16a34a" : "#2563eb"}", "line-width": ${isPoly ? 2 : 4} }} />`);
+  if (isPoint || all) L.push(`  <Layer id="ponto" type="circle"`, `    paint={{ "circle-color": "#e11d48", "circle-radius": 8 }} />`);
+  L.push(`</GeoJSONSource>`);
+  return L.join("\n");
+}
+
+function webCode(t) {
+  const isPoint = t.type.includes("Point") && t.type !== "GeometryCollection";
+  const isLine = t.type.includes("LineString");
+  const isPoly = t.type.includes("Polygon");
+  const all = t.type === "GeometryCollection";
+  const L = [
+    `map.addSource("geo", {`,
+    `  type: "geojson",`,
+    `  data: {`,
+    `    type: "Feature",`,
+    `    properties: { tipo: "${t.type}" },`,
+    `    geometry: { type: "${t.type}", ${all ? "geometries" : "coordinates"}: [ … ] },`,
+    `  },`,
+    `});`,
+    ``,
+  ];
+  if (isPoly || all) L.push(`map.addLayer({ id: "area", type: "fill", source: "geo",`, `  paint: { "fill-color": "#16a34a", "fill-opacity": 0.35 } });`);
+  if (isPoly || isLine || all) L.push(`map.addLayer({ id: "linha", type: "line", source: "geo",`, `  paint: { "line-color": "${isPoly ? "#16a34a" : "#2563eb"}", "line-width": ${isPoly ? 2 : 4} } });`);
+  if (isPoint || all) L.push(`map.addLayer({ id: "ponto", type: "circle", source: "geo",`, `  paint: { "circle-color": "#e11d48", "circle-radius": 8 } });`);
+  L.push(``, `// Trocar os dados depois: map.getSource("geo").setData(novoGeoJSON);`);
+  return L.join("\n");
+}
+
+/* ---------- Todas as coordenadas (para desenhar os vértices) ---------- */
+function coordsOf(g) {
+  if (g.type === "GeometryCollection") return g.geometries.flatMap(coordsOf);
+  const out = [];
+  const walk = (a) => (typeof a[0] === "number" ? out.push(a) : a.forEach(walk));
+  walk(g.coordinates);
+  return out;
+}
+const vertices = (g) => ({
+  type: "FeatureCollection",
+  features: coordsOf(g).map((c) => ({ type: "Feature", properties: {}, geometry: { type: "Point", coordinates: c } })),
+});
+
+/* ---------- Mapa ---------- */
+const map = new maplibregl.Map({
+  container: "map",
+  style: "https://tiles.openfreemap.org/styles/positron",
+  center: [-45.405, -23.625],
+  zoom: 13.6,
+});
+map.addControl(new maplibregl.NavigationControl(), "top-right");
+
+const POINTS = ["in", ["geometry-type"], ["literal", ["Point", "MultiPoint"]]];
+const LINES = ["in", ["geometry-type"], ["literal", ["LineString", "MultiLineString"]]];
+const POLYS = ["in", ["geometry-type"], ["literal", ["Polygon", "MultiPolygon"]]];
+
+map.on("load", () => {
+  map.addSource("geo", { type: "geojson", data: featureOf(TYPES[0]) });
+  map.addSource("vertices", { type: "geojson", data: vertices(TYPES[0].geometry) });
+  map.addLayer({ id: "area", type: "fill", source: "geo", filter: POLYS, paint: { "fill-color": "#16a34a", "fill-opacity": 0.35 } });
+  map.addLayer({ id: "borda", type: "line", source: "geo", filter: POLYS, paint: { "line-color": "#16a34a", "line-width": 2 } });
+  map.addLayer({ id: "linha", type: "line", source: "geo", filter: LINES, layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#2563eb", "line-width": 5 } });
+  map.addLayer({ id: "ponto", type: "circle", source: "geo", filter: POINTS, paint: { "circle-color": "#e11d48", "circle-radius": 9, "circle-stroke-color": "#fff", "circle-stroke-width": 2.5 } });
+  map.addLayer({ id: "vertice", type: "circle", source: "vertices", paint: { "circle-color": "#fff", "circle-radius": 3.5, "circle-stroke-color": "#0f172a", "circle-stroke-width": 1.5 } });
+
+  for (const id of ["area", "linha", "ponto"]) {
+    map.on("click", id, (e) => {
+      const f = e.features[0];
+      new maplibregl.Popup().setLngLat(e.lngLat)
+        .setHTML(`layer <b>${id}</b> · geometry-type <b>${f.geometry.type}</b><br>properties.tipo = <b>${f.properties.tipo}</b>`)
+        .addTo(map);
+    });
+    map.on("mouseenter", id, () => (map.getCanvas().style.cursor = "pointer"));
+    map.on("mouseleave", id, () => (map.getCanvas().style.cursor = ""));
+  }
+  select(0);
+});
+
+/* ---------- Interface ---------- */
+let current = 0, tab = "json";
+const typesEl = document.getElementById("types");
+TYPES.forEach((t, i) => {
+  const b = document.createElement("button");
+  b.className = "type";
+  b.style.setProperty("--c", t.color);
+  b.innerHTML = `<span class="layer">${t.layer}</span><b>${t.type}</b><span class="shape">${esc(t.shape)}</span>`;
+  b.onclick = () => select(i);
+  typesEl.appendChild(b);
+});
+
+document.querySelectorAll(".tabs button").forEach((b) => {
+  b.onclick = () => {
+    tab = b.dataset.tab;
+    document.querySelectorAll(".tabs button").forEach((x) => x.classList.toggle("on", x === b));
+    renderCode();
+  };
+});
+
+function renderCode() {
+  const t = TYPES[current];
+  const code = tab === "json" ? pretty(t.geometry) : tab === "app" ? appCode(t) : webCode(t);
+  document.getElementById("code").innerHTML = tab === "json" ? highlight(code) : esc(code);
+}
+
+function select(i) {
+  current = i;
+  const t = TYPES[i];
+  [...typesEl.children].forEach((b, j) => b.classList.toggle("on", j === i));
+  const ex = document.getElementById("explain");
+  ex.style.setProperty("--c", t.color);
+  ex.innerHTML = `<h2><code>${t.type}</code></h2>${t.text}`;
+  renderCode();
+  if (!map.getSource("geo")) return;
+  map.getSource("geo").setData(featureOf(t));
+  map.getSource("vertices").setData(vertices(t.geometry));
+  const pts = coordsOf(t.geometry);
+  const b = pts.reduce((bb, c) => bb.extend(c), new maplibregl.LngLatBounds(pts[0], pts[0]));
+  map.fitBounds(b, { padding: 80, maxZoom: 15.5, duration: 800 });
+}
+</script>
+</body>
+</html>

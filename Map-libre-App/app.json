@@ -1,0 +1,50 @@
+{
+  "expo": {
+    "name": "MapLibre App",
+    "slug": "Map-libre-App",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.duda.maplibreapp",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Este app usa sua localização para centralizar o mapa onde você está."
+      }
+    },
+    "android": {
+      "package": "com.duda.maplibreapp",
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": [
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.INTERNET"
+      ],
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "@maplibre/maplibre-react-native",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Este app usa sua localização para centralizar o mapa onde você está."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "ffa88e10-1fea-4211-95cf-77a4c7d4e7f5"
+      }
+    }
+  }
+}

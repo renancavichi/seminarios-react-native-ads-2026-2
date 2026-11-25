@@ -1,0 +1,7 @@
+node_modules
+package-lock.json
+dist
+src/data/highlighted.json
+.artifacts
+test-results
+playwright-report

@@ -1,0 +1,13 @@
+{
+  "expo": {
+    "name": "Background Tasks",
+    "slug": "background-tasks-demo",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "background-tasks-demo",
+    "newArchEnabled": true,
+    "ios": { "supportsTablet": true, "bundleIdentifier": "com.example.backgroundtasksdemo" },
+    "android": { "edgeToEdgeEnabled": true, "package": "com.example.backgroundtasksdemo" },
+    "plugins": ["expo-router", "expo-background-task", "expo-notifications"]
+  }
+}
