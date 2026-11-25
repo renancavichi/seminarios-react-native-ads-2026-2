@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "expo-video-deck",
+    "slug": "expo-video-deck",
+    "version": "1.0.0",
+    "orientation": "default",
+    "userInterfaceStyle": "light",
+    "plugins": [
+      [
+        "expo-video",
+        {
+          "supportsBackgroundPlayback": true,
+          "supportsPictureInPicture": true
+        }
+      ],
+      "expo-status-bar"
+    ]
+  }
+}
