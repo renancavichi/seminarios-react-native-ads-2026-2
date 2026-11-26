@@ -31,7 +31,7 @@ Exemplo:
 - Expo ImagePicker (Maíra Kobayashi [@mairakobay](https://github.com/mairakobay), [Apresentação](app-expo-image-picker/))
 - Expo Background Task ([João Alves Passos](https://github.com/joaoapassos), [Apresentação](expo-background-tasks/README.md))
 - React Native Unity (@azesmway/react-native-unity) (Raissa Patricio [@raissapatricio](https://github.com/raissapatricio), [Apresentação](react-native-unity/))
-- Expo Video ([Ana Julia Andrade](https://github.com/ana-andrades))
+- Expo Video ([Ana Julia Andrade](https://github.com/ana-andrades), [Apresentação](expo-video/))
 - Skia ([Nicoli dos Santos](https://github.com/niickcodes))
 - React Native Paper ([Murillo Diogo dos Santos Moreira](https://github.com/MrllMoreira), [Apresentação](react-native-paper/))
 - Barcode Scanner (Expo Camera) (Vinícius Garcia [@vinikyo](https://github.com/vinikyo), [Apresentação](barcode-scanner-expo/))
