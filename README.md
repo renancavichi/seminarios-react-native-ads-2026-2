@@ -1,5 +1,7 @@
 # Ferramentas e Bibliotecas para Desenvolvimento com React Native (2026)
 
+> 📘 **[Acesse o guia de estudo (PDF)](guia-de-estudo-react-native.pdf)**
+
 Apresentações realizadas como requisito da disciplina de Desenvolvimento para Dispositivos Móveis do cursos de Análise e Desenvolvimento de Sistemas do IFSP Caraguatatuba.
 Prof. Renan Cavichi
 
